@@ -17,6 +17,7 @@ type Status = {
 type Character = {
   name: string
   hp: number
+  maxHp: number
   money: number
   status: Status
   skill: string[]
@@ -35,7 +36,8 @@ const deadCharacters = ref<Character[]>([])
 const skillChoices = ref<string[][]>([])
 const showSkillSelect = ref(false)
 const showResultButton = ref(false)
-const characterHistory = ref<Character[]>([])
+type CharacterHistory = Character & { winCount: number }
+const characterHistory = ref<CharacterHistory[]>([])
 
 function onBattleFinished() {
   showResultButton.value = true
@@ -57,31 +59,42 @@ function randomStatus(total: number, base: Status = {str:1,agi:1,vit:1,dex:1,int
 function randomCharacter(statusTotal = 30, baseStatus?: Status): Character {
   const names = ['Maximus', 'Spartacus', 'Crixus', 'Commodus', 'Tigris'];
   const status = randomStatus(statusTotal, baseStatus);
+  const maxHp = Math.floor(Math.random() * statusTotal) + 100;
   return {
     name: names[Math.floor(Math.random() * names.length)],
-    hp: Math.floor(Math.random() * 50) + 100,
+    hp: maxHp,
+    maxHp,
     money: 0,
     status,
     skill: [],
   };
 }
 
+let statusTotal = 30;
 function startNewGame() {
-  // ทุกครั้งที่เกิดใหม่ status+1 ทุกค่า
+  // ทุกครั้งที่เกิดใหม่ statustTotal + 1 และ base เอามาแค่ 10%
   let base: Status | undefined = undefined;
   if (character.value) {
     // เก็บประวัติตัวละครก่อนรี
-    characterHistory.value.push({ ...character.value });
+    characterHistory.value.push({ ...character.value, winCount: winStreak.value });
+    // base = 10% ของ status เดิม
     base = { ...character.value.status };
-    Object.keys(base).forEach(k => (base![k as keyof Status] += 1));
+    Object.keys(base).forEach(k => {
+      base![k as keyof Status] = Math.floor(base![k as keyof Status] * 0.1);
+    });
+    statusTotal++;
+  } else {
+    statusTotal = 30;
   }
-  character.value = randomCharacter(30, base);
+  character.value = randomCharacter(statusTotal, base);
   winStreak.value = 0;
   deadCharacters.value = [];
   currentScene.value = scenes.PREPARE;
 }
 
 function startFight() {
+  // ป้องกันเข้าฉากต่อสู้ถ้า HP หมด
+  if (!character.value || character.value.hp <= 0) return;
   // ถ้ามีตัวละครที่เคยใช้และตายที่ winStreak ปัจจุบัน ให้เอามาเป็นศัตรู
   const found = characterHistory.value.find(
     (c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${winStreak.value}`)
@@ -109,8 +122,8 @@ function fight() {
   enemy.value.hp -= playerAttack;
   if (enemy.value.hp <= 0) {
     // ชนะ
-    character.value.money += 50;
     winStreak.value++;
+    character.value.money += 10 * winStreak.value;
     // สุ่ม skill 3 แบบให้เลือก
     skillChoices.value = randomSkillChoices();
     showSkillSelect.value = true;
@@ -123,19 +136,20 @@ function fight() {
     // บันทึก winStreak ที่ตายลง skill log เพื่อใช้ตามหาในอนาคต
     const charCopy = { ...character.value, skill: [...character.value.skill, `win: ${winStreak.value}`] };
     deadCharacters.value.push(charCopy);
-    characterHistory.value.push(charCopy);
+    characterHistory.value.push({ ...charCopy, winCount: winStreak.value });
     currentScene.value = scenes.PREPARE;
     setTimeout(startNewGame, 1500);
   }
 }
 
 function randomSkillChoices(): string[][] {
-  // 3 skill: เพิ่ม status random 10, เพิ่ม status ใดๆ 10, คูณ status 1.1x-2x
+  // 4 skill: เพิ่ม status random 10, เพิ่ม status ใดๆ 10, คูณ status 1.1x-2x, เพิ่ม maxHp 10%
   const keys = ['str','agi','vit','dex','int','luk','cha'];
   return [
     [`เพิ่ม status แบบสุ่ม 10`, 'random10'],
     [`เพิ่ม status ใดๆ 10`, 'choose10'],
-    [`คูณ status ทั้งหมด x${(Math.random()*0.9+1.1).toFixed(2)}`, 'multiply']
+    [`คูณ status ทั้งหมด x${(Math.random()*0.9+1.1).toFixed(2)}`, 'multiply'],
+    [`เพิ่ม Max HP 10%`, 'maxhp10']
   ];
 }
 
@@ -158,6 +172,12 @@ function applySkill(idx: number) {
     Object.keys(character.value.status).forEach(k => {
       character.value!.status[k as keyof Status] = Math.floor(character.value!.status[k as keyof Status] * mul);
     });
+  } else if (skill === 'maxhp10') {
+    // เพิ่ม maxHp 10% และฟื้น HP ตาม max ใหม่
+    const add = Math.floor(character.value.maxHp * 0.1);
+    character.value.maxHp += add;
+    character.value.hp += add;
+    if (character.value.hp > character.value.maxHp) character.value.hp = character.value.maxHp;
   }
   character.value.skill.push(skillChoices.value[idx][0]);
   showSkillSelect.value = false;
@@ -174,7 +194,7 @@ startNewGame()
     <div class="wrapper">
       <h1>Gladiator Fight</h1>
       <p>ชนะติดต่อกัน: {{ winStreak }}</p>
-      <button @click="startNewGame">สุ่มตัวละครใหม่</button>
+      <button v-if="character && character.hp <= 0" @click="startNewGame">เกิดใหม่</button>
     </div>
   </header>
   <main>
@@ -184,6 +204,7 @@ startNewGame()
       :character="character"
       :dead-characters="deadCharacters"
       @start-fight="startFight"
+      @buy-heal="() => { if (character && character.money >= 100 && character.hp < character.maxHp) { character.money -= 100; const heal = Math.floor(character.maxHp * 0.1); character.hp += heal; if (character.hp > character.maxHp) character.hp = character.maxHp; } }"
     />
     <FightScene
       v-if="currentScene === scenes.FIGHT && character && enemy"
@@ -191,6 +212,40 @@ startNewGame()
       :enemy="enemy"
       @battle-finished="onBattleFinished"
     />
+    <!-- Skill Select Popup -->
+    <div v-if="showSkillSelect" class="modal-overlay">
+      <div class="modal-box">
+        <h3>เลือก Skill หลังชนะ</h3>
+        <ul>
+          <li v-for="(s, i) in skillChoices" :key="i">
+            <button @click="applySkill(i)">{{ s[0] }}</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-box {
+  background: #232323;
+  color: #fff;
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  min-width: 300px;
+  box-shadow: 0 2px 16px #000a;
+  text-align: center;
+}
+</style>
     <div v-if="currentScene === scenes.FIGHT && showResultButton">
       <button @click="showResultButton = false; currentScene = scenes.PREPARE">ดูผลและกลับไปเตรียมตัว</button>
     </div>
@@ -198,7 +253,7 @@ startNewGame()
       <h2>ประวัติตัวละครที่เคยใช้</h2>
       <ul>
         <li v-for="(c, idx) in characterHistory" :key="idx">
-          <strong>{{ c.name }}</strong> | HP: {{ c.hp }} | เงิน: {{ c.money }} |
+          <strong>{{ c.name }}</strong> | HP: {{ c.hp }} | เงิน: {{ c.money }} | <span>ชนะ: {{ c.winCount ?? 0 }}</span>
           <span>Status: [STR:{{ c.status.str }}, AGI:{{ c.status.agi }}, VIT:{{ c.status.vit }}, DEX:{{ c.status.dex }}, INT:{{ c.status.int }}, LUK:{{ c.status.luk }}, CHA:{{ c.status.cha }}]</span>
           <span> | Skill: <span v-for="(s, i) in c.skill" :key="i">{{ s }} </span></span>
         </li>

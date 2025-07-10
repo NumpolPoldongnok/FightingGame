@@ -3,7 +3,7 @@
     <h2>เตรียมตัวก่อนต่อสู้</h2>
     <div v-if="character">
       <p>ชื่อ: {{ character.name }}</p>
-      <p>HP: {{ character.hp }}</p>
+      <p>HP: {{ character.hp }} / {{ character.maxHp }}</p>
       <p>เงิน: {{ character.money }}</p>
       <div>
         <strong>Status:</strong>
@@ -23,7 +23,8 @@
           <li v-for="(s, i) in character.skill" :key="i">{{ s }}</li>
         </ul>
       </div>
-      <button @click="$emit('start-fight')">เข้าสู่ฉากต่อสู้</button>
+      <button @click="$emit('start-fight')" :disabled="character.hp <= 0">เข้าสู่ฉากต่อสู้</button>
+      <button @click="$emit('buy-heal')" :disabled="character.money < 100 || character.hp >= character.maxHp" style="margin-left:1rem">ซื้อยา (+10% max HP, 100 เงิน)</button>
     </div>
     <div v-if="deadCharacters && deadCharacters.length">
       <h3>ตัวละครที่ตายไปแล้ว</h3>
@@ -45,6 +46,7 @@ defineProps<{
   character: {
     name: string
     hp: number
+    maxHp: number
     money: number
     status: {
       str: number
@@ -60,6 +62,7 @@ defineProps<{
   deadCharacters?: Array<{
     name: string
     hp: number
+    maxHp: number
     money: number
     status: {
       str: number

@@ -5,7 +5,7 @@
       <div class="status-row">
         <div class="status-block player">
           <h3>คุณ: {{ character.name }}</h3>
-          <p>HP: {{ character.hp }}</p>
+          <p>HP: {{ character.hp }} / {{ character.maxHp }}</p>
           <div class="status-list">
             <span>STR: {{ character.status.str }}</span>
             <span>AGI: {{ character.status.agi }}</span>
@@ -24,12 +24,7 @@
         </div>
         <div class="status-block enemy">
           <h3>ศัตรู: {{ enemy.name }}<span v-if="isPastSelf"> (อดีตตัวเรา)</span></h3>
-import { computed } from 'vue'
-const isPastSelf = computed(() => {
-  // enemy เคยเป็นตัวละครของเรา (skill log มี win: ...)
-  return Array.isArray(enemy.skill) && enemy.skill.some(s => typeof s === 'string' && s.startsWith('win:'))
-})
-          <p>HP: {{ enemy.hp }}</p>
+          <p>HP: {{ enemy.hp }} / {{ enemy.maxHp }}</p>
           <div class="status-list">
             <span>STR: {{ enemy.status.str }}</span>
             <span>AGI: {{ enemy.status.agi }}</span>
@@ -65,6 +60,7 @@ const props = defineProps<{
   character: {
     name: string
     hp: number
+    maxHp: number
     status: {
       str: number
       agi: number
@@ -79,6 +75,7 @@ const props = defineProps<{
   enemy: {
     name: string
     hp: number
+    maxHp: number
     status: {
       str: number
       agi: number
