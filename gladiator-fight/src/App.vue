@@ -103,14 +103,15 @@ function startFight() {
     // หาใน deadCharacters ที่ตายรอบ winStreak นี้
     const dead = deadCharacters.value.find((c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${winStreak.value}`));
     if (dead) {
-      enemy.value = { ...dead };
+      enemy.value = { ...dead, hp: dead.maxHp };
       currentScene.value = scenes.FIGHT;
       return;
     }
   }
   // ถ้าไม่มี ให้สุ่มศัตรูใหม่
   const total = 20 + winStreak.value * 10;
-  enemy.value = randomCharacter(total);
+  const newEnemy = randomCharacter(total);
+  enemy.value = { ...newEnemy, hp: newEnemy.maxHp };
   currentScene.value = scenes.FIGHT;
 }
 
@@ -223,29 +224,7 @@ startNewGame()
         </ul>
       </div>
     </div>
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal-box {
-  background: #232323;
-  color: #fff;
-  border-radius: 12px;
-  padding: 2rem 2.5rem;
-  min-width: 300px;
-  box-shadow: 0 2px 16px #000a;
-  text-align: center;
-}
-</style>
+
     <div v-if="currentScene === scenes.FIGHT && showResultButton">
       <button @click="showResultButton = false; currentScene = scenes.PREPARE">ดูผลและกลับไปเตรียมตัว</button>
     </div>
@@ -262,6 +241,7 @@ startNewGame()
     </div>
   </main>
 </template>
+
 <style scoped>
 header {
   line-height: 1.5;
@@ -288,5 +268,26 @@ header {
     place-items: flex-start;
     flex-wrap: wrap;
   }
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-box {
+  background: #232323;
+  color: #fff;
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  min-width: 300px;
+  box-shadow: 0 2px 16px #000a;
+  text-align: center;
 }
 </style>
