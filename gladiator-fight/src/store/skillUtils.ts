@@ -1,51 +1,56 @@
+
 import type { Character, Status } from './useGameStore'
 
-export function randomSkillChoices(luk: number = 0): string[][] {
-  // Helper for random int in range, luck increases chance to get max
+export type SkillData = {
+  statusType: string
+  value: string // always string for display, can be int or percent
+  multiply: string // percent string, e.g. '3.25%'
+}
+
+export type Skill = {
+  buff: SkillData
+  debuff?: SkillData
+}
+
+export function randomSkillChoices(luk: number = 0): Skill[] {
   function randIntLuck(min: number, max: number, luk: number) {
-    // luck 0 = uniform, luck 99 = always max
-    if (Math.random() < Math.min(luk, 99) / 99) return max;
+    if (Math.random() < Math.min(luk, 9999) / 9999) return max;
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
-  // Helper for random percent (1-5), luck increases chance to get 5
   function randPercentLuck(luk: number) {
-    if (Math.random() < Math.min(luk, 99) / 99) return '5.00';
+    if (Math.random() < Math.min(luk, 9999) / 9999) return (5).toFixed(2);
     return (Math.random() * 4 + 1).toFixed(2);
   }
   const statusTypes = ['str', 'agi', 'vit', 'dex', 'int', 'luk', 'cha'];
-  const choices: string[][] = [];
-  // 1. เพิ่ม status แบบสุ่ม 1-10
-  choices.push([
-    `เพิ่ม status แบบสุ่ม ${randIntLuck(1, 10, luk)}`,
-    'randomN'
-  ]);
-  // 2. เพิ่ม status [status type] 1-10 (สุ่ม type)
-  const typeIdx = randIntLuck(0, statusTypes.length - 1, luk);
-  choices.push([
-    `เพิ่ม status ${statusTypes[typeIdx]} ${randIntLuck(1, 10, luk)}`,
-    `addTypeN:${statusTypes[typeIdx]}`
-  ]);
-  // 3. เพิ่ม status แบบสุ่ม % 1-5%
-  choices.push([
-    `เพิ่ม status แบบสุ่ม ${randPercentLuck(luk)}%`,
-    'randomPercent'
-  ]);
-  // 4. เพิ่ม status [status type] % 1-5% (สุ่ม type)
-  const typeIdx2 = randIntLuck(0, statusTypes.length - 1, luk);
-  choices.push([
-    `เพิ่ม status ${statusTypes[typeIdx2]} ${randPercentLuck(luk)}%`,
-    `addTypePercent:${statusTypes[typeIdx2]}`
-  ]);
-  // 5. เพิ่ม max hp 1-10%
-  choices.push([
-    `เพิ่ม Max HP ${randIntLuck(1, 10, luk)}%`,
-    'maxhpPercent'
-  ]);
-  // จำนวน choices 3-5 ขึ้นอยู่กับ luck
+  const choices: Skill[] = [];
   let minChoices = 3;
   let maxChoices = 5;
-  let numChoices = minChoices + Math.floor((Math.min(luk, 99) / 99) * (maxChoices - minChoices + 1));
+  let numChoices = minChoices + Math.floor((Math.min(luk, 9999) / 9999) * (maxChoices - minChoices + 1));
   numChoices = Math.max(minChoices, Math.min(maxChoices, numChoices));
+  for (let i = 0; i < 5; i++) {
+    // Randomly pick type and value
+    const type = statusTypes[randIntLuck(0, statusTypes.length - 1, luk)];
+    const value = randIntLuck(1, 10, luk).toString();
+    const multiply = randPercentLuck(luk);
+    const buff: SkillData = {
+      statusType: type,
+      value,
+      multiply: multiply + '%'
+    };
+    let debuff: SkillData | undefined = undefined;
+    // 10% chance for debuff
+    if (Math.random() < 0.1) {
+      const debuffType = statusTypes[randIntLuck(0, statusTypes.length - 1, luk)];
+      const debuffValue = randIntLuck(1, 10, luk).toString();
+      const debuffMultiply = randPercentLuck(luk);
+      debuff = {
+        statusType: debuffType,
+        value: debuffValue,
+        multiply: debuffMultiply + '%'
+      };
+    }
+    choices.push({ buff, debuff });
+  }
   // Shuffle and pick numChoices
   for (let i = choices.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -54,33 +59,51 @@ export function randomSkillChoices(luk: number = 0): string[][] {
   return choices.slice(0, numChoices);
 }
 
-export function applySkill(idx: number, character: Character, skillChoices: string[][], characterHistory: Character[], showSkillSelectSetter?: (v: boolean) => void) {
-  const skill = skillChoices[idx][1]
-  if (skill === 'random10') {
-    for (let i = 0; i < 10; i++) {
-      const k = Object.keys(character.status) as (keyof Status)[]
-      const key = k[Math.floor(Math.random() * k.length)]
-      character.status[key]++
+export function applySkill(idx: number, character: Character, skillChoices: Skill[], characterHistory: Character[], showSkillSelectSetter?: (v: boolean) => void) {
+  const skill = skillChoices[idx];
+  // Apply buff
+  const buff = skill.buff;
+  if (buff) {
+    // Add value
+    if (buff.value && !buff.multiply) {
+      const key = buff.statusType as keyof Status;
+      character.status[key] += parseInt(buff.value);
     }
-  } else if (skill === 'choose10') {
-    character.status.str += 10
-  } else if (skill === 'multiply') {
-    const mul = parseFloat(skillChoices[idx][0].split('x')[1])
-    Object.keys(character.status).forEach(k => {
-      character.status[k as keyof Status] = Math.floor(character.status[k as keyof Status] * mul)
-    })
-  } else if (skill === 'maxhp10') {
-    const add = Math.floor(character.maxHp * 0.1)
-    character.maxHp += add
-    character.hp += add
-    if (character.hp > character.maxHp) character.hp = character.maxHp
+    // Multiply
+    if (buff.multiply && buff.multiply !== '0%' && buff.multiply !== '0.00%') {
+      const key = buff.statusType as keyof Status;
+      const mul = parseFloat(buff.multiply.replace('%', '')) / 100;
+      character.status[key] = Math.floor(character.status[key] * (1 + mul));
+    }
   }
-  character.skill.push(skillChoices[idx][0])
-  const idxHistory = characterHistory.findIndex(c => c.name === character.name && c.skill.join(',') === character.skill.join(','))
+  // Apply debuff (subtract value)
+  if (skill.debuff) {
+    const debuff = skill.debuff;
+    if (debuff.value && !debuff.multiply) {
+      const key = debuff.statusType as keyof Status;
+      character.status[key] -= parseInt(debuff.value);
+      if (character.status[key] < 0) character.status[key] = 0;
+    }
+    if (debuff.multiply && debuff.multiply !== '0%' && debuff.multiply !== '0.00%') {
+      const key = debuff.statusType as keyof Status;
+      const mul = parseFloat(debuff.multiply.replace('%', '')) / 100;
+      character.status[key] = Math.floor(character.status[key] * (1 - mul));
+      if (character.status[key] < 0) character.status[key] = 0;
+    }
+  }
+  // Log skill usage (for history)
+  let skillDesc = `Buff: ${buff.statusType} +${buff.value}`;
+  if (buff.multiply && buff.multiply !== '0%' && buff.multiply !== '0.00%') skillDesc += ` x${buff.multiply}`;
+  if (skill.debuff) {
+    skillDesc += ` | Debuff: ${skill.debuff.statusType} -${skill.debuff.value}`;
+    if (skill.debuff.multiply && skill.debuff.multiply !== '0%' && skill.debuff.multiply !== '0.00%') skillDesc += ` x${skill.debuff.multiply}`;
+  }
+  character.skill.push(skillDesc);
+  const idxHistory = characterHistory.findIndex(c => c.name === character.name && c.skill.join(',') === character.skill.join(','));
   if (idxHistory !== -1) {
-    characterHistory[idxHistory] = { ...character }
+    characterHistory[idxHistory] = { ...character };
   } else {
-    characterHistory.push({ ...character })
+    characterHistory.push({ ...character });
   }
-  if (showSkillSelectSetter) showSkillSelectSetter(false)
+  if (showSkillSelectSetter) showSkillSelectSetter(false);
 }

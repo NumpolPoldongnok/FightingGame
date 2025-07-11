@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, watch, onMounted } from 'vue'
 import * as battleUtils from './battleUtils'
 import * as skillUtils from './skillUtils'
+import type { Skill } from './skillUtils'
 
 export type Status = {
   str: number
@@ -43,7 +44,7 @@ export const useGameStore = defineStore('game', () => {
   const enemy = ref<Character | null>(null)
   const currentScene = ref(scenes.PREPARE)
   const deadCharacters = ref<Character[]>([])
-  const skillChoices = ref<string[][]>([])
+  const skillChoices = ref<Skill[]>([])
   const showSkillSelect = ref(false)
   const showResultButton = ref(false)
   const lastBattleWin = ref(false)
@@ -81,7 +82,7 @@ export const useGameStore = defineStore('game', () => {
       if (data.character && typeof data.character.winStreak === 'number' && character.value) character.value.winStreak = data.character.winStreak
       if (typeof data.currentScene === 'string') currentScene.value = data.currentScene
       if (Array.isArray(data.deadCharacters)) deadCharacters.value = data.deadCharacters
-      if (Array.isArray(data.skillChoices)) skillChoices.value = data.skillChoices
+      if (Array.isArray(data.skillChoices)) skillChoices.value = data.skillChoices as Skill[]
       if (typeof data.showSkillSelect === 'boolean') showSkillSelect.value = data.showSkillSelect
       if (typeof data.showResultButton === 'boolean') showResultButton.value = data.showResultButton
       if (typeof data.lastBattleWin === 'boolean') lastBattleWin.value = data.lastBattleWin
@@ -150,7 +151,7 @@ export const useGameStore = defineStore('game', () => {
       if (win) {
         character.value.winStreak++;
         // 1. randomSkillChoices
-        skillChoices.value = skillUtils.randomSkillChoices();
+        skillChoices.value = skillUtils.randomSkillChoices(character.value.status.luk);
         // 2. Userprofile money += lastMoneyEarned
         character.value.lastMoneyEarned = calcMoneyEarned(true);
         userProfile.value.money += character.value.lastMoneyEarned ?? 0;

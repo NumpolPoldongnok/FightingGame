@@ -25,7 +25,7 @@ const { scenes } = game
 // เพิ่ม scenes.HISTORY
 if (!scenes.HISTORY) scenes.HISTORY = 'history'
 import { ref } from 'vue'
-import { applySkill } from './store/skillUtils'
+import { applySkill, type Skill } from './store/skillUtils'
 const showTownhall = ref(false)
 
 
@@ -38,10 +38,11 @@ const {
 
 function handleChooseSkill(idx: number) {
   if (!character.value) return;
+  // skillChoices is now Skill[]
   applySkill(
     idx,
     character.value,
-    skillChoices.value,
+    skillChoices.value as Skill[],
     characterHistory.value
   )
   currentScene.value = scenes.PREPARE

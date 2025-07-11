@@ -9,7 +9,10 @@
       <h3>เลือก Skill หลังชนะ</h3>
       <ul>
         <li v-for="(s, i) in skillChoices" :key="i">
-          <button @click="$emit('choose-skill', i)">{{ s[0] }}</button>
+          <button @click="$emit('choose-skill', i)">
+            Buff: {{ s.buff.statusType }} +{{ s.buff.value }}<span v-if="s.buff.multiply && s.buff.multiply !== '0%'"> x{{ s.buff.multiply }}</span>
+            <span v-if="s.debuff"> | Debuff: {{ s.debuff.statusType }} -{{ s.debuff.value }}<span v-if="s.debuff.multiply && s.debuff.multiply !== '0%'"> x{{ s.debuff.multiply }}</span></span>
+          </button>
         </li>
       </ul>
       <button class="back-btn" @click="$emit('back')">กลับไปเตรียมตัว</button>
@@ -22,12 +25,12 @@
 </template>
 
 <script lang="ts" setup>
-// no import for defineProps, defineEmits (compiler macro)
+import type { Skill } from '../store/skillUtils'
 const props = defineProps<{
   win: boolean,
   winStreak: number,
   moneyEarned: number,
-  skillChoices: string[][]
+  skillChoices: Skill[]
 }>()
 defineEmits(['choose-skill', 'restart', 'back'])
 </script>
