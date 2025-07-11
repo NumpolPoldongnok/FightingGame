@@ -1,18 +1,18 @@
 
 
 <script setup lang="ts">
-import { Character, CharacterHistory, Status, useGameStore } from './store/useGameStore'
+import { useGameStore } from './store/useGameStore'
 import PrepareScene from './components/PrepareScene.vue'
 import FightScene from './components/FightScene.vue'
-import ResultScreen from './components/ResultScreen.vue'
-import HistoryScreen from './components/HistoryScreen.vue'
+import ResultScene from './components/ResultScene.vue'
+import HistoryScene from './components/HistoryScene.vue'
+import TownhallScene from './components/TownhallScene.vue'
 import { storeToRefs } from 'pinia'
 
 const game = useGameStore()
 const {
   character,
   enemy,
-  winStreak,
   currentScene,
   deadCharacters,
   skillChoices,
@@ -43,7 +43,6 @@ const {
     <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
     <div class="wrapper">
       <h1>Gladiator Fight</h1>
-      <p>ชนะติดต่อกัน: {{ winStreak }}</p>
       <button v-if="character && character.hp <= 0" @click="startNewGame">เกิดใหม่</button>
     </div>
   </header>
@@ -60,23 +59,20 @@ const {
         {{ userProfile.money }}
       </template>
     </PrepareScene>
-    <div v-if="showTownhall && currentScene === scenes.PREPARE && character">
-      <div class="modal-overlay">
-        <div class="modal-box">
-          <h2>Townhall</h2>
-          <p>เงินของคุณ: {{ userProfile.money }}</p>
-          <button @click="buyHeal" :disabled="userProfile.money < 100 || character!.hp >= character!.maxHp">ซื้อยา (+10% max HP, 100 เงิน)</button>
-          <button @click="showTownhall = false" style="margin-left:1rem">ออก</button>
-        </div>
-      </div>
-    </div>
+    <TownhallScene
+      v-if="showTownhall && currentScene === scenes.PREPARE && character"
+      :user-profile="userProfile"
+      :character="character"
+      :buy-heal="buyHeal"
+      @close="showTownhall = false"
+    />
     <FightScene
       v-if="currentScene === scenes.FIGHT && character && enemy"
       :character="character"
       :enemy="enemy"
       @battle-finished="onBattleFinished"
     />
-    <ResultScreen
+    <ResultScene
       v-if="currentScene === scenes.RESULT"
       :win="lastBattleWin"
       :win-streak="character?.winStreak ?? 0"
@@ -86,8 +82,7 @@ const {
       @restart="startNewGame"
       @back="() => { currentScene = scenes.PREPARE }"
     />
-
-    <HistoryScreen
+    <HistoryScene
       v-if="currentScene === scenes.HISTORY"
       :character-history="characterHistory"
       @back="currentScene = scenes.PREPARE"

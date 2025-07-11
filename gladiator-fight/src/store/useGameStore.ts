@@ -25,8 +25,6 @@ export type Character = {
   totalMoneyEarned: number
 }
 
-
-
 const STORAGE_KEY = 'gladiator-save-v1';
 
 export const useGameStore = defineStore('game', () => {
