@@ -15,7 +15,7 @@
             <span>LUK: {{ character.status.luk }}</span>
             <span>CHA: {{ character.status.cha }}</span>
           </div>
-          <CooldownBar :value="character.cooldown ?? 0" />
+          <CooldownBar :value="character.cooldown ?? 0" :key="character.cooldown" />
           <div>
             <strong>Skill:</strong>
             <ul>
@@ -35,7 +35,7 @@
             <span>LUK: {{ enemy.status.luk }}</span>
             <span>CHA: {{ enemy.status.cha }}</span>
           </div>
-          <CooldownBar :value="enemy.cooldown ?? 0" />
+          <CooldownBar :value="enemy.cooldown ?? 0" :key="enemy.cooldown" />
           <div>
             <strong>Skill:</strong>
             <ul>
@@ -93,7 +93,7 @@ function doBattleTurnWrapper() {
 onMounted(() => {
   battleLog.value = []
   showFinishButton.value = false
-  intervalRef.value = setInterval(doBattleTurnWrapper, 200)
+  intervalRef.value = setInterval(doBattleTurnWrapper, 20)
 })
 
 onUnmounted(() => {
