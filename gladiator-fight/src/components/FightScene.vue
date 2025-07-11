@@ -15,6 +15,7 @@
             <span>LUK: {{ character.status.luk }}</span>
             <span>CHA: {{ character.status.cha }}</span>
           </div>
+          <CooldownBar :value="character.cooldown ?? 0" />
           <div>
             <strong>Skill:</strong>
             <ul>
@@ -34,6 +35,7 @@
             <span>LUK: {{ enemy.status.luk }}</span>
             <span>CHA: {{ enemy.status.cha }}</span>
           </div>
+          <CooldownBar :value="enemy.cooldown ?? 0" />
           <div>
             <strong>Skill:</strong>
             <ul>
@@ -53,15 +55,16 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { doBattleTurn } from '../store/battleUtilsFight'
+import CooldownBar from './CooldownBar.vue'
 const isPastSelf = computed(() => {
   return Array.isArray(enemy.skill) && enemy.skill.some(s => typeof s === 'string' && s.startsWith('win:'))
 })
 
 import type { Character } from '../store/useGameStore'
+import { toBattleFighter } from '../store/battleUtils'
 const props = defineProps<{ character: Character, enemy: Character }>()
-
-const character = props.character
-const enemy = props.enemy
+const character = toBattleFighter(props.character)
+const enemy = toBattleFighter(props.enemy)
 const emit = defineEmits(['battle-finished'])
 const battleLog = ref<string[]>([])
 const showFinishButton = ref(false)
@@ -140,4 +143,7 @@ onUnmounted(() => {
   margin-bottom: 0.2rem;
   white-space: pre-line;
 }
+
+
 </style>
+
