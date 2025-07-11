@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch, onMounted } from 'vue'
 import * as battleUtils from './battleUtils'
+import * as skillUtils from './skillUtils'
 
 export type Status = {
   str: number
@@ -149,7 +150,7 @@ export const useGameStore = defineStore('game', () => {
       if (win) {
         character.value.winStreak++;
         // 1. randomSkillChoices
-        skillChoices.value = battleUtils.randomSkillChoices();
+        skillChoices.value = skillUtils.randomSkillChoices();
         // 2. Userprofile money += lastMoneyEarned
         character.value.lastMoneyEarned = calcMoneyEarned(true);
         userProfile.value.money += character.value.lastMoneyEarned ?? 0;

@@ -1,3 +1,38 @@
+// --- Cooldown-based Battle Logic ---
+export type BattleFighter = Character & { cooldown: number };
+
+// Initialize a fighter with cooldown
+export function toBattleFighter(character: Character): BattleFighter {
+  return { ...character, cooldown: 100 };
+}
+
+// Reduce cooldown by agi per turn
+export function reduceCooldown(fighter: BattleFighter) {
+  fighter.cooldown -= fighter.status.agi;
+  if (fighter.cooldown < 0) fighter.cooldown = 0;
+}
+
+// Check if fighter can attack
+export function canAttack(fighter: BattleFighter): boolean {
+  return fighter.cooldown <= 0;
+}
+
+// Reset cooldown after attack
+export function resetCooldown(fighter: BattleFighter) {
+  fighter.cooldown = 100;
+}
+
+// Calculate evasion: agi of defender vs dex of attacker
+export function calcEvasionChance(defender: BattleFighter, attacker: BattleFighter): number {
+  // Example: base 10% + (defender agi - attacker dex) * 0.5%, min 0%, max 90%
+  let base = 10 + (defender.status.agi - attacker.status.dex) * 0.5;
+  return Math.max(0, Math.min(90, base));
+}
+
+// Try to evade
+export function tryEvade(defender: BattleFighter, attacker: BattleFighter): boolean {
+  return Math.random() * 100 < calcEvasionChance(defender, attacker);
+}
 // --- Skill Logic ---
 import type { Character } from './useGameStore'
 

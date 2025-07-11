@@ -25,13 +25,13 @@ const { scenes } = game
 // เพิ่ม scenes.HISTORY
 if (!scenes.HISTORY) scenes.HISTORY = 'history'
 import { ref } from 'vue'
+import { applySkill } from './store/skillUtils'
 const showTownhall = ref(false)
 
 
 const {
   startNewGame,
   startFight,
-  applySkill,
   buyHeal,
   onBattleFinished,
 } = game
