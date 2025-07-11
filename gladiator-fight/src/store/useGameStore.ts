@@ -136,7 +136,6 @@ export const useGameStore = defineStore('game', () => {
     deadCharacters.value = []
     currentScene.value = scenes.PREPARE
   }
-  // randomSkillChoices, applySkill moved to battleUtils
   function calcMoneyEarned(win: boolean) {
     console.log('calcMoneyEarned', win)
     if (!character.value) return 0
@@ -199,7 +198,6 @@ export const useGameStore = defineStore('game', () => {
     randomStatus,
     randomCharacter,
     startNewGame,
-    // randomSkillChoices, applySkill moved to battleUtils
     ...battleUtils,
     onBattleFinished,
     buyHeal,
