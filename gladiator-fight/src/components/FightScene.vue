@@ -52,86 +52,49 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { doBattleTurn } from '../store/battleUtilsFight'
 const isPastSelf = computed(() => {
   return Array.isArray(enemy.skill) && enemy.skill.some(s => typeof s === 'string' && s.startsWith('win:'))
 })
 
-const props = defineProps<{
-  character: {
-    name: string
-    hp: number
-    maxHp: number
-    status: {
-      str: number
-      agi: number
-      vit: number
-      dex: number
-      int: number
-      luk: number
-      cha: number
-    }
-    skill: string[]
-  },
-  enemy: {
-    name: string
-    hp: number
-    maxHp: number
-    status: {
-      str: number
-      agi: number
-      vit: number
-      dex: number
-      int: number
-      luk: number
-      cha: number
-    }
-    skill: string[]
-  }
-}>()
+import type { Character } from '../store/useGameStore'
+const props = defineProps<{ character: Character, enemy: Character }>()
 
 const character = props.character
 const enemy = props.enemy
 const emit = defineEmits(['battle-finished'])
 const battleLog = ref<string[]>([])
 const showFinishButton = ref(false)
-let interval: number | undefined
+const intervalRef = { value: undefined as any }
 
-function doBattleTurn() {
-  if (character.hp <= 0 || enemy.hp <= 0) return
-  // โจมตีอิง STR AGI
-  const playerAttack = Math.floor(Math.random() * character.status.str) + character.status.agi
-  const enemyAttack = Math.floor(Math.random() * enemy.status.str) + enemy.status.agi
-  enemy.hp -= playerAttack
-  battleLog.value.unshift(`คุณโจมตี ${enemy.name} ${playerAttack} dmg (HP เหลือ ${enemy.hp < 0 ? 0 : enemy.hp})`)
-  if (enemy.hp <= 0) {
-    battleLog.value.unshift(`${enemy.name} แพ้!`)
-    clearInterval(interval)
-    setTimeout(() => {
-      battleLog.value.unshift('--- จบการต่อสู้ ---')
-      showFinishButton.value = true
-    }, 200)
-    return
-  }
-  character.hp -= enemyAttack
-  battleLog.value.unshift(`${enemy.name} โจมตีคุณ ${enemyAttack} dmg (HP เหลือ ${character.hp < 0 ? 0 : character.hp})`)
-  if (character.hp <= 0) {
-    battleLog.value.unshift(`คุณแพ้!`)
-    clearInterval(interval)
-    setTimeout(() => {
-      battleLog.value.unshift('--- จบการต่อสู้ ---')
-      showFinishButton.value = true
-    }, 200)
-  }
+function setShowFinishButton(show: boolean) {
+  showFinishButton.value = show
+}
+
+function onFinish(win: boolean) {
+  // emit event if needed, or just set button
+  // emit('battle-finished', win) // (optional, if you want auto emit)
+}
+
+function doBattleTurnWrapper() {
+  doBattleTurn(
+    character,
+    enemy,
+    battleLog.value,
+    onFinish,
+    setShowFinishButton,
+    intervalRef
+  )
 }
 
 onMounted(() => {
   battleLog.value = []
   showFinishButton.value = false
-  interval = setInterval(doBattleTurn, 200)
+  intervalRef.value = setInterval(doBattleTurnWrapper, 200)
 })
 
 onUnmounted(() => {
-  clearInterval(interval)
+  clearInterval(intervalRef.value)
 })
 </script>
 

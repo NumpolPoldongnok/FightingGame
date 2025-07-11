@@ -26,6 +26,7 @@ const { scenes } = game
 if (!scenes.HISTORY) scenes.HISTORY = 'history'
 import { ref } from 'vue'
 const showTownhall = ref(false)
+
 const {
   startNewGame,
   startFight,
@@ -33,6 +34,18 @@ const {
   buyHeal,
   onBattleFinished,
 } = game
+
+function handleStartFight() {
+  startFight(
+    character.value,
+    deadCharacters.value,
+    characterHistory.value,
+    (e: any) => { enemy.value = e },
+    (scene: string) => { currentScene.value = scene },
+    game.randomCharacter,
+    scenes
+  )
+}
 
 </script>
 
@@ -51,7 +64,7 @@ const {
       v-if="currentScene === scenes.PREPARE && character"
       :character="character"
       :dead-characters="deadCharacters"
-      @start-fight="startFight"
+      @start-fight="handleStartFight"
       @open-townhall="() => { showTownhall = true }"
     >
       <template #money>

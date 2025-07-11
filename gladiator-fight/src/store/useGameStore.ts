@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch, onMounted } from 'vue'
+import * as battleUtils from './battleUtils'
 
 export type Status = {
   str: number
@@ -137,22 +138,15 @@ export const useGameStore = defineStore('game', () => {
   }
   function startFight() {
     console.log('startFight')
-    if (!character.value || character.value.hp <= 0) return
-    const found = characterHistory.value.find(
-      (c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${character.value?.winStreak ?? 0}`)
+    battleUtils.startFight(
+      character.value,
+      deadCharacters.value,
+      characterHistory.value,
+      (e) => { enemy.value = e },
+      (scene) => { currentScene.value = scene },
+      randomCharacter,
+      scenes
     )
-    if (deadCharacters.value.length > 0) {
-      const dead = deadCharacters.value.find((c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${character.value?.winStreak ?? 0}`))
-      if (dead) {
-        enemy.value = { ...dead, hp: dead.maxHp }
-        currentScene.value = scenes.FIGHT
-        return
-      }
-    }
-    const total = 20 + (character.value?.winStreak ?? 0) * 10
-    const newEnemy = randomCharacter(total)
-    enemy.value = { ...newEnemy, hp: newEnemy.maxHp }
-    currentScene.value = scenes.FIGHT
   }
   function randomSkillChoices(): string[][] {
     console.log('randomSkillChoices')
@@ -197,9 +191,8 @@ export const useGameStore = defineStore('game', () => {
   }
   function calcMoneyEarned(win: boolean) {
     console.log('calcMoneyEarned', win)
-    // You can adjust this logic as needed
     if (!character.value) return 0
-    return win ? 100 + character.value.winStreak * 10 : 0
+    return win ? battleUtils.calcReward(character.value) : 0
   }
   function onBattleFinished(win = false) {
     console.log('onBattleFinished', win)
@@ -224,8 +217,10 @@ export const useGameStore = defineStore('game', () => {
   // Heal
   function buyHeal() {
     console.log('buyHeal')
-    if (character.value && userProfile.value.money >= 100 && character.value.hp < character.value.maxHp) {
-      userProfile.value.money -= 100
+    if (!character.value) return
+    const cost = battleUtils.calcHealCost(character.value)
+    if (userProfile.value.money >= cost && character.value.hp < character.value.maxHp) {
+      userProfile.value.money -= cost
       const heal = Math.floor(character.value.maxHp * 0.1)
       character.value.hp += heal
       if (character.value.hp > character.value.maxHp) character.value.hp = character.value.maxHp
@@ -256,11 +251,13 @@ export const useGameStore = defineStore('game', () => {
     randomStatus,
     randomCharacter,
     startNewGame,
-    startFight,
+    // startFight, // already exported below as battleUtils.startFight
     randomSkillChoices,
     applySkill,
     onBattleFinished,
     buyHeal,
     calcMoneyEarned,
+    // status calculation functions moved to battleUtils.ts
+    ...battleUtils,
   }
 })
