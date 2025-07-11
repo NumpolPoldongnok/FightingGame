@@ -22,6 +22,7 @@ export type Character = {
   status: Status
   skill: string[]
   winStreak: number
+  lastMoneyEarned?: number
   totalMoneyEarned: number
 }
 
@@ -38,19 +39,18 @@ export const useGameStore = defineStore('game', () => {
   const userProfile = ref<UserProfile>({ money: 0 })
   const character = ref<Character | null>(null)
   const enemy = ref<Character | null>(null)
-  // const winStreak = ref(0) // ย้ายไป character
   const currentScene = ref(scenes.PREPARE)
   const deadCharacters = ref<Character[]>([])
   const skillChoices = ref<string[][]>([])
   const showSkillSelect = ref(false)
   const showResultButton = ref(false)
   const lastBattleWin = ref(false)
-  const lastMoneyEarned = ref(0)
   const characterHistory = ref<Character[]>([])
   let statusTotal = 30
 
   // LocalStorage
   function saveToLocal() {
+    console.log('saveToLocal')
     const data = {
       character: character.value,
       enemy: enemy.value,
@@ -61,13 +61,14 @@ export const useGameStore = defineStore('game', () => {
       showSkillSelect: showSkillSelect.value,
       showResultButton: showResultButton.value,
       lastBattleWin: lastBattleWin.value,
-      lastMoneyEarned: lastMoneyEarned.value,
+      lastMoneyEarned: character.value?.lastMoneyEarned ?? 0,
       characterHistory: characterHistory.value,
       userProfile: userProfile.value,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
   function loadFromLocal() {
+    console.log('loadFromLocal')
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return
     try {
@@ -82,13 +83,14 @@ export const useGameStore = defineStore('game', () => {
       if (typeof data.showSkillSelect === 'boolean') showSkillSelect.value = data.showSkillSelect
       if (typeof data.showResultButton === 'boolean') showResultButton.value = data.showResultButton
       if (typeof data.lastBattleWin === 'boolean') lastBattleWin.value = data.lastBattleWin
-      if (typeof data.lastMoneyEarned === 'number') lastMoneyEarned.value = data.lastMoneyEarned
+      if (typeof data.lastMoneyEarned === 'number' && character.value) character.value.lastMoneyEarned = data.lastMoneyEarned
       if (Array.isArray(data.characterHistory)) characterHistory.value = data.characterHistory
     } catch (e) { /* ignore */ }
   }
 
   // Logic
   function randomStatus(total: number, base: Status = {str:1,agi:1,vit:1,dex:1,int:1,luk:1,cha:1}): Status {
+    console.log('randomStatus', total, base)
     let remain = total - 7
     const keys = Object.keys(base) as (keyof Status)[]
     const status: Status = { ...base }
@@ -100,6 +102,7 @@ export const useGameStore = defineStore('game', () => {
     return status
   }
   function randomCharacter(statusTotal = 30, baseStatus?: Status): Character {
+    console.log('randomCharacter', statusTotal, baseStatus)
     const names = ['Maximus', 'Spartacus', 'Crixus', 'Commodus', 'Tigris']
     const status = randomStatus(statusTotal, baseStatus)
     const maxHp = Math.floor(Math.random() * statusTotal) + 100
@@ -114,6 +117,7 @@ export const useGameStore = defineStore('game', () => {
     }
   }
   function startNewGame() {
+    console.log('startNewGame')
     let base: Status | undefined = undefined
     if (character.value) {
       characterHistory.value.push({ ...character.value })
@@ -132,6 +136,7 @@ export const useGameStore = defineStore('game', () => {
     currentScene.value = scenes.PREPARE
   }
   function startFight() {
+    console.log('startFight')
     if (!character.value || character.value.hp <= 0) return
     const found = characterHistory.value.find(
       (c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${character.value?.winStreak ?? 0}`)
@@ -150,6 +155,7 @@ export const useGameStore = defineStore('game', () => {
     currentScene.value = scenes.FIGHT
   }
   function randomSkillChoices(): string[][] {
+    console.log('randomSkillChoices')
     return [
       [`เพิ่ม status แบบสุ่ม 10`, 'random10'],
       [`เพิ่ม status ใดๆ 10`, 'choose10'],
@@ -158,6 +164,7 @@ export const useGameStore = defineStore('game', () => {
     ]
   }
   function applySkill(idx: number) {
+    console.log('applySkill', idx)
     if (!character.value) return
     const skill = skillChoices.value[idx][1]
     if (skill === 'random10') {
@@ -188,15 +195,26 @@ export const useGameStore = defineStore('game', () => {
     }
     showSkillSelect.value = false
   }
+  function calcMoneyEarned(win: boolean) {
+    console.log('calcMoneyEarned', win)
+    // You can adjust this logic as needed
+    if (!character.value) return 0
+    return win ? 100 + character.value.winStreak * 10 : 0
+  }
   function onBattleFinished(win = false) {
+    console.log('onBattleFinished', win)
     showResultButton.value = true
     lastBattleWin.value = win
-    if (win && character.value) character.value.winStreak++;
+    if (character.value) {
+      if (win) character.value.winStreak++;
+      character.value.lastMoneyEarned = calcMoneyEarned(win)
+    }
     currentScene.value = scenes.RESULT
   }
 
   // Heal
   function buyHeal() {
+    console.log('buyHeal')
     if (character.value && userProfile.value.money >= 100 && character.value.hp < character.value.maxHp) {
       userProfile.value.money -= 100
       const heal = Math.floor(character.value.maxHp * 0.1)
@@ -211,7 +229,7 @@ export const useGameStore = defineStore('game', () => {
     if (!character.value) startNewGame()
   })
   watch([
-    character, enemy, currentScene, deadCharacters, skillChoices, showSkillSelect, showResultButton, lastBattleWin, lastMoneyEarned, characterHistory
+    character, enemy, currentScene, deadCharacters, skillChoices, showSkillSelect, showResultButton, lastBattleWin, characterHistory
   ], saveToLocal, { deep: true })
 
   return {
@@ -219,14 +237,12 @@ export const useGameStore = defineStore('game', () => {
     userProfile,
     character,
     enemy,
-    // winStreak, // ย้ายไป character
     currentScene,
     deadCharacters,
     skillChoices,
     showSkillSelect,
     showResultButton,
     lastBattleWin,
-    lastMoneyEarned,
     characterHistory,
     randomStatus,
     randomCharacter,
@@ -236,5 +252,6 @@ export const useGameStore = defineStore('game', () => {
     applySkill,
     onBattleFinished,
     buyHeal,
+    calcMoneyEarned,
   }
 })

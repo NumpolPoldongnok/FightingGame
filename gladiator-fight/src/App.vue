@@ -17,7 +17,6 @@ const {
   deadCharacters,
   skillChoices,
   lastBattleWin,
-  lastMoneyEarned,
   characterHistory,
   userProfile,
 } = storeToRefs(game)
@@ -76,7 +75,7 @@ const {
       v-if="currentScene === scenes.RESULT"
       :win="lastBattleWin"
       :win-streak="character?.winStreak ?? 0"
-      :money-earned="lastMoneyEarned"
+      :money-earned="character?.lastMoneyEarned ?? 0"
       :skill-choices="lastBattleWin ? skillChoices : []"
       @choose-skill="applySkill"
       @restart="startNewGame"
