@@ -206,8 +206,17 @@ export const useGameStore = defineStore('game', () => {
     showResultButton.value = true
     lastBattleWin.value = win
     if (character.value) {
-      if (win) character.value.winStreak++;
-      character.value.lastMoneyEarned = calcMoneyEarned(win)
+      if (win) {
+        character.value.winStreak++;
+        // 1. randomSkillChoices
+        skillChoices.value = randomSkillChoices();
+        // 2. Userprofile money += lastMoneyEarned
+        character.value.lastMoneyEarned = calcMoneyEarned(true);
+        userProfile.value.money += character.value.lastMoneyEarned ?? 0;
+        console.log('Money earned:', character.value.lastMoneyEarned, 'Total money:', userProfile.value.money);
+      } else {
+        character.value.lastMoneyEarned = calcMoneyEarned(false);
+      }
     }
     currentScene.value = scenes.RESULT
   }
