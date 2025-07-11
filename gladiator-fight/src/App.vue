@@ -1,4 +1,5 @@
 
+
 <script setup lang="ts">
 import { Character, CharacterHistory, Status, useGameStore } from './store/useGameStore'
 import PrepareScene from './components/PrepareScene.vue'
@@ -85,9 +86,6 @@ const {
       @back="() => { currentScene = scenes.PREPARE }"
     />
 
-    <div v-if="currentScene === scenes.FIGHT && showResultButton">
-      <button @click="showResultButton = false; currentScene = scenes.PREPARE">ดูผลและกลับไปเตรียมตัว</button>
-    </div>
     <div v-if="currentScene === 'history'">
       <h2>ประวัติตัวละครที่เคยใช้</h2>
       <ul>

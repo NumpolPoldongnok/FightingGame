@@ -45,6 +45,7 @@
       <div class="battle-log-container">
         <div class="battle-log-row" v-for="(log, idx) in battleLog" :key="idx">{{ log }}</div>
       </div>
+      <button v-if="showFinishButton" @click="emit('battle-finished', character.hp > 0)">จบการต่อสู้</button>
     </div>
   </div>
 </template>
@@ -92,6 +93,7 @@ const character = props.character
 const enemy = props.enemy
 const emit = defineEmits(['battle-finished'])
 const battleLog = ref<string[]>([])
+const showFinishButton = ref(false)
 let interval: number | undefined
 
 function doBattleTurn() {
@@ -106,7 +108,7 @@ function doBattleTurn() {
     clearInterval(interval)
     setTimeout(() => {
       battleLog.value.unshift('--- จบการต่อสู้ ---')
-      emit('battle-finished', true)
+      showFinishButton.value = true
     }, 200)
     return
   }
@@ -117,13 +119,14 @@ function doBattleTurn() {
     clearInterval(interval)
     setTimeout(() => {
       battleLog.value.unshift('--- จบการต่อสู้ ---')
-      emit('battle-finished', false)
+      showFinishButton.value = true
     }, 200)
   }
 }
 
 onMounted(() => {
   battleLog.value = []
+  showFinishButton.value = false
   interval = setInterval(doBattleTurn, 200)
 })
 
