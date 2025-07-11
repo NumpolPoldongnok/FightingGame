@@ -25,7 +25,7 @@ export type Character = {
   totalMoneyEarned: number
 }
 
-export type CharacterHistory = Character & { winCount: number }
+
 
 const STORAGE_KEY = 'gladiator-save-v1';
 
@@ -48,7 +48,7 @@ export const useGameStore = defineStore('game', () => {
   const showResultButton = ref(false)
   const lastBattleWin = ref(false)
   const lastMoneyEarned = ref(0)
-  const characterHistory = ref<CharacterHistory[]>([])
+  const characterHistory = ref<Character[]>([])
   let statusTotal = 30
 
   // LocalStorage
@@ -118,7 +118,7 @@ export const useGameStore = defineStore('game', () => {
   function startNewGame() {
     let base: Status | undefined = undefined
     if (character.value) {
-      characterHistory.value.push({ ...character.value, winCount: character.value.winStreak })
+      characterHistory.value.push({ ...character.value })
       base = { ...character.value.status }
       Object.keys(base).forEach(k => {
         base![k as keyof Status] = Math.floor(base![k as keyof Status] * 0.1)
@@ -184,9 +184,9 @@ export const useGameStore = defineStore('game', () => {
     character.value.skill.push(skillChoices.value[idx][0])
     const idxHistory = characterHistory.value.findIndex(c => c.name === character.value!.name && c.skill.join(',') === character.value!.skill.join(','))
     if (idxHistory !== -1) {
-      characterHistory.value[idxHistory].winCount = character.value.winStreak
+      characterHistory.value[idxHistory] = { ...character.value }
     } else {
-      characterHistory.value.push({ ...character.value, winCount: character.value.winStreak })
+      characterHistory.value.push({ ...character.value })
     }
     showSkillSelect.value = false
   }
