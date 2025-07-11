@@ -4,32 +4,7 @@
     <div v-if="character">
       <p>ชื่อ: {{ character.name }} <span style="font-size:0.95em;color:#ffd700;">(Status รวม: {{ totalStatus(character) }})</span></p>
       <p>HP: {{ character.hp }} / {{ character.maxHp }}</p>
-      <div>
-        <strong>Status:</strong>
-        <ul>
-          <li>
-            STR: {{ character.status.str }}
-          </li>
-          <li>
-            AGI: {{ character.status.agi }}
-          </li>
-          <li>
-            VIT: {{ character.status.vit }}
-          </li>
-          <li>
-            DEX: {{ character.status.dex }}
-          </li>
-          <li>
-            INT: {{ character.status.int }}
-          </li>
-          <li>
-            LUK: {{ character.status.luk }}
-          </li>
-          <li>
-            CHA: {{ character.status.cha }}
-          </li>
-        </ul>
-      </div>
+      <CharacterStatus :status="character.status" title="Status" />
       <div>
         <strong>Skill:</strong>
         <ul>
@@ -43,14 +18,14 @@
 </template>
 
 <script lang="ts" setup>
-
 import type { Character } from '../store/useGameStore'
+import CharacterStatus from './CharacterStatus.vue';
 
 const props = defineProps<{
   character: Character
 }>()
 
 function totalStatus(c: Character) {
-  c.status.str + c.status.agi + c.status.vit + c.status.dex + c.status.int + c.status.luk + c.status.cha
+  return c.status.str + c.status.agi + c.status.vit + c.status.dex + c.status.int + c.status.luk + c.status.cha
 }
 </script>

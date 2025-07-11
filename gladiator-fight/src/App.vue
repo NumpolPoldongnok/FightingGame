@@ -105,6 +105,7 @@ function handleStartFight() {
       :win-streak="character?.winStreak ?? 0"
       :money-earned="character?.lastMoneyEarned ?? 0"
       :skill-choices="lastBattleWin ? skillChoices : []"
+      :status="character?.status"
       @choose-skill="handleChooseSkill"
       @restart="startNewGame"
       @back="() => { currentScene = scenes.PREPARE }"

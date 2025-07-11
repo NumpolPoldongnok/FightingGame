@@ -6,6 +6,7 @@
     <p>ชนะติดต่อกัน: <strong>{{ winStreak }}</strong></p>
     <p v-if="win">ได้เงิน: <strong>{{ moneyEarned }}</strong></p>
     <div v-if="win && skillChoices.length">
+      <CharacterStatus :status="status!" title="Status หลังชนะ" />
       <h3>เลือก Skill หลังชนะ</h3>
       <ul>
         <li v-for="(s, i) in skillChoices" :key="i">
@@ -25,12 +26,15 @@
 </template>
 
 <script lang="ts" setup>
+import { Character, Status } from 'src/store/useGameStore';
 import type { Skill } from '../store/skillUtils'
+import CharacterStatus from './CharacterStatus.vue'
 const props = defineProps<{
   win: boolean,
   winStreak: number,
   moneyEarned: number,
-  skillChoices: Skill[]
+  skillChoices: Skill[],
+  status?: Status
 }>()
 defineEmits(['choose-skill', 'restart', 'back'])
 </script>
