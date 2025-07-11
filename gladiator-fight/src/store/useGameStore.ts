@@ -136,59 +136,7 @@ export const useGameStore = defineStore('game', () => {
     deadCharacters.value = []
     currentScene.value = scenes.PREPARE
   }
-  function startFight() {
-    console.log('startFight')
-    battleUtils.startFight(
-      character.value,
-      deadCharacters.value,
-      characterHistory.value,
-      (e) => { enemy.value = e },
-      (scene) => { currentScene.value = scene },
-      randomCharacter,
-      scenes
-    )
-  }
-  function randomSkillChoices(): string[][] {
-    console.log('randomSkillChoices')
-    return [
-      [`เพิ่ม status แบบสุ่ม 10`, 'random10'],
-      [`เพิ่ม status ใดๆ 10`, 'choose10'],
-      [`คูณ status ทั้งหมด x${(Math.random()*0.9+1.1).toFixed(2)}`, 'multiply'],
-      [`เพิ่ม Max HP 10%`, 'maxhp10']
-    ]
-  }
-  function applySkill(idx: number) {
-    console.log('applySkill', idx)
-    if (!character.value) return
-    const skill = skillChoices.value[idx][1]
-    if (skill === 'random10') {
-      for (let i = 0; i < 10; i++) {
-        const k = Object.keys(character.value.status) as (keyof Status)[]
-        const key = k[Math.floor(Math.random() * k.length)]
-        character.value.status[key]++
-      }
-    } else if (skill === 'choose10') {
-      character.value.status.str += 10
-    } else if (skill === 'multiply') {
-      const mul = parseFloat(skillChoices.value[idx][0].split('x')[1])
-      Object.keys(character.value.status).forEach(k => {
-        character.value!.status[k as keyof Status] = Math.floor(character.value!.status[k as keyof Status] * mul)
-      })
-    } else if (skill === 'maxhp10') {
-      const add = Math.floor(character.value.maxHp * 0.1)
-      character.value.maxHp += add
-      character.value.hp += add
-      if (character.value.hp > character.value.maxHp) character.value.hp = character.value.maxHp
-    }
-    character.value.skill.push(skillChoices.value[idx][0])
-    const idxHistory = characterHistory.value.findIndex(c => c.name === character.value!.name && c.skill.join(',') === character.value!.skill.join(','))
-    if (idxHistory !== -1) {
-      characterHistory.value[idxHistory] = { ...character.value }
-    } else {
-      characterHistory.value.push({ ...character.value })
-    }
-    showSkillSelect.value = false
-  }
+  // randomSkillChoices, applySkill moved to battleUtils
   function calcMoneyEarned(win: boolean) {
     console.log('calcMoneyEarned', win)
     if (!character.value) return 0
@@ -202,7 +150,7 @@ export const useGameStore = defineStore('game', () => {
       if (win) {
         character.value.winStreak++;
         // 1. randomSkillChoices
-        skillChoices.value = randomSkillChoices();
+        skillChoices.value = battleUtils.randomSkillChoices();
         // 2. Userprofile money += lastMoneyEarned
         character.value.lastMoneyEarned = calcMoneyEarned(true);
         userProfile.value.money += character.value.lastMoneyEarned ?? 0;
@@ -251,13 +199,11 @@ export const useGameStore = defineStore('game', () => {
     randomStatus,
     randomCharacter,
     startNewGame,
-    // startFight, // already exported below as battleUtils.startFight
-    randomSkillChoices,
-    applySkill,
+    // randomSkillChoices, applySkill moved to battleUtils
+    ...battleUtils,
     onBattleFinished,
     buyHeal,
     calcMoneyEarned,
-    // status calculation functions moved to battleUtils.ts
     ...battleUtils,
   }
 })

@@ -1,3 +1,45 @@
+// --- Skill Logic ---
+import type { Status } from './useGameStore'
+
+export function randomSkillChoices(): string[][] {
+  return [
+    [`เพิ่ม status แบบสุ่ม 10`, 'random10'],
+    [`เพิ่ม status ใดๆ 10`, 'choose10'],
+    [`คูณ status ทั้งหมด x${(Math.random()*0.9+1.1).toFixed(2)}`, 'multiply'],
+    [`เพิ่ม Max HP 10%`, 'maxhp10']
+  ]
+}
+
+export function applySkill(idx: number, character: Character, skillChoices: string[][], characterHistory: Character[], showSkillSelectSetter?: (v: boolean) => void) {
+  const skill = skillChoices[idx][1]
+  if (skill === 'random10') {
+    for (let i = 0; i < 10; i++) {
+      const k = Object.keys(character.status) as (keyof Status)[]
+      const key = k[Math.floor(Math.random() * k.length)]
+      character.status[key]++
+    }
+  } else if (skill === 'choose10') {
+    character.status.str += 10
+  } else if (skill === 'multiply') {
+    const mul = parseFloat(skillChoices[idx][0].split('x')[1])
+    Object.keys(character.status).forEach(k => {
+      character.status[k as keyof Status] = Math.floor(character.status[k as keyof Status] * mul)
+    })
+  } else if (skill === 'maxhp10') {
+    const add = Math.floor(character.maxHp * 0.1)
+    character.maxHp += add
+    character.hp += add
+    if (character.hp > character.maxHp) character.hp = character.maxHp
+  }
+  character.skill.push(skillChoices[idx][0])
+  const idxHistory = characterHistory.findIndex(c => c.name === character.name && c.skill.join(',') === character.skill.join(','))
+  if (idxHistory !== -1) {
+    characterHistory[idxHistory] = { ...character }
+  } else {
+    characterHistory.push({ ...character })
+  }
+  if (showSkillSelectSetter) showSkillSelectSetter(false)
+}
 import type { Character } from './useGameStore'
 
 export function calcPhysicalDamage(attacker: Character, defender: Character): number {

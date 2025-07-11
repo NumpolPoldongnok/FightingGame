@@ -1,28 +1,121 @@
 <template>
   <div>
     <h2>ประวัติตัวละครที่เคยใช้</h2>
-    <ul>
-      <li v-for="(c, idx) in characterHistory" :key="idx">
-        <strong>{{ c.name }}</strong> | HP: {{ c.hp }} / {{ c.maxHp }} | <span>ชนะ: {{ c.winStreak ?? 0 }}</span>
-        <span>Status: [STR:{{ c.status.str }}, AGI:{{ c.status.agi }}, VIT:{{ c.status.vit }}, DEX:{{ c.status.dex }}, INT:{{ c.status.int }}, LUK:{{ c.status.luk }}, CHA:{{ c.status.cha }}]</span>
-        <span> | Skill: <span v-for="(s, i) in c.skill" :key="i">{{ s }} </span></span>
-      </li>
-    </ul>
+    <div class="history-list">
+      <div class="history-card" v-for="(c, idx) in characterHistory" :key="idx">
+        <div class="history-header">
+          <strong>{{ c.name }}</strong>
+          <span class="win">🏆 {{ c.winStreak ?? 0 }}</span>
+        </div>
+        <div class="hp">HP: <span>{{ c.hp }}</span> / <span>{{ c.maxHp }}</span></div>
+        <div class="status-row">
+          <span class="stat">STR: <b>{{ c.status.str }}</b></span>
+          <span class="stat">AGI: <b>{{ c.status.agi }}</b></span>
+          <span class="stat">VIT: <b>{{ c.status.vit }}</b></span>
+          <span class="stat">DEX: <b>{{ c.status.dex }}</b></span>
+          <span class="stat">INT: <b>{{ c.status.int }}</b></span>
+          <span class="stat">LUK: <b>{{ c.status.luk }}</b></span>
+          <span class="stat">CHA: <b>{{ c.status.cha }}</b></span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-label">Skill:</span>
+          <span class="skill-list">
+            <span v-for="(s, i) in c.skill" :key="i" class="skill-item">{{ s }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
     <button @click="$emit('back')">กลับ</button>
   </div>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ characterHistory: any[] }>()
+import type { Character } from '../store/useGameStore'
+const props = defineProps<{ characterHistory: Character[] }>()
 defineEmits(['back'])
 </script>
 
 <style scoped>
-ul {
-  margin: 1rem 0;
-  padding-left: 1.5rem;
+/* Modern card style for history */
+.history-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
 }
-li {
-  margin-bottom: 0.5rem;
+.history-card {
+  background: #232323;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px #000a;
+  padding: 1.2rem 1.5rem 1rem 1.5rem;
+  min-width: 260px;
+  max-width: 320px;
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 2px solid #4caf50;
+}
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+  margin-bottom: 0.2rem;
+}
+.win {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+.hp {
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.97rem;
+}
+.stat b {
+  color: #4caf50;
+  font-weight: bold;
+}
+.skill-row {
+  margin-top: 0.2rem;
+  font-size: 0.97rem;
+}
+.skill-label {
+  font-weight: bold;
+  margin-right: 0.3rem;
+}
+.skill-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.skill-item {
+  background: #333;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.95em;
+  border: 1px solid #555;
+}
+button {
+  margin-top: 1.5rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  background: #4caf50;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button:hover {
+  background: #388e3c;
 }
 </style>

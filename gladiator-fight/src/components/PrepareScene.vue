@@ -40,36 +40,9 @@
 
 <script lang="ts" setup>
 
+import type { Character } from '../store/useGameStore'
 defineProps<{
-  character: {
-    name: string
-    hp: number
-    maxHp: number
-    status: {
-      str: number
-      agi: number
-      vit: number
-      dex: number
-      int: number
-      luk: number
-      cha: number
-    }
-    skill: string[]
-  },
-  deadCharacters?: Array<{
-    name: string
-    hp: number
-    maxHp: number
-    status: {
-      str: number
-      agi: number
-      vit: number
-      dex: number
-      int: number
-      luk: number
-      cha: number
-    }
-    skill: string[]
-  }>
+  character: Character,
+  deadCharacters?: Character[]
 }>()
 </script>
