@@ -70,27 +70,14 @@ export function calcHealCost(character: Character): number {
 
 export function startFight(
   character: Character | null,
-  deadCharacters: Character[],
-  characterHistory: Character[],
   setEnemy: (enemy: Character) => void,
   setScene: (scene: string) => void,
   randomCharacter: (statusTotal: number, baseStatus?: any) => Character,
   scenes: any
 ) {
-    console.log('startFight', character, deadCharacters, characterHistory)
-  if (!character || character.hp <= 0) return
-  const found = characterHistory.find(
-    (c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${character.winStreak ?? 0}`)
-  )
-  if (deadCharacters.length > 0) {
-    const dead = deadCharacters.find((c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${character.winStreak ?? 0}`))
-    if (dead) {
-      setEnemy({ ...dead, hp: dead.maxHp })
-      setScene(scenes.FIGHT)
-      return
-    }
-  }
-  const total = 20 + (character.winStreak ?? 0) * 10
+    console.log('startFight', character)
+
+  const total = 20 + (character?.winStreak ?? 0) * 10
   const newEnemy = randomCharacter(total)
   setEnemy({ ...newEnemy, hp: newEnemy.maxHp })
   setScene(scenes.FIGHT)

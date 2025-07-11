@@ -40,30 +40,20 @@
       <div>
         <strong>Skill:</strong>
         <ul>
-          <li v-for="(s, i) in character.skill" :key="i">{{ s }}</li>
+          <li v-for="(s, i) in character.skills" :key="i">{{ s }}</li>
         </ul>
       </div>
       <button @click="$emit('start-fight')" :disabled="character.hp <= 0">เข้าสู่ฉากต่อสู้</button>
       <button @click="$emit('open-townhall')" style="margin-left:1rem">เข้า Townhall</button>
     </div>
-    <div v-if="deadCharacters && deadCharacters.length">
-      <h3>ตัวละครที่ตายไปแล้ว</h3>
-      <ul>
-        <li v-for="(dead, idx) in deadCharacters" :key="idx">
-          <strong>{{ dead.name }}</strong> | HP: {{ dead.hp }} |
-          <span>Status: [STR:{{ dead.status.str }}, AGI:{{ dead.status.agi }}, VIT:{{ dead.status.vit }}, DEX:{{ dead.status.dex }}, INT:{{ dead.status.int }}, LUK:{{ dead.status.luk }}, CHA:{{ dead.status.cha }}]</span>
-          <span> | Skill: <span v-for="(s, i) in dead.skill" :key="i">{{ s }} </span></span>
-        </li>
-      </ul>
-    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { Character } from '../store/useGameStore'
+import type { Character, Status } from '../store/useGameStore'
+
 const props = defineProps<{
-  character: Character,
-  deadCharacters?: Character[]
+  character: Character
 }>()
 
 function totalStatus(c: Character) {
@@ -72,12 +62,44 @@ function totalStatus(c: Character) {
 
 // Calculate status after skill effects (for display)
 function skillStatus(type: keyof Character['status']): number {
-  // For now, just return character.status[type] (since skill effects are already applied)
-  // If you want to show the original value, you need to store base status separately
-  return props.character.status[type]
+  // Defensive: Only process if character.skill is an array of Skill objects
+  let val = props.character.status[type]
+  if (Array.isArray(props.character.skills)) {
+    for (const skill of props.character.skills) {
+      // Defensive: skip if not a Skill object
+      if (!skill || typeof skill !== 'object' || !('buff' in skill)) continue;
+      // Buff
+      if (skill.buff && skill.buff.statusType === type) {
+        if (skill.buff.value && !skill.buff.multiply) {
+          val += parseInt(skill.buff.value)
+        }
+        if (skill.buff.multiply && skill.buff.multiply !== '0%' && skill.buff.multiply !== '0.00%') {
+          val = Math.floor(val * (1 + parseFloat(skill.buff.multiply.replace('%',''))/100))
+        }
+      }
+      // Debuff
+      if (skill.debuff && skill.debuff.statusType === type) {
+        if (skill.debuff.value && !skill.debuff.multiply) {
+          val -= parseInt(skill.debuff.value)
+        }
+        if (skill.debuff.multiply && skill.debuff.multiply !== '0%' && skill.debuff.multiply !== '0.00%') {
+          val = Math.floor(val * (1 - parseFloat(skill.debuff.multiply.replace('%',''))/100))
+        }
+        if (val < 0) val = 0
+      }
+    }
+  }
+  return val
 }
+
 function skillStatusAll(c: Character) {
-  // For now, just return c.status (since skill effects are already applied)
+  if (props.character.status && Array.isArray(props.character.skills)) {
+    const result: Record<string, number> = { ...props.character.status }
+    for (const type of Object.keys(result)) {
+      result[type] = skillStatus(type as keyof Character['status'])
+    }
+    return result as Status
+  }
   return c.status
 }
 </script>

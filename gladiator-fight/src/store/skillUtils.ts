@@ -8,6 +8,7 @@ export type SkillData = {
 }
 
 export type Skill = {
+  [x: string]: any
   buff: SkillData
   debuff?: SkillData
 }
@@ -59,51 +60,8 @@ export function randomSkillChoices(luk: number = 0): Skill[] {
   return choices.slice(0, numChoices);
 }
 
-export function applySkill(idx: number, character: Character, skillChoices: Skill[], characterHistory: Character[], showSkillSelectSetter?: (v: boolean) => void) {
+export function applySkill(idx: number, character: Character, skillChoices: Skill[]) {
   const skill = skillChoices[idx];
-  // Apply buff
-  const buff = skill.buff;
-  if (buff) {
-    // Add value
-    if (buff.value && !buff.multiply) {
-      const key = buff.statusType as keyof Status;
-      character.status[key] += parseInt(buff.value);
-    }
-    // Multiply
-    if (buff.multiply && buff.multiply !== '0%' && buff.multiply !== '0.00%') {
-      const key = buff.statusType as keyof Status;
-      const mul = parseFloat(buff.multiply.replace('%', '')) / 100;
-      character.status[key] = Math.floor(character.status[key] * (1 + mul));
-    }
-  }
-  // Apply debuff (subtract value)
-  if (skill.debuff) {
-    const debuff = skill.debuff;
-    if (debuff.value && !debuff.multiply) {
-      const key = debuff.statusType as keyof Status;
-      character.status[key] -= parseInt(debuff.value);
-      if (character.status[key] < 0) character.status[key] = 0;
-    }
-    if (debuff.multiply && debuff.multiply !== '0%' && debuff.multiply !== '0.00%') {
-      const key = debuff.statusType as keyof Status;
-      const mul = parseFloat(debuff.multiply.replace('%', '')) / 100;
-      character.status[key] = Math.floor(character.status[key] * (1 - mul));
-      if (character.status[key] < 0) character.status[key] = 0;
-    }
-  }
-  // Log skill usage (for history)
-  let skillDesc = `Buff: ${buff.statusType} +${buff.value}`;
-  if (buff.multiply && buff.multiply !== '0%' && buff.multiply !== '0.00%') skillDesc += ` x${buff.multiply}`;
-  if (skill.debuff) {
-    skillDesc += ` | Debuff: ${skill.debuff.statusType} -${skill.debuff.value}`;
-    if (skill.debuff.multiply && skill.debuff.multiply !== '0%' && skill.debuff.multiply !== '0.00%') skillDesc += ` x${skill.debuff.multiply}`;
-  }
-  character.skill.push(skillDesc);
-  const idxHistory = characterHistory.findIndex(c => c.name === character.name && c.skill.join(',') === character.skill.join(','));
-  if (idxHistory !== -1) {
-    characterHistory[idxHistory] = { ...character };
-  } else {
-    characterHistory.push({ ...character });
-  }
-  if (showSkillSelectSetter) showSkillSelectSetter(false);
+  if (!character.skills) character.skills = [];
+  character.skills.push(skill);
 }

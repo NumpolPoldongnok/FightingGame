@@ -20,7 +20,7 @@
         <div class="skill-row">
           <span class="skill-label">Skill:</span>
           <span class="skill-list">
-            <span v-for="(s, i) in c.skill" :key="i" class="skill-item">{{ s }}</span>
+            <span v-for="(s, i) in c.skills" :key="i" class="skill-item">{{ s }}</span>
           </span>
         </div>
       </div>

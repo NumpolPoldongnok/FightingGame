@@ -19,12 +19,12 @@
           <div>
             <strong>Skill:</strong>
             <ul>
-              <li v-for="(s, i) in character.skill" :key="i">{{ s }}</li>
+              <li v-for="(s, i) in character.skills" :key="i">{{ s }}</li>
             </ul>
           </div>
         </div>
         <div class="status-block enemy">
-          <h3>ศัตรู: {{ enemy.name }}<span v-if="isPastSelf"> (อดีตตัวเรา)</span></h3>
+          <h3>ศัตรู: {{ enemy.name }}</h3>
           <p>HP: {{ enemy.hp }} / {{ enemy.maxHp }}</p>
           <div class="status-list">
             <span>STR: {{ enemy.status.str }}</span>
@@ -39,7 +39,7 @@
           <div>
             <strong>Skill:</strong>
             <ul>
-              <li v-for="(s, i) in enemy.skill" :key="i">{{ s }}</li>
+              <li v-for="(s, i) in enemy.skills" :key="i">{{ s }}</li>
             </ul>
           </div>
         </div>
@@ -76,10 +76,6 @@ const getLogClass = (log: string) => {
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { doBattleTurn } from '../store/battleUtilsFight'
 import CooldownBar from './CooldownBar.vue'
-const isPastSelf = computed(() => {
-  return Array.isArray(enemy.skill) && enemy.skill.some(s => typeof s === 'string' && s.startsWith('win:'))
-})
-
 import type { Character } from '../store/useGameStore'
 import { toBattleFighter } from '../store/battleUtils'
 const props = defineProps<{ character: Character, enemy: Character }>()

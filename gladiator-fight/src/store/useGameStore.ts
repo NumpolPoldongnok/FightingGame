@@ -23,7 +23,7 @@ export type Character = {
   hp: number
   maxHp: number
   status: Status
-  skill: string[]
+  skills: Skill[]
   winStreak: number
   lastMoneyEarned?: number
   totalMoneyEarned: number
@@ -114,7 +114,7 @@ export const useGameStore = defineStore('game', () => {
       hp: maxHp,
       maxHp,
       status,
-      skill: [],
+      skills: [],
       winStreak: 0,
       totalMoneyEarned: 0,
     }

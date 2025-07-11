@@ -42,8 +42,7 @@ function handleChooseSkill(idx: number) {
   applySkill(
     idx,
     character.value,
-    skillChoices.value as Skill[],
-    characterHistory.value
+    skillChoices.value as Skill[]
   )
   currentScene.value = scenes.PREPARE
 }
@@ -51,8 +50,6 @@ function handleChooseSkill(idx: number) {
 function handleStartFight() {
   startFight(
     character.value,
-    deadCharacters.value,
-    characterHistory.value,
     (e: any) => { enemy.value = e },
     (scene: string) => { currentScene.value = scene },
     game.randomCharacter,
