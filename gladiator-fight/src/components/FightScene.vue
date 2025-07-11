@@ -49,7 +49,6 @@
   </div>
 </template>
 
-defineProps<{
 <script lang="ts" setup>
 import { defineProps, ref, onMounted, onUnmounted, defineEmits, computed } from 'vue'
 const isPastSelf = computed(() => {
@@ -107,7 +106,7 @@ function doBattleTurn() {
     clearInterval(interval)
     setTimeout(() => {
       battleLog.value.unshift('--- จบการต่อสู้ ---')
-      emit('battle-finished')
+      emit('battle-finished', true)
     }, 200)
     return
   }
@@ -118,7 +117,7 @@ function doBattleTurn() {
     clearInterval(interval)
     setTimeout(() => {
       battleLog.value.unshift('--- จบการต่อสู้ ---')
-      emit('battle-finished')
+      emit('battle-finished', false)
     }, 200)
   }
 }
