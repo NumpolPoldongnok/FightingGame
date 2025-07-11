@@ -77,7 +77,7 @@ export function startFight(
 ) {
     console.log('startFight', character)
 
-  const total = 20 + (character?.winStreak ?? 0) * 10
+  const total = 20 + (character?.winStreak ?? 0) * 2
   const newEnemy = randomCharacter(total)
   setEnemy({ ...newEnemy, hp: newEnemy.maxHp })
   setScene(scenes.FIGHT)

@@ -1,4 +1,3 @@
-
 import type { Character, Status } from './useGameStore'
 
 export type SkillData = {
@@ -64,4 +63,39 @@ export function applySkill(idx: number, character: Character, skillChoices: Skil
   const skill = skillChoices[idx];
   if (!character.skills) character.skills = [];
   character.skills.push(skill);
+  character.status.str = skillStatus(character, 'str', skill);
+  character.status.agi = skillStatus(character, 'agi', skill);
+  character.status.vit = skillStatus(character, 'vit', skill);
+  character.status.dex = skillStatus(character, 'dex', skill);
+  character.status.int = skillStatus(character, 'int', skill);
+  character.status.cha = skillStatus(character, 'cha', skill);
+}
+
+// Calculate status after skill effects (for display)
+function skillStatus(character: Character, type: keyof Character['status'], skill: Skill): number {
+  // Defensive: Only process if character.skill is an array of Skill objects
+  let val = character.status[type]
+      // Buff
+      if (skill.buff && skill.buff.statusType === type) {
+        if (skill.buff.value) {
+          val += parseInt(skill.buff.value)
+        }
+        console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
+        if (skill.buff.multiply && skill.buff.multiply !== '0%' && skill.buff.multiply !== '0.00%') {
+          val = Math.floor(val * (1 + parseFloat(skill.buff.multiply.replace('%',''))/100))
+        }
+        console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
+      }
+      // Debuff
+      if (skill.debuff && skill.debuff.statusType === type) {
+        if (skill.debuff.value) {
+          val -= parseInt(skill.debuff.value)
+        }
+        if (skill.debuff.multiply && skill.debuff.multiply !== '0%' && skill.debuff.multiply !== '0.00%') {
+          val = Math.floor(val * (1 - parseFloat(skill.debuff.multiply.replace('%',''))/100))
+        }
+        if (val < 0) val = 0
+        console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
+      }
+  return val
 }
