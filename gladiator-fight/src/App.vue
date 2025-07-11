@@ -5,6 +5,7 @@ import { Character, CharacterHistory, Status, useGameStore } from './store/useGa
 import PrepareScene from './components/PrepareScene.vue'
 import FightScene from './components/FightScene.vue'
 import ResultScreen from './components/ResultScreen.vue'
+import HistoryScreen from './components/HistoryScreen.vue'
 import { storeToRefs } from 'pinia'
 
 const game = useGameStore()
@@ -22,7 +23,18 @@ const {
   characterHistory,
   userProfile,
 } = storeToRefs(game)
+
+import { watch } from 'vue'
+function fetchSceneData() {
+  // Fetch or initialize any data needed for the current scene
+  //startNewGame()
+}
+watch(currentScene, (scene) => {
+  fetchSceneData()
+})
 const { scenes } = game
+// เพิ่ม scenes.HISTORY
+if (!scenes.HISTORY) scenes.HISTORY = 'history'
 import { ref } from 'vue'
 const showTownhall = ref(false)
 const {
@@ -47,7 +59,7 @@ const {
     </div>
   </header>
   <main>
-    <button @click="currentScene = 'history'" style="margin-bottom:1rem">ดูประวัติตัวละครที่เคยใช้</button>
+    <button @click="currentScene = scenes.HISTORY" style="margin-bottom:1rem">ดูประวัติตัวละครที่เคยใช้</button>
     <PrepareScene
       v-if="currentScene === scenes.PREPARE && character"
       :character="character"
@@ -86,17 +98,11 @@ const {
       @back="() => { currentScene = scenes.PREPARE }"
     />
 
-    <div v-if="currentScene === 'history'">
-      <h2>ประวัติตัวละครที่เคยใช้</h2>
-      <ul>
-        <li v-for="(c, idx) in characterHistory" :key="idx">
-          <strong>{{ c.name }}</strong> | HP: {{ c.hp }} | <span>ชนะ: {{ c.winCount ?? 0 }}</span>
-          <span>Status: [STR:{{ c.status.str }}, AGI:{{ c.status.agi }}, VIT:{{ c.status.vit }}, DEX:{{ c.status.dex }}, INT:{{ c.status.int }}, LUK:{{ c.status.luk }}, CHA:{{ c.status.cha }}]</span>
-          <span> | Skill: <span v-for="(s, i) in c.skill" :key="i">{{ s }} </span></span>
-        </li>
-      </ul>
-      <button @click="currentScene = scenes.PREPARE">กลับ</button>
-    </div>
+    <HistoryScreen
+      v-if="currentScene === scenes.HISTORY"
+      :character-history="characterHistory"
+      @back="currentScene = scenes.PREPARE"
+    />
   </main>
 </template>
 

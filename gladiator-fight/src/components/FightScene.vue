@@ -51,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, ref, onMounted, onUnmounted, defineEmits, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 const isPastSelf = computed(() => {
   return Array.isArray(enemy.skill) && enemy.skill.some(s => typeof s === 'string' && s.startsWith('win:'))
 })

@@ -34,6 +34,7 @@ export const useGameStore = defineStore('game', () => {
     PREPARE: 'prepare',
     FIGHT: 'fight',
     RESULT: 'result',
+    HISTORY: 'history',
   }
   const userProfile = ref<UserProfile>({ money: 0 })
   const character = ref<Character | null>(null)

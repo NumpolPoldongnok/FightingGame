@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits } from 'vue'
+// no import for defineProps, defineEmits (compiler macro)
 const props = defineProps<{
   win: boolean,
   winStreak: number,
