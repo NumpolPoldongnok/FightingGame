@@ -79,7 +79,7 @@ const {
     <ResultScreen
       v-if="currentScene === scenes.RESULT"
       :win="lastBattleWin"
-      :win-streak="winStreak"
+      :win-streak="character?.winStreak ?? 0"
       :money-earned="lastMoneyEarned"
       :skill-choices="lastBattleWin ? skillChoices : []"
       @choose-skill="applySkill"

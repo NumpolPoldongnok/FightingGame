@@ -21,7 +21,8 @@ export type Character = {
   maxHp: number
   status: Status
   skill: string[]
-  totalMoneyEarned?: number
+  winStreak: number
+  totalMoneyEarned: number
 }
 
 export type CharacterHistory = Character & { winCount: number }
@@ -39,7 +40,7 @@ export const useGameStore = defineStore('game', () => {
   const userProfile = ref<UserProfile>({ money: 0 })
   const character = ref<Character | null>(null)
   const enemy = ref<Character | null>(null)
-  const winStreak = ref(0)
+  // const winStreak = ref(0) // ย้ายไป character
   const currentScene = ref(scenes.PREPARE)
   const deadCharacters = ref<Character[]>([])
   const skillChoices = ref<string[][]>([])
@@ -55,7 +56,7 @@ export const useGameStore = defineStore('game', () => {
     const data = {
       character: character.value,
       enemy: enemy.value,
-      winStreak: winStreak.value,
+      winStreak: character.value?.winStreak ?? 0,
       currentScene: currentScene.value,
       deadCharacters: deadCharacters.value,
       skillChoices: skillChoices.value,
@@ -76,7 +77,7 @@ export const useGameStore = defineStore('game', () => {
       if (data.character) character.value = data.character
       if (data.userProfile) userProfile.value = data.userProfile
       if (data.enemy) enemy.value = data.enemy
-      if (typeof data.winStreak === 'number') winStreak.value = data.winStreak
+      if (data.character && typeof data.character.winStreak === 'number' && character.value) character.value.winStreak = data.character.winStreak
       if (typeof data.currentScene === 'string') currentScene.value = data.currentScene
       if (Array.isArray(data.deadCharacters)) deadCharacters.value = data.deadCharacters
       if (Array.isArray(data.skillChoices)) skillChoices.value = data.skillChoices
@@ -110,12 +111,14 @@ export const useGameStore = defineStore('game', () => {
       maxHp,
       status,
       skill: [],
+      winStreak: 0,
+      totalMoneyEarned: 0,
     }
   }
   function startNewGame() {
     let base: Status | undefined = undefined
     if (character.value) {
-      characterHistory.value.push({ ...character.value, winCount: winStreak.value })
+      characterHistory.value.push({ ...character.value, winCount: character.value.winStreak })
       base = { ...character.value.status }
       Object.keys(base).forEach(k => {
         base![k as keyof Status] = Math.floor(base![k as keyof Status] * 0.1)
@@ -126,24 +129,24 @@ export const useGameStore = defineStore('game', () => {
     }
     character.value = randomCharacter(statusTotal, base)
     character.value.totalMoneyEarned = 0
-    winStreak.value = 0
+    character.value.winStreak = 0
     deadCharacters.value = []
     currentScene.value = scenes.PREPARE
   }
   function startFight() {
     if (!character.value || character.value.hp <= 0) return
     const found = characterHistory.value.find(
-      (c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${winStreak.value}`)
+      (c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${character.value?.winStreak ?? 0}`)
     )
     if (deadCharacters.value.length > 0) {
-      const dead = deadCharacters.value.find((c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${winStreak.value}`))
+      const dead = deadCharacters.value.find((c) => c.hp <= 0 && c.skill && c.skill.length && c.skill[c.skill.length - 1].includes(`win: ${character.value?.winStreak ?? 0}`))
       if (dead) {
         enemy.value = { ...dead, hp: dead.maxHp }
         currentScene.value = scenes.FIGHT
         return
       }
     }
-    const total = 20 + winStreak.value * 10
+    const total = 20 + (character.value?.winStreak ?? 0) * 10
     const newEnemy = randomCharacter(total)
     enemy.value = { ...newEnemy, hp: newEnemy.maxHp }
     currentScene.value = scenes.FIGHT
@@ -181,16 +184,16 @@ export const useGameStore = defineStore('game', () => {
     character.value.skill.push(skillChoices.value[idx][0])
     const idxHistory = characterHistory.value.findIndex(c => c.name === character.value!.name && c.skill.join(',') === character.value!.skill.join(','))
     if (idxHistory !== -1) {
-      characterHistory.value[idxHistory].winCount = winStreak.value
+      characterHistory.value[idxHistory].winCount = character.value.winStreak
     } else {
-      characterHistory.value.push({ ...character.value, winCount: winStreak.value })
+      characterHistory.value.push({ ...character.value, winCount: character.value.winStreak })
     }
     showSkillSelect.value = false
   }
   function onBattleFinished(win = false) {
     showResultButton.value = true
     lastBattleWin.value = win
-    if (win) winStreak.value++;
+    if (win && character.value) character.value.winStreak++;
     currentScene.value = scenes.RESULT
   }
 
@@ -210,7 +213,7 @@ export const useGameStore = defineStore('game', () => {
     if (!character.value) startNewGame()
   })
   watch([
-    character, enemy, winStreak, currentScene, deadCharacters, skillChoices, showSkillSelect, showResultButton, lastBattleWin, lastMoneyEarned, characterHistory
+    character, enemy, currentScene, deadCharacters, skillChoices, showSkillSelect, showResultButton, lastBattleWin, lastMoneyEarned, characterHistory
   ], saveToLocal, { deep: true })
 
   return {
@@ -218,7 +221,7 @@ export const useGameStore = defineStore('game', () => {
     userProfile,
     character,
     enemy,
-    winStreak,
+    // winStreak, // ย้ายไป character
     currentScene,
     deadCharacters,
     skillChoices,
