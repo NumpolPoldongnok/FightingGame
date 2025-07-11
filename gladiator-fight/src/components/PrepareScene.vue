@@ -4,7 +4,6 @@
     <div v-if="character">
       <p>ชื่อ: {{ character.name }}</p>
       <p>HP: {{ character.hp }} / {{ character.maxHp }}</p>
-      <p>เงิน: {{ character.money }}</p>
       <div>
         <strong>Status:</strong>
         <ul>
@@ -24,13 +23,13 @@
         </ul>
       </div>
       <button @click="$emit('start-fight')" :disabled="character.hp <= 0">เข้าสู่ฉากต่อสู้</button>
-      <button @click="$emit('buy-heal')" :disabled="character.money < 100 || character.hp >= character.maxHp" style="margin-left:1rem">ซื้อยา (+10% max HP, 100 เงิน)</button>
+      <button @click="$emit('open-townhall')" style="margin-left:1rem">เข้า Townhall</button>
     </div>
     <div v-if="deadCharacters && deadCharacters.length">
       <h3>ตัวละครที่ตายไปแล้ว</h3>
       <ul>
         <li v-for="(dead, idx) in deadCharacters" :key="idx">
-          <strong>{{ dead.name }}</strong> | HP: {{ dead.hp }} | เงิน: {{ dead.money }} |
+          <strong>{{ dead.name }}</strong> | HP: {{ dead.hp }} |
           <span>Status: [STR:{{ dead.status.str }}, AGI:{{ dead.status.agi }}, VIT:{{ dead.status.vit }}, DEX:{{ dead.status.dex }}, INT:{{ dead.status.int }}, LUK:{{ dead.status.luk }}, CHA:{{ dead.status.cha }}]</span>
           <span> | Skill: <span v-for="(s, i) in dead.skill" :key="i">{{ s }} </span></span>
         </li>
@@ -47,7 +46,6 @@ defineProps<{
     name: string
     hp: number
     maxHp: number
-    money: number
     status: {
       str: number
       agi: number
@@ -63,7 +61,6 @@ defineProps<{
     name: string
     hp: number
     maxHp: number
-    money: number
     status: {
       str: number
       agi: number

@@ -19,8 +19,11 @@ const {
   lastBattleWin,
   lastMoneyEarned,
   characterHistory,
+  userProfile,
 } = storeToRefs(game)
 const { scenes } = game
+import { ref } from 'vue'
+const showTownhall = ref(false)
 const {
   startNewGame,
   startFight,
@@ -49,8 +52,22 @@ const {
       :character="character"
       :dead-characters="deadCharacters"
       @start-fight="startFight"
-      @buy-heal="() => { if (character && character.money >= 100 && character.hp < character.maxHp) { character.money -= 100; const heal = Math.floor(character.maxHp * 0.1); character.hp += heal; if (character.hp > character.maxHp) character.hp = character.maxHp; } }"
-    />
+      @open-townhall="() => { showTownhall = true }"
+    >
+      <template #money>
+        {{ userProfile.money }}
+      </template>
+    </PrepareScene>
+    <div v-if="showTownhall && currentScene === scenes.PREPARE && character">
+      <div class="modal-overlay">
+        <div class="modal-box">
+          <h2>Townhall</h2>
+          <p>เงินของคุณ: {{ userProfile.money }}</p>
+          <button @click="buyHeal" :disabled="userProfile.money < 100 || character!.hp >= character!.maxHp">ซื้อยา (+10% max HP, 100 เงิน)</button>
+          <button @click="showTownhall = false" style="margin-left:1rem">ออก</button>
+        </div>
+      </div>
+    </div>
     <FightScene
       v-if="currentScene === scenes.FIGHT && character && enemy"
       :character="character"
@@ -75,7 +92,7 @@ const {
       <h2>ประวัติตัวละครที่เคยใช้</h2>
       <ul>
         <li v-for="(c, idx) in characterHistory" :key="idx">
-          <strong>{{ c.name }}</strong> | HP: {{ c.hp }} | เงิน: {{ c.money }} | <span>ชนะ: {{ c.winCount ?? 0 }}</span>
+          <strong>{{ c.name }}</strong> | HP: {{ c.hp }} | <span>ชนะ: {{ c.winCount ?? 0 }}</span>
           <span>Status: [STR:{{ c.status.str }}, AGI:{{ c.status.agi }}, VIT:{{ c.status.vit }}, DEX:{{ c.status.dex }}, INT:{{ c.status.int }}, LUK:{{ c.status.luk }}, CHA:{{ c.status.cha }}]</span>
           <span> | Skill: <span v-for="(s, i) in c.skill" :key="i">{{ s }} </span></span>
         </li>

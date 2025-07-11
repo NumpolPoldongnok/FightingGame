@@ -11,13 +11,17 @@ export type Status = {
   cha: number
 }
 
+export type UserProfile = {
+  money: number
+}
+
 export type Character = {
   name: string
   hp: number
   maxHp: number
-  money: number
   status: Status
   skill: string[]
+  totalMoneyEarned?: number
 }
 
 export type CharacterHistory = Character & { winCount: number }
@@ -31,6 +35,7 @@ export const useGameStore = defineStore('game', () => {
     FIGHT: 'fight',
     RESULT: 'result',
   }
+  const userProfile = ref<UserProfile>({ money: 0 })
   const character = ref<Character | null>(null)
   const enemy = ref<Character | null>(null)
   const winStreak = ref(0)
@@ -58,6 +63,7 @@ export const useGameStore = defineStore('game', () => {
       lastBattleWin: lastBattleWin.value,
       lastMoneyEarned: lastMoneyEarned.value,
       characterHistory: characterHistory.value,
+      userProfile: userProfile.value,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
@@ -67,6 +73,7 @@ export const useGameStore = defineStore('game', () => {
     try {
       const data = JSON.parse(raw)
       if (data.character) character.value = data.character
+      if (data.userProfile) userProfile.value = data.userProfile
       if (data.enemy) enemy.value = data.enemy
       if (typeof data.winStreak === 'number') winStreak.value = data.winStreak
       if (typeof data.currentScene === 'string') currentScene.value = data.currentScene
@@ -100,7 +107,6 @@ export const useGameStore = defineStore('game', () => {
       name: names[Math.floor(Math.random() * names.length)],
       hp: maxHp,
       maxHp,
-      money: 0,
       status,
       skill: [],
     }
@@ -118,6 +124,7 @@ export const useGameStore = defineStore('game', () => {
       statusTotal = 30
     }
     character.value = randomCharacter(statusTotal, base)
+    character.value.totalMoneyEarned = 0
     winStreak.value = 0
     deadCharacters.value = []
     currentScene.value = scenes.PREPARE
@@ -147,7 +154,12 @@ export const useGameStore = defineStore('game', () => {
     enemy.value.hp -= playerAttack
     if (enemy.value.hp <= 0) {
       winStreak.value++
-      character.value.money += 10 * winStreak.value
+      const earned = 10 * winStreak.value
+      userProfile.value.money += earned
+      lastMoneyEarned.value = earned
+      if (character.value) {
+        character.value.totalMoneyEarned = (character.value.totalMoneyEarned || 0) + earned
+      }
       skillChoices.value = randomSkillChoices()
       showSkillSelect.value = true
       onBattleFinished(true)
@@ -158,6 +170,7 @@ export const useGameStore = defineStore('game', () => {
       const charCopy = { ...character.value, skill: [...character.value.skill, `win: ${winStreak.value}`] }
       deadCharacters.value.push(charCopy)
       characterHistory.value.push({ ...charCopy, winCount: winStreak.value })
+      lastMoneyEarned.value = 0
       onBattleFinished(false)
     }
   }
@@ -203,14 +216,13 @@ export const useGameStore = defineStore('game', () => {
   function onBattleFinished(win = false) {
     showResultButton.value = true
     lastBattleWin.value = win
-    lastMoneyEarned.value = win ? 10 * winStreak.value : 0
     currentScene.value = scenes.RESULT
   }
 
   // Heal
   function buyHeal() {
-    if (character.value && character.value.money >= 100 && character.value.hp < character.value.maxHp) {
-      character.value.money -= 100
+    if (character.value && userProfile.value.money >= 100 && character.value.hp < character.value.maxHp) {
+      userProfile.value.money -= 100
       const heal = Math.floor(character.value.maxHp * 0.1)
       character.value.hp += heal
       if (character.value.hp > character.value.maxHp) character.value.hp = character.value.maxHp
@@ -228,6 +240,7 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     scenes,
+    userProfile,
     character,
     enemy,
     winStreak,
