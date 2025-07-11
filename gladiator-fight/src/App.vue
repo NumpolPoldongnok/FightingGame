@@ -16,22 +16,12 @@ const {
   currentScene,
   deadCharacters,
   skillChoices,
-  showSkillSelect,
-  showResultButton,
   lastBattleWin,
   lastMoneyEarned,
   characterHistory,
   userProfile,
 } = storeToRefs(game)
 
-import { watch } from 'vue'
-function fetchSceneData() {
-  // Fetch or initialize any data needed for the current scene
-  //startNewGame()
-}
-watch(currentScene, (scene) => {
-  fetchSceneData()
-})
 const { scenes } = game
 // เพิ่ม scenes.HISTORY
 if (!scenes.HISTORY) scenes.HISTORY = 'history'
@@ -40,7 +30,6 @@ const showTownhall = ref(false)
 const {
   startNewGame,
   startFight,
-  fight,
   applySkill,
   buyHeal,
   onBattleFinished,

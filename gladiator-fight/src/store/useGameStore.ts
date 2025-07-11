@@ -148,33 +148,6 @@ export const useGameStore = defineStore('game', () => {
     enemy.value = { ...newEnemy, hp: newEnemy.maxHp }
     currentScene.value = scenes.FIGHT
   }
-  function fight() {
-    if (!character.value || !enemy.value) return
-    const playerAttack = Math.floor(Math.random() * character.value.status.str) + character.value.status.agi
-    const enemyAttack = Math.floor(Math.random() * enemy.value.status.str) + enemy.value.status.agi
-    enemy.value.hp -= playerAttack
-    if (enemy.value.hp <= 0) {
-      winStreak.value++
-      const earned = 10 * winStreak.value
-      userProfile.value.money += earned
-      lastMoneyEarned.value = earned
-      if (character.value) {
-        character.value.totalMoneyEarned = (character.value.totalMoneyEarned || 0) + earned
-      }
-      skillChoices.value = randomSkillChoices()
-      showSkillSelect.value = true
-      onBattleFinished(true)
-      return
-    }
-    character.value.hp -= enemyAttack
-    if (character.value.hp <= 0) {
-      const charCopy = { ...character.value, skill: [...character.value.skill, `win: ${winStreak.value}`] }
-      deadCharacters.value.push(charCopy)
-      characterHistory.value.push({ ...charCopy, winCount: winStreak.value })
-      lastMoneyEarned.value = 0
-      onBattleFinished(false)
-    }
-  }
   function randomSkillChoices(): string[][] {
     return [
       [`เพิ่ม status แบบสุ่ม 10`, 'random10'],
@@ -217,6 +190,7 @@ export const useGameStore = defineStore('game', () => {
   function onBattleFinished(win = false) {
     showResultButton.value = true
     lastBattleWin.value = win
+    if (win) winStreak.value++;
     currentScene.value = scenes.RESULT
   }
 
@@ -257,7 +231,6 @@ export const useGameStore = defineStore('game', () => {
     randomCharacter,
     startNewGame,
     startFight,
-    fight,
     randomSkillChoices,
     applySkill,
     onBattleFinished,
