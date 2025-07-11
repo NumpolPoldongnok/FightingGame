@@ -28,21 +28,31 @@ export function randomSkillChoices(luk: number = 0): Skill[] {
   let numChoices = minChoices + Math.floor((Math.min(luk, 9999) / 9999) * (maxChoices - minChoices + 1));
   numChoices = Math.max(minChoices, Math.min(maxChoices, numChoices));
   for (let i = 0; i < 5; i++) {
-    // Randomly pick type and value
+    // Randomly pick type and value or multiply (not both)
     const type = statusTypes[randIntLuck(0, statusTypes.length - 1, luk)];
-    const value = randIntLuck(1, 10, luk).toString();
-    const multiply = randPercentLuck(luk);
+    let value = '0';
+    let multiply = '0';
+    if (Math.random() < 0.8) {
+      value = randIntLuck(1, 10, luk).toString();
+    } else {
+      multiply = randPercentLuck(luk);
+    }
     const buff: SkillData = {
       statusType: type,
       value,
       multiply: multiply + '%'
     };
     let debuff: SkillData | undefined = undefined;
-    // 10% chance for debuff
-    if (Math.random() < 0.1) {
+    // 30% chance for debuff
+    if (Math.random() < 0.3) {
       const debuffType = statusTypes[randIntLuck(0, statusTypes.length - 1, luk)];
-      const debuffValue = randIntLuck(1, 10, luk).toString();
-      const debuffMultiply = randPercentLuck(luk);
+      let debuffValue = '0';
+      let debuffMultiply = '0';
+      if (Math.random() < 0.8) {
+        debuffValue = randIntLuck(1, 10, luk).toString();
+      } else {
+        debuffMultiply = randPercentLuck(luk);
+      }
       debuff = {
         statusType: debuffType,
         value: debuffValue,
@@ -81,8 +91,8 @@ function skillStatus(character: Character, type: keyof Character['status'], skil
           val += parseInt(skill.buff.value)
         }
         console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
-        if (skill.buff.multiply && skill.buff.multiply !== '0%' && skill.buff.multiply !== '0.00%') {
-          val = Math.floor(val * (1 + parseFloat(skill.buff.multiply.replace('%',''))/100))
+        if (skill.buff.multiply) {
+          val += Math.floor(val * parseFloat(skill.buff.multiply.replace('%','')))
         }
         console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
       }
@@ -91,8 +101,8 @@ function skillStatus(character: Character, type: keyof Character['status'], skil
         if (skill.debuff.value) {
           val -= parseInt(skill.debuff.value)
         }
-        if (skill.debuff.multiply && skill.debuff.multiply !== '0%' && skill.debuff.multiply !== '0.00%') {
-          val = Math.floor(val * (1 - parseFloat(skill.debuff.multiply.replace('%',''))/100))
+        if (skill.debuff.multiply) {
+          val -= Math.floor(val * parseFloat(skill.buff.multiply.replace('%','')))
         }
         if (val < 0) val = 0
         console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
