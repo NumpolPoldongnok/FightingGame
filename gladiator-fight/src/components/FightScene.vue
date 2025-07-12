@@ -7,7 +7,7 @@
           <h3>คุณ: {{ character.name }}</h3>
           <HPBar :value="character.hp" :max="character.maxHp" />
           <CharacterStatus :status="character.status" />
-          <CooldownBar :value="character.cooldown ?? 0" :key="character.cooldown" />
+          <CooldownBar :value="character.cooldown ?? 0" :max="maxCooldown"/>
       <div>
         <strong>Skill:</strong>
         <SkillList :skills="character.skills.filter(s => s.active === true)" />
@@ -17,7 +17,7 @@
           <h3>ศัตรู: {{ enemy.name }}</h3>
           <HPBar :value="enemy.hp" :max="enemy.maxHp" />
           <CharacterStatus :status="enemy.status" />
-          <CooldownBar :value="enemy.cooldown ?? 0" :key="enemy.cooldown" />
+          <CooldownBar :value="enemy.cooldown ?? 0" :max="maxCooldown"/>
       <div>
         <strong>Skill:</strong>
         <SkillList :skills="character.skills.filter(s => s.active === true)" />
@@ -57,11 +57,12 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { doBattleTurn } from '../store/battleUtilsFight'
 import CooldownBar from './CooldownBar.vue'
 import type { Character } from '../store/useGameStore'
-import { toBattleFighter } from '../store/battleUtils'
+import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
 import SkillList from './SkillList.vue'
 import CharacterStatus from './CharacterStatus.vue'
 import HPBar from './HPBar.vue'
 const props = defineProps<{ character: Character, enemy: Character }>()
+const maxCooldown = setBattleMaxCooldown(props.character.status.agi, props.enemy.status.agi)
 const character = toBattleFighter(props.character)
 const enemy = toBattleFighter(props.enemy)
 const emit = defineEmits(['battle-finished'])
@@ -92,7 +93,7 @@ function doBattleTurnWrapper() {
 onMounted(() => {
   battleLog.value = []
   showFinishButton.value = false
-  intervalRef.value = setInterval(doBattleTurnWrapper, 20)
+  intervalRef.value = setInterval(doBattleTurnWrapper, 200)
 })
 
 onUnmounted(() => {

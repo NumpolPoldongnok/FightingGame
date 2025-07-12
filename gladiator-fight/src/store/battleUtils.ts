@@ -2,8 +2,16 @@
 export type BattleFighter = Character & { cooldown: number };
 
 // Initialize a fighter with cooldown
+// This will be set by setBattleMaxCooldown before battle starts
+let BATTLE_MAX_COOLDOWN = 100;
+
+export function setBattleMaxCooldown(charAgi: number, enemyAgi: number): number {
+  BATTLE_MAX_COOLDOWN = Math.max(1, (charAgi + enemyAgi)*2);
+  return BATTLE_MAX_COOLDOWN;
+}
+
 export function toBattleFighter(character: Character): BattleFighter {
-  return { ...character, cooldown: 100 };
+  return { ...character, cooldown: BATTLE_MAX_COOLDOWN };
 }
 
 // Reduce cooldown by agi per turn
@@ -19,7 +27,7 @@ export function canAttack(fighter: BattleFighter): boolean {
 
 // Reset cooldown after attack
 export function resetCooldown(fighter: BattleFighter) {
-  fighter.cooldown = 100;
+  fighter.cooldown = BATTLE_MAX_COOLDOWN;
 }
 
 // Calculate evasion: agi of defender vs dex of attacker

@@ -5,15 +5,18 @@
       <div v-if="isAttacking" class="attack-effect">Attacking!</div>
     </transition>
   </div>
-  <span v-if="!isAttacking">Cooldown: {{ value }}/100</span>
+  <span v-if="!isAttacking">Cooldown: {{ value }}/{{ max }}</span>
   <span v-else class="attacking-text">Attacking!</span>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-const props = defineProps<{ value: number }>()
-const fillWidth = computed(() => 100 - (props.value ?? 0))
-const isAttacking = computed(() => (props.value ?? 0) >= 100)
+const props = defineProps<{ value: number, max: number }>()
+const fillWidth = computed(() => {
+  const percent = 100 - ((props.value ?? 0) / (props.max ?? 100)) * 100;
+  return Math.max(0, Math.min(100, percent));
+})
+const isAttacking = computed(() => (props.value ?? 0) >= (props.max ?? 100))
 </script>
 
 <style scoped>
