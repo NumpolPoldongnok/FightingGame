@@ -10,7 +10,7 @@
           <CooldownBar :value="character.cooldown ?? 0" :key="character.cooldown" />
       <div>
         <strong>Skill:</strong>
-        <SkillList :skills="character.skills" />
+        <SkillList :skills="character.skills.filter(s => s.active === true)" />
       </div>
         </div>
         <div class="status-block enemy">
@@ -20,7 +20,7 @@
           <CooldownBar :value="enemy.cooldown ?? 0" :key="enemy.cooldown" />
       <div>
         <strong>Skill:</strong>
-        <SkillList :skills="character.skills" />
+        <SkillList :skills="character.skills.filter(s => s.active === true)" />
       </div>
         </div>
       </div>
@@ -101,26 +101,33 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+
+/* Genshin-style Battle UI */
 .status-row {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 1rem;
+  gap: 2.2rem;
+  margin-bottom: 1.3rem;
 }
 .status-block {
-  background: #232323;
-  color: #fff;
-  border-radius: 8px;
-  padding: 1rem;
-  min-width: 220px;
+  background: linear-gradient(135deg, #e3eafc 60%, #f7fafd 100%);
+  color: #2d3142;
+  border-radius: 18px;
+  padding: 1.3rem 2.1rem 1.5rem 2.1rem;
+  min-width: 260px;
   flex: 1;
+  box-shadow: 0 4px 18px #b2c7e155, 0 1.5px 0 #fff8 inset;
+  border: 2.5px solid #b2c7e1;
+  margin-bottom: 0.2em;
 }
 .status-block.player {
-  border: 2px solid #4caf50;
+  border: 2.5px solid #43e97b;
+  box-shadow: 0 4px 18px #43e97b33, 0 1.5px 0 #fff8 inset;
 }
 .status-block.enemy {
-  border: 2px solid #f44336;
+  border: 2.5px solid #e53935;
+  box-shadow: 0 4px 18px #e5393533, 0 1.5px 0 #fff8 inset;
 }
 .status-list {
   display: flex;
@@ -129,53 +136,59 @@ onUnmounted(() => {
   margin-bottom: 0.5rem;
 }
 
+
 .battle-log-container {
-  max-height: 220px;
+  max-height: 240px;
   overflow-y: auto;
-  background: #181818;
-  color: #fff;
-  margin-top: 1rem;
-  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
-  border-radius: 12px;
-  font-size: 1.05rem;
-  box-shadow: 0 2px 12px #000a;
+  background: linear-gradient(135deg, #e3eafc 60%, #f7fafd 100%);
+  color: #2d3142;
+  margin-top: 1.2rem;
+  padding: 0.7rem 1.1rem 0.7rem 1.1rem;
+  border-radius: 16px;
+  font-size: 1.09rem;
+  box-shadow: 0 4px 18px #b2c7e155, 0 1.5px 0 #fff8 inset;
+  border: 2px solid #b2c7e1;
 }
 .battle-log-row {
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.38rem;
   white-space: pre-line;
-  padding: 0.4em 1em;
-  border-radius: 8px;
+  padding: 0.5em 1.2em;
+  border-radius: 10px;
   max-width: 70%;
   word-break: break-word;
   display: block;
+  font-family: 'Montserrat', 'Prompt', Arial, sans-serif;
 }
 .log-player {
-  background: linear-gradient(90deg, #263238 60%, #4caf50 100%);
-  color: #b2ff59;
+  background: linear-gradient(90deg, #43e97b 60%, #38f9d7 100%);
+  color: #2d3142;
   text-align: left;
   margin-right: auto;
-  border-left: 4px solid #4caf50;
-  box-shadow: 0 1px 6px #4caf5022;
+  border-left: 4px solid #43e97b;
+  box-shadow: 0 1px 6px #43e97b22;
+  font-weight: 700;
 }
 .log-enemy {
-  background: linear-gradient(270deg, #263238 60%, #f44336 100%);
-  color: #ffbdbd;
+  background: linear-gradient(270deg, #e53935 60%, #f7baba 100%);
+  color: #2d3142;
   text-align: right;
   margin-left: auto;
-  border-right: 4px solid #f44336;
-  box-shadow: 0 1px 6px #f4433622;
+  border-right: 4px solid #e53935;
+  box-shadow: 0 1px 6px #e5393522;
+  font-weight: 700;
 }
 .log-evade {
   font-style: italic;
   opacity: 0.85;
 }
 .log-lose {
-  background: #333;
+  background: #fff3e0;
   color: #ff9800;
   text-align: center;
   margin: 0 auto;
   border: none;
   font-weight: bold;
+  border-radius: 10px;
 }
 .log-end {
   background: none;
@@ -183,7 +196,7 @@ onUnmounted(() => {
   text-align: center;
   margin: 0 auto;
   border: none;
-  font-size: 0.95em;
+  font-size: 0.98em;
 }
 
 

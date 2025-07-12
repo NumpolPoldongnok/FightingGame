@@ -10,6 +10,7 @@ export type Skill = {
   [x: string]: any
   buff: SkillData
   debuff?: SkillData
+  active?: boolean // for active skills
 }
 
 export function randomSkillChoices(luk: number = 0): Skill[] {
@@ -75,7 +76,17 @@ export function applySkill(idx: number, character: Character, skillChoices: Skil
   character.skills.push(skill);
   character.status.str = skillStatus(character, 'str', skill);
   character.status.agi = skillStatus(character, 'agi', skill);
+  const oldVit = character.status.vit;
   character.status.vit = skillStatus(character, 'vit', skill);
+  // 1 vit = +10 hp, maxHp
+  const vitDiff = character.status.vit - oldVit;
+  if (vitDiff !== 0) {
+    character.maxHp += vitDiff * 10;
+    character.hp += vitDiff * 10;
+    if (character.hp > character.maxHp) character.hp = character.maxHp;
+    if (character.maxHp < 1) character.maxHp = 1;
+    if (character.hp < 0) character.hp = 0;
+  }
   character.status.dex = skillStatus(character, 'dex', skill);
   character.status.int = skillStatus(character, 'int', skill);
   character.status.luk = skillStatus(character, 'luk', skill);
