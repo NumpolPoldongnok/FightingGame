@@ -26,6 +26,6 @@ const props = defineProps<{
 }>()
 
 function totalStatus(c: Character) {
-  return c.status.str + c.status.agi + c.status.vit + c.status.dex + c.status.int + c.status.luk + c.status.cha
+  return c.status.str + c.status.agi + c.status.vit + c.status.dex + c.status.int + c.status.luk
 }
 </script>

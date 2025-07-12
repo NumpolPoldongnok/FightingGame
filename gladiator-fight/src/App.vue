@@ -52,7 +52,7 @@ function handleRandomSkillChoices() {
   // skillChoices is now Skill[]
   skillChoices.value = randomSkillChoices(33)
   // Update the scene to reflect the new skill choices
-  currentScene.value = scenes.PREPARE
+  currentScene.value = scenes.RESULT
 }
 
 function handleStartFight() {

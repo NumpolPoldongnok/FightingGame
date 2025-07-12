@@ -4,6 +4,7 @@ import { Character } from 'src/store/useGameStore';
 import type { Skill } from '../store/skillUtils'
 import CharacterStatus from './CharacterStatus.vue'
 import HPBar from './HPBar.vue'
+import SkillChoiceButton from './SkillChoiceButton.vue'
 const props = defineProps<{
   win: boolean,
   character: Character,
@@ -30,10 +31,7 @@ defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
       </div>
       <ul>
         <li v-for="(s, i) in skillChoices" :key="i">
-          <button @click="$emit('choose-skill', i)">
-            Buff: {{ s.buff.statusType }} +{{ s.buff.value }}<span v-if="s.buff.multiply && s.buff.multiply !== '0%'"> x{{ s.buff.multiply }}</span>
-            <span v-if="s.debuff"> | Debuff: {{ s.debuff.statusType }} -{{ s.debuff.value }}<span v-if="s.debuff.multiply && s.debuff.multiply !== '0%'"> x{{ s.debuff.multiply }}</span></span>
-          </button>
+          <SkillChoiceButton :skill="s" :index="i" @choose="$emit('choose-skill', i)" />
         </li>
       </ul>
       <button class="back-btn" @click="$emit('back')">กลับไปเตรียมตัว</button>
@@ -69,5 +67,67 @@ defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
 }
 .result-screen button:hover {
   background: #388e3c;
+}
+
+.skill-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2em;
+  background: #f5f7fa;
+  border: 2px solid #bdbdbd;
+  padding: 0.7em 1.2em;
+  margin: 0.3em 0;
+  min-width: 180px;
+  transition: border 0.2s;
+}
+.skill-choice-btn:hover {
+  border: 2px solid #90caf9;
+}
+.skill-effects {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+}
+.buff-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 1em;
+}
+.buff-label {
+  color: #43a047;
+  font-weight: bold;
+  margin-right: 0.2em;
+}
+.buff-type {
+  color: #43a047;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.buff-value, .buff-mult {
+  color: #66bb6a;
+  font-weight: 500;
+}
+.debuff-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 1em;
+}
+.debuff-label {
+  color: #e53935;
+  font-weight: bold;
+  margin-right: 0.2em;
+}
+.debuff-type {
+  color: #e53935;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.debuff-value, .debuff-mult {
+  color: #ef9a9a;
+  font-weight: 500;
 }
 </style>
