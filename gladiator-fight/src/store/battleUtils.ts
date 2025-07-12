@@ -60,12 +60,12 @@ export function calcMagicDamage(attacker: Character, defender: Character): numbe
 
 export function calcReward(character: Character): number {
   let reward = 100 + character.winStreak * 10
-  reward += Math.floor(character.status.cha * 2)
+  reward += Math.floor(character.status.luk * 2)
   return reward
 }
 
 export function calcHealCost(character: Character): number {
-  return Math.max(50, 100 - character.status.cha * 2)
+  return Math.max(50, 100 - character.status.luk * 2)
 }
 
 export function startFight(
