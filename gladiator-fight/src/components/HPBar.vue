@@ -33,7 +33,7 @@ const percent = computed(() => Math.max(0, Math.min(100, (props.value / props.ma
   top: 50%;
   transform: translate(-50%, -50%);
   color: #fff;
-  font-size: 0.98em;
+  font-size: 0.78em;
   font-weight: bold;
   text-shadow: 0 0 3px #222;
   pointer-events: none;
