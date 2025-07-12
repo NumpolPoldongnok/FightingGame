@@ -78,7 +78,7 @@ export function applySkill(idx: number, character: Character, skillChoices: Skil
   character.status.vit = skillStatus(character, 'vit', skill);
   character.status.dex = skillStatus(character, 'dex', skill);
   character.status.int = skillStatus(character, 'int', skill);
-  character.status.cha = skillStatus(character, 'cha', skill);
+  character.status.luk = skillStatus(character, 'luk', skill);
 }
 
 function applyBuff(val: number, buff: SkillData, type: keyof Character['status']): number {

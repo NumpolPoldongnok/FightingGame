@@ -8,7 +8,6 @@
       <li><span class="stat-label">DEX</span><span class="stat-value">{{ status.dex }}</span></li>
       <li><span class="stat-label">INT</span><span class="stat-value">{{ status.int }}</span></li>
       <li><span class="stat-label">LUK</span><span class="stat-value">{{ status.luk }}</span></li>
-      <li><span class="stat-label">CHA</span><span class="stat-value">{{ status.cha }}</span></li>
     </ul>
   </div>
 </template>

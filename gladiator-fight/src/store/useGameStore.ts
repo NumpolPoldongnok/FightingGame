@@ -11,7 +11,6 @@ export type Status = {
   dex: number
   int: number
   luk: number
-  cha: number
 }
 
 export type UserProfile = {
@@ -92,7 +91,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   // Logic
-  function randomStatus(total: number, base: Status = {str:1,agi:1,vit:1,dex:1,int:1,luk:1,cha:1}): Status {
+  function randomStatus(total: number, base: Status = {str:1,agi:1,vit:1,dex:1,int:1,luk:1}): Status {
     console.log('randomStatus', total, base)
     let remain = total - 7
     const keys = Object.keys(base) as (keyof Status)[]
