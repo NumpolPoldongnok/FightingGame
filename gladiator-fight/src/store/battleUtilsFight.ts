@@ -7,7 +7,8 @@ import {
   canAttack,
   resetCooldown,
   tryEvade,
-  calcPhysicalDamage
+  calcPhysicalDamage,
+  calcMagicDamage
 } from './battleUtils'
 
 export function doBattleTurn(
@@ -33,9 +34,16 @@ export function doBattleTurn(
   // Player's turn
   if (canAttack(character as BattleFighter)) {
     if (!tryEvade(enemy as BattleFighter, character as BattleFighter)) {
-      const dmg = calcPhysicalDamage(character, enemy);
+      let dmg: number;
+      let isMagic = false;
+      if (character.status.int > character.status.str) {
+        dmg = calcMagicDamage(character, enemy);
+        isMagic = true;
+      } else {
+        dmg = calcPhysicalDamage(character, enemy);
+      }
       enemy.hp -= dmg;
-      battleLog.unshift(`คุณโจมตี ${enemy.name} ${dmg} dmg (HP เหลือ ${enemy.hp < 0 ? 0 : enemy.hp})`);
+      battleLog.unshift(`คุณโจมตี ${enemy.name} ${dmg} ${isMagic ? 'magic' : 'dmg'} (HP เหลือ ${enemy.hp < 0 ? 0 : enemy.hp})`);
     } else {
       battleLog.unshift(`คุณโจมตี ${enemy.name} แต่ ${enemy.name} หลบได้!`);
     }
@@ -61,9 +69,16 @@ export function doBattleTurn(
   // Enemy's turn
   if (canAttack(enemy as BattleFighter)) {
     if (!tryEvade(character as BattleFighter, enemy as BattleFighter)) {
-      const dmg = calcPhysicalDamage(enemy, character);
+      let dmg: number;
+      let isMagic = false;
+      if (enemy.status.int > enemy.status.str) {
+        dmg = calcMagicDamage(enemy, character);
+        isMagic = true;
+      } else {
+        dmg = calcPhysicalDamage(enemy, character);
+      }
       character.hp -= dmg;
-      battleLog.unshift(`${enemy.name} โจมตีคุณ ${dmg} dmg (HP เหลือ ${character.hp < 0 ? 0 : character.hp})`);
+      battleLog.unshift(`${enemy.name} โจมตีคุณ ${dmg} ${isMagic ? 'magic' : 'dmg'} (HP เหลือ ${character.hp < 0 ? 0 : character.hp})`);
     } else {
       battleLog.unshift(`${enemy.name} โจมตีคุณ แต่คุณหลบได้!`);
     }
