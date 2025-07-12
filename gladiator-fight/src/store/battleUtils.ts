@@ -76,7 +76,7 @@ export function startFight(
   scenes: any
 ) {
     console.log('startFight', character)
-
+console.log('character status', character?.hp, character?.winStreak)
   const total = 20 + (character?.winStreak ?? 0) * 2
   const newEnemy = randomCharacter(total)
   setEnemy({ ...newEnemy, hp: newEnemy.maxHp })

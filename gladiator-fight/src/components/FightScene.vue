@@ -5,16 +5,8 @@
       <div class="status-row">
         <div class="status-block player">
           <h3>คุณ: {{ character.name }}</h3>
-          <p>HP: {{ character.hp }} / {{ character.maxHp }}</p>
-          <div class="status-list">
-            <span>STR: {{ character.status.str }}</span>
-            <span>AGI: {{ character.status.agi }}</span>
-            <span>VIT: {{ character.status.vit }}</span>
-            <span>DEX: {{ character.status.dex }}</span>
-            <span>INT: {{ character.status.int }}</span>
-            <span>LUK: {{ character.status.luk }}</span>
-            <span>CHA: {{ character.status.cha }}</span>
-          </div>
+          <HPBar :value="character.hp" :max="character.maxHp" />
+          <CharacterStatus :status="character.status" />
           <CooldownBar :value="character.cooldown ?? 0" :key="character.cooldown" />
       <div>
         <strong>Skill:</strong>
@@ -23,16 +15,8 @@
         </div>
         <div class="status-block enemy">
           <h3>ศัตรู: {{ enemy.name }}</h3>
-          <p>HP: {{ enemy.hp }} / {{ enemy.maxHp }}</p>
-          <div class="status-list">
-            <span>STR: {{ enemy.status.str }}</span>
-            <span>AGI: {{ enemy.status.agi }}</span>
-            <span>VIT: {{ enemy.status.vit }}</span>
-            <span>DEX: {{ enemy.status.dex }}</span>
-            <span>INT: {{ enemy.status.int }}</span>
-            <span>LUK: {{ enemy.status.luk }}</span>
-            <span>CHA: {{ enemy.status.cha }}</span>
-          </div>
+          <HPBar :value="enemy.hp" :max="enemy.maxHp" />
+          <CharacterStatus :status="enemy.status" />
           <CooldownBar :value="enemy.cooldown ?? 0" :key="enemy.cooldown" />
       <div>
         <strong>Skill:</strong>
@@ -75,6 +59,8 @@ import CooldownBar from './CooldownBar.vue'
 import type { Character } from '../store/useGameStore'
 import { toBattleFighter } from '../store/battleUtils'
 import SkillList from './SkillList.vue'
+import CharacterStatus from './CharacterStatus.vue'
+import HPBar from './HPBar.vue'
 const props = defineProps<{ character: Character, enemy: Character }>()
 const character = toBattleFighter(props.character)
 const enemy = toBattleFighter(props.enemy)
