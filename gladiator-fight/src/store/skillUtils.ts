@@ -81,31 +81,39 @@ export function applySkill(idx: number, character: Character, skillChoices: Skil
   character.status.cha = skillStatus(character, 'cha', skill);
 }
 
+function applyBuff(val: number, buff: SkillData, type: keyof Character['status']): number {
+  if (buff && buff.statusType === type) {
+    if (buff.value) {
+      val += parseInt(buff.value)
+    }
+    if (buff.multiply && buff.multiply !== '0%' && buff.multiply !== '0.00%') {
+      val = Math.floor(val * (1 + parseFloat(buff.multiply.replace('%',''))/100))
+    }
+  }
+  return val
+}
+
+function applyDebuff(val: number, debuff: SkillData, type: keyof Character['status']): number {
+  if (debuff && debuff.statusType === type) {
+    if (debuff.value) {
+      val -= parseInt(debuff.value)
+    }
+    if (debuff.multiply && debuff.multiply !== '0%' && debuff.multiply !== '0.00%') {
+      val = Math.floor(val * (1 - parseFloat(debuff.multiply.replace('%',''))/100))
+    }
+    if (val < 0) val = 0
+  }
+  return val
+}
+
 // Calculate status after skill effects (for display)
 function skillStatus(character: Character, type: keyof Character['status'], skill: Skill): number {
-  // Defensive: Only process if character.skill is an array of Skill objects
   let val = character.status[type]
-      // Buff
-      if (skill.buff && skill.buff.statusType === type) {
-        if (skill.buff.value) {
-          val += parseInt(skill.buff.value)
-        }
-        console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
-        if (skill.buff.multiply) {
-          val += Math.floor(val * parseFloat(skill.buff.multiply.replace('%','')))
-        }
-        console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
-      }
-      // Debuff
-      if (skill.debuff && skill.debuff.statusType === type) {
-        if (skill.debuff.value) {
-          val -= parseInt(skill.debuff.value)
-        }
-        if (skill.debuff.multiply) {
-          val -= Math.floor(val * parseFloat(skill.buff.multiply.replace('%','')))
-        }
-        if (val < 0) val = 0
-        console.log(`skillStatus ${type} for ${character.name}: ${val} (base: ${character.status[type]}) skill:`, skill)
-      }
+  if (skill.buff) {
+    val = applyBuff(val, skill.buff, type)
+  }
+  if (skill.debuff) {
+    val = applyDebuff(val, skill.debuff, type)
+  }
   return val
 }

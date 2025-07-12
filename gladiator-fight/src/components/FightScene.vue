@@ -16,12 +16,10 @@
             <span>CHA: {{ character.status.cha }}</span>
           </div>
           <CooldownBar :value="character.cooldown ?? 0" :key="character.cooldown" />
-          <div>
-            <strong>Skill:</strong>
-            <ul>
-              <li v-for="(s, i) in character.skills" :key="i">{{ s }}</li>
-            </ul>
-          </div>
+      <div>
+        <strong>Skill:</strong>
+        <SkillList :skills="character.skills" />
+      </div>
         </div>
         <div class="status-block enemy">
           <h3>ศัตรู: {{ enemy.name }}</h3>
@@ -36,12 +34,10 @@
             <span>CHA: {{ enemy.status.cha }}</span>
           </div>
           <CooldownBar :value="enemy.cooldown ?? 0" :key="enemy.cooldown" />
-          <div>
-            <strong>Skill:</strong>
-            <ul>
-              <li v-for="(s, i) in enemy.skills" :key="i">{{ s }}</li>
-            </ul>
-          </div>
+      <div>
+        <strong>Skill:</strong>
+        <SkillList :skills="character.skills" />
+      </div>
         </div>
       </div>
       <div class="battle-log-container">
@@ -78,6 +74,7 @@ import { doBattleTurn } from '../store/battleUtilsFight'
 import CooldownBar from './CooldownBar.vue'
 import type { Character } from '../store/useGameStore'
 import { toBattleFighter } from '../store/battleUtils'
+import SkillList from './SkillList.vue'
 const props = defineProps<{ character: Character, enemy: Character }>()
 const character = toBattleFighter(props.character)
 const enemy = toBattleFighter(props.enemy)

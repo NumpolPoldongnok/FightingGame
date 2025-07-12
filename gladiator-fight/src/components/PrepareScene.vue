@@ -7,9 +7,7 @@
       <CharacterStatus :status="character.status" title="Status" />
       <div>
         <strong>Skill:</strong>
-        <ul>
-          <li v-for="(s, i) in character.skills" :key="i">{{ s }}</li>
-        </ul>
+        <SkillList :skills="character.skills" />
       </div>
       <button @click="$emit('start-fight')" :disabled="character.hp <= 0">เข้าสู่ฉากต่อสู้</button>
       <button @click="$emit('open-townhall')" style="margin-left:1rem">เข้า Townhall</button>
@@ -20,6 +18,8 @@
 <script lang="ts" setup>
 import type { Character } from '../store/useGameStore'
 import CharacterStatus from './CharacterStatus.vue';
+
+import SkillList from './SkillList.vue';
 
 const props = defineProps<{
   character: Character

@@ -25,7 +25,7 @@ const { scenes } = game
 // เพิ่ม scenes.HISTORY
 if (!scenes.HISTORY) scenes.HISTORY = 'history'
 import { ref } from 'vue'
-import { applySkill, type Skill } from './store/skillUtils'
+import { applySkill, randomSkillChoices, type Skill } from './store/skillUtils'
 const showTownhall = ref(false)
 
 
@@ -44,6 +44,14 @@ function handleChooseSkill(idx: number) {
     character.value,
     skillChoices.value as Skill[]
   )
+  currentScene.value = scenes.PREPARE
+}
+
+function handleRandomSkillChoices() {
+  if (!character.value) return;
+  // skillChoices is now Skill[]
+  skillChoices.value = randomSkillChoices(33)
+  // Update the scene to reflect the new skill choices
   currentScene.value = scenes.PREPARE
 }
 
@@ -75,6 +83,7 @@ function handleStartFight() {
   </header>
   <main>
     <button @click="currentScene = scenes.HISTORY" style="margin-bottom:1rem">ดูประวัติตัวละครที่เคยใช้</button>
+    <button @click="currentScene = scenes.RESULT" style="margin-bottom:1rem">ResultScene</button>
     <PrepareScene
       v-if="currentScene === scenes.PREPARE && character"
       :character="character"
@@ -109,6 +118,7 @@ function handleStartFight() {
       @choose-skill="handleChooseSkill"
       @restart="startNewGame"
       @back="() => { currentScene = scenes.PREPARE }"
+      @refresh-skill="handleRandomSkillChoices"
     />
     <HistoryScene
       v-if="currentScene === scenes.HISTORY"

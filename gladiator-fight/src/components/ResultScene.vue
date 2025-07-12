@@ -7,7 +7,10 @@
     <p v-if="win">ได้เงิน: <strong>{{ moneyEarned }}</strong></p>
     <div v-if="win && skillChoices.length">
       <CharacterStatus :status="status!" title="Status หลังชนะ" />
-      <h3>เลือก Skill หลังชนะ</h3>
+      <div style="display:flex;align-items:center;gap:1rem;justify-content:center;">
+        <h3 style="margin:0;">เลือก Skill หลังชนะ</h3>
+        <button @click="$emit('refresh-skill')" style="font-size:1.1em;padding:0.2em 0.7em;">🔄</button>
+      </div>
       <ul>
         <li v-for="(s, i) in skillChoices" :key="i">
           <button @click="$emit('choose-skill', i)">
@@ -36,7 +39,7 @@ const props = defineProps<{
   skillChoices: Skill[],
   status?: Status
 }>()
-defineEmits(['choose-skill', 'restart', 'back'])
+defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
 </script>
 
 <style scoped>
