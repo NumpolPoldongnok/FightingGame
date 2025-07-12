@@ -109,12 +109,10 @@ function handleStartFight() {
       @battle-finished="onBattleFinished"
     />
     <ResultScene
-      v-if="currentScene === scenes.RESULT"
+      v-if="currentScene === scenes.RESULT && character"
       :win="lastBattleWin"
-      :win-streak="character?.winStreak ?? 0"
-      :money-earned="character?.lastMoneyEarned ?? 0"
+      :character="character"
       :skill-choices="lastBattleWin ? skillChoices : []"
-      :status="character?.status"
       @choose-skill="handleChooseSkill"
       @restart="startNewGame"
       @back="() => { currentScene = scenes.PREPARE }"

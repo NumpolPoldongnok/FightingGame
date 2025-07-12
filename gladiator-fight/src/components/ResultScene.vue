@@ -1,12 +1,29 @@
+
+<script lang="ts" setup>
+import { Character } from 'src/store/useGameStore';
+import type { Skill } from '../store/skillUtils'
+import CharacterStatus from './CharacterStatus.vue'
+import HPBar from './HPBar.vue'
+const props = defineProps<{
+  win: boolean,
+  character: Character,
+  skillChoices: Skill[]
+}>()
+defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
+</script>
+
 <template>
   <div class="result-screen">
     <h2>ผลการต่อสู้</h2>
     <p v-if="win">คุณชนะ!</p>
     <p v-else>คุณแพ้</p>
-    <p>ชนะติดต่อกัน: <strong>{{ winStreak }}</strong></p>
-    <p v-if="win">ได้เงิน: <strong>{{ moneyEarned }}</strong></p>
+    <p>ชนะติดต่อกัน: <strong>{{ character.winStreak }}</strong></p>
+    <p v-if="win">ได้เงิน: <strong>{{ character.lastMoneyEarned }}</strong></p>
     <div v-if="win && skillChoices.length">
-      <CharacterStatus :status="status!" title="Status หลังชนะ" />
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+        <HPBar v-if="character" :value="character.hp" :max="character.maxHp" />
+        <CharacterStatus :status="character.status" title="Status หลังชนะ" />
+      </div>
       <div style="display:flex;align-items:center;gap:1rem;justify-content:center;">
         <h3 style="margin:0;">เลือก Skill หลังชนะ</h3>
         <button @click="$emit('refresh-skill')" style="font-size:1.1em;padding:0.2em 0.7em;">🔄</button>
@@ -28,19 +45,6 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { Character, Status } from 'src/store/useGameStore';
-import type { Skill } from '../store/skillUtils'
-import CharacterStatus from './CharacterStatus.vue'
-const props = defineProps<{
-  win: boolean,
-  winStreak: number,
-  moneyEarned: number,
-  skillChoices: Skill[],
-  status?: Status
-}>()
-defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
-</script>
 
 <style scoped>
 .result-screen {
