@@ -49,7 +49,9 @@ function handleChooseSkill(idx: number) {
 function handleRandomSkillChoices() {
   if (!character.value) return;
   // skillChoices is now Skill[]
-  skillChoices.value = randomSkillChoices(33)
+  const newChoices = randomSkillChoices(character.value.status.luk)
+  console.log('New skill choices:', newChoices)
+  skillChoices.value = newChoices
   // Update the scene to reflect the new skill choices
   currentScene.value = scenes.RESULT
 }
@@ -85,9 +87,14 @@ function handleStartFight() {
     <FightScene v-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
       @battle-finished="onBattleFinished"
       @restart="startNewGame" />
-    <ResultScene v-if="currentScene === scenes.RESULT && character" :win="lastBattleWin" :character="character"
-      :skill-choices="lastBattleWin ? skillChoices : []" @choose-skill="handleChooseSkill" @restart="startNewGame"
-      @back="() => { currentScene = scenes.PREPARE }" @refresh-skill="handleRandomSkillChoices" />
+    <ResultScene v-if="currentScene === scenes.RESULT && character" 
+      :win="lastBattleWin" 
+      :character="character"
+      :skill-choices= skillChoices
+      @choose-skill="handleChooseSkill"
+      @restart="startNewGame"
+      @back="() => { currentScene = scenes.PREPARE }" 
+      @refresh-skill="handleRandomSkillChoices" />
     <HistoryScene v-if="currentScene === scenes.HISTORY" :character-history="characterHistory"
       @back="currentScene = scenes.PREPARE" />
   </div>
