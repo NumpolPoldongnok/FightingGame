@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Status, Character } from '../store/useGameStore'
-import { increaseStatus, decreaseStatus, canIncreaseStatus, canDecreaseStatus } from '../store/battleUtils'
+import { increaseStatus, decreaseStatus, canIncreaseStatus, canDecreaseStatus } from '../store/statusUtils'
 import { computed } from 'vue'
 const props = defineProps<{
   character: Character

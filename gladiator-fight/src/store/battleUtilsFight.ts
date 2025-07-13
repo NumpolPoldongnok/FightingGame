@@ -1,5 +1,4 @@
 import type { Character } from './useGameStore'
-import { useGameStore } from './useGameStore'
 import {
   BattleFighter,
   toBattleFighter,
@@ -61,11 +60,6 @@ export function doBattleTurn(
     clearInterval(intervalRef.value);
     setTimeout(() => {
       battleLog.unshift('--- จบการต่อสู้ ---');
-      // Update character HP in gameStore (keep current hp)
-      const gameStore = useGameStore();
-      if (gameStore.character && typeof character.hp === 'number') {
-        gameStore.character.hp = character.hp;
-      }
       onFinish(true);
     }, 200);
     return;

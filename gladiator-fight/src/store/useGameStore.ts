@@ -108,7 +108,7 @@ export const useGameStore = defineStore('game', () => {
     console.log('randomCharacter', statusTotal, baseStatus)
     const names = ['Maximus', 'Spartacus', 'Crixus', 'Commodus', 'Tigris']
     const status = randomStatus(statusTotal, baseStatus)
-    const maxHp = Math.floor(Math.random() * statusTotal) + 100
+    const maxHp = 100 + (status.vit * 10)
     return {
       name: names[Math.floor(Math.random() * names.length)],
       hp: maxHp,
@@ -201,7 +201,6 @@ export const useGameStore = defineStore('game', () => {
     randomStatus,
     randomCharacter,
     startNewGame,
-    ...battleUtils,
     onBattleFinished,
     buyHeal,
     calcMoneyEarned,

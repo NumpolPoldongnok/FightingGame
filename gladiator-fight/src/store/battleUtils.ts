@@ -1,33 +1,3 @@
-// --- Status Point Logic ---
-// Assumes Character has: status: {str, agi, vit, dex, int, luk}, and statusPoint: number
-
-export function canIncreaseStatus(character: Character, key: keyof Character['status']): boolean {
-  return character.statusPoint > 0;
-}
-
-export function canDecreaseStatus(character: Character, key: keyof Character['status']): boolean {
-  // Prevent stat < 1
-  return character.status[key] > 1;
-}
-
-export function increaseStatus(character: Character, key: keyof Character['status']): boolean {
-  if (character.statusPoint > 0) {
-    character.status[key]++;
-    character.statusPoint--;
-    return true;
-  }
-  return false;
-}
-
-export function decreaseStatus(character: Character, key: keyof Character['status']): boolean {
-  if (character.status[key] > 1) {
-    character.status[key]--;
-    character.statusPoint++;
-    return true;
-  }
-  return false;
-}
-// --- Skill Logic ---
 import type { Character } from './useGameStore'
 
 // --- Cooldown-based Battle Logic ---
@@ -104,15 +74,15 @@ export function calcHealCost(character: Character): number {
 }
 
 export function startFight(
-  character: Character | null,
+  character: Character,
   setEnemy: (enemy: Character) => void,
   setScene: (scene: string) => void,
   randomCharacter: (statusTotal: number, baseStatus?: any) => Character,
   scenes: any
 ) {
   console.log('startFight', character)
-  console.log('character status', character?.hp, character?.winStreak)
-  const total = 20 + (character?.winStreak ?? 0) * 2
+  console.log('character status', character.hp, character.winStreak)
+  const total = 20 + (character.winStreak ?? 0) * 10
   const newEnemy = randomCharacter(total)
   setEnemy({ ...newEnemy, hp: newEnemy.maxHp })
   setScene(scenes.FIGHT)

@@ -1,3 +1,64 @@
+<script lang="ts" setup>
+// Helper to classify log type for styling (must be defined as const for template usage)
+// Helper to classify log type for styling (must be top-level const in <script setup> for template access)
+const getLogClass = (log: string) => {
+  if (log.startsWith('คุณโจมตี') && log.includes('หลบได้')) return 'log-player log-evade';
+  if (log.startsWith('คุณโจมตี')) return 'log-player';
+  if (log.startsWith('คุณแพ้')) return 'log-lose';
+  if (log.startsWith('---')) return 'log-end';
+  if (log.startsWith('ศัตรู') || log.startsWith('Enemy') || log.startsWith('AI') || log.startsWith('โจมตีคุณ') || log.startsWith('คุณหลบได้')) return 'log-enemy';
+  if (log.includes('โจมตีคุณ')) return 'log-enemy';
+  if (log.includes('แพ้!')) return 'log-lose';
+  return '';
+}
+
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { doBattleTurn } from '../store/battleUtilsFight'
+import CooldownBar from './CooldownBar.vue'
+import type { Character } from '../store/useGameStore'
+import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
+import SkillList from './SkillList.vue'
+import CharacterStatus from './CharacterStatus.vue'
+import HPBar from './HPBar.vue'
+
+const props = defineProps<{ character: Character, enemy: Character }>()
+const maxCooldown = setBattleMaxCooldown(props.character.status.agi, props.enemy.status.agi)
+const character = toBattleFighter(props.character)
+const enemy = toBattleFighter(props.enemy)
+const emit = defineEmits(['battle-finished', 'restart'])
+const battleLog = ref<string[]>([])
+const showFinishButton = ref(false)
+const showRestartButton = ref(false)
+const intervalRef = { value: undefined as any }
+
+function onFinish(win: boolean) {
+  showFinishButton.value = win
+  showRestartButton.value = !win
+}
+
+function doBattleTurnWrapper() {
+  doBattleTurn(
+    character,
+    enemy,
+    battleLog.value,
+    onFinish,
+    intervalRef
+  )
+}
+
+onMounted(() => {
+  battleLog.value = []
+  showFinishButton.value = false
+  showRestartButton.value = false
+  intervalRef.value = setInterval(doBattleTurnWrapper, 200)
+})
+
+onUnmounted(() => {
+  clearInterval(intervalRef.value)
+})
+</script>
+
+
 <template>
   <div class="fight-main-container">
     <h2>ฉากต่อสู้</h2>
@@ -39,70 +100,7 @@
   </div>
 </template>
 
-
-<script lang="ts" setup>
-// Helper to classify log type for styling (must be defined as const for template usage)
-// Helper to classify log type for styling (must be top-level const in <script setup> for template access)
-const getLogClass = (log: string) => {
-  if (log.startsWith('คุณโจมตี') && log.includes('หลบได้')) return 'log-player log-evade';
-  if (log.startsWith('คุณโจมตี')) return 'log-player';
-  if (log.startsWith('คุณแพ้')) return 'log-lose';
-  if (log.startsWith('---')) return 'log-end';
-  if (log.startsWith('ศัตรู') || log.startsWith('Enemy') || log.startsWith('AI') || log.startsWith('โจมตีคุณ') || log.startsWith('คุณหลบได้')) return 'log-enemy';
-  if (log.includes('โจมตีคุณ')) return 'log-enemy';
-  if (log.includes('แพ้!')) return 'log-lose';
-  return '';
-}
-
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { doBattleTurn } from '../store/battleUtilsFight'
-import CooldownBar from './CooldownBar.vue'
-import type { Character } from '../store/useGameStore'
-import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
-import SkillList from './SkillList.vue'
-import CharacterStatus from './CharacterStatus.vue'
-import HPBar from './HPBar.vue'
-const props = defineProps<{ character: Character, enemy: Character }>()
-const maxCooldown = setBattleMaxCooldown(props.character.status.agi, props.enemy.status.agi)
-const character = toBattleFighter(props.character)
-const enemy = toBattleFighter(props.enemy)
-const emit = defineEmits(['battle-finished', 'restart'])
-const battleLog = ref<string[]>([])
-const showFinishButton = ref(false)
-const showRestartButton = ref(false)
-const intervalRef = { value: undefined as any }
-
-function onFinish(win: boolean) {
-  showFinishButton.value = win
-  showRestartButton.value = !win
-  // emit event if needed, or just set button
-  // emit('battle-finished', win) // (optional, if you want auto emit)
-}
-
-function doBattleTurnWrapper() {
-  doBattleTurn(
-    character,
-    enemy,
-    battleLog.value,
-    onFinish,
-    intervalRef
-  )
-}
-
-onMounted(() => {
-  battleLog.value = []
-  showFinishButton.value = false
-  showRestartButton.value = false
-  intervalRef.value = setInterval(doBattleTurnWrapper, 200)
-})
-
-onUnmounted(() => {
-  clearInterval(intervalRef.value)
-})
-</script>
-
 <style scoped>
-
 /* Genshin-style Battle UI */
 .status-row {
   display: flex;
@@ -287,7 +285,5 @@ onUnmounted(() => {
   padding: 1.2rem 0.7rem 1.5rem 0.7rem;
   box-sizing: border-box;
 }
-
-
 </style>
 
