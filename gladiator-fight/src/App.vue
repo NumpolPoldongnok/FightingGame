@@ -83,7 +83,8 @@ function handleStartFight() {
     <TownhallScene v-if="showTownhall && currentScene === scenes.PREPARE && character" :user-profile="userProfile"
       :character="character" :buy-heal="buyHeal" @close="showTownhall = false" />
     <FightScene v-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
-      @battle-finished="onBattleFinished" />
+      @battle-finished="onBattleFinished"
+      @restart="startNewGame" />
     <ResultScene v-if="currentScene === scenes.RESULT && character" :win="lastBattleWin" :character="character"
       :skill-choices="lastBattleWin ? skillChoices : []" @choose-skill="handleChooseSkill" @restart="startNewGame"
       @back="() => { currentScene = scenes.PREPARE }" @refresh-skill="handleRandomSkillChoices" />

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="fight-main-container">
     <h2>ฉากต่อสู้</h2>
     <div v-if="character && enemy">
       <div class="status-row">
@@ -33,7 +33,10 @@
           {{ log }}
         </div>
       </div>
-      <button v-if="showFinishButton" @click="emit('battle-finished', character.hp > 0)">จบการต่อสู้</button>
+      <div class="battle-btn-row">
+        <button v-if="showFinishButton" class="genshin-btn genshin-btn-finish" @click="emit('battle-finished')">จบการต่อสู้</button>
+        <button v-if="showRestartButton" class="genshin-btn genshin-btn-restart" @click="emit('restart')">เกิดใหม่</button>
+      </div>
     </div>
   </div>
 </template>
@@ -65,16 +68,15 @@ const props = defineProps<{ character: Character, enemy: Character }>()
 const maxCooldown = setBattleMaxCooldown(props.character.status.agi, props.enemy.status.agi)
 const character = toBattleFighter(props.character)
 const enemy = toBattleFighter(props.enemy)
-const emit = defineEmits(['battle-finished'])
+const emit = defineEmits(['battle-finished', 'restart'])
 const battleLog = ref<string[]>([])
 const showFinishButton = ref(false)
+const showRestartButton = ref(false)
 const intervalRef = { value: undefined as any }
 
-function setShowFinishButton(show: boolean) {
-  showFinishButton.value = show
-}
-
 function onFinish(win: boolean) {
+  showFinishButton.value = win
+  showRestartButton.value = !win
   // emit event if needed, or just set button
   // emit('battle-finished', win) // (optional, if you want auto emit)
 }
@@ -85,7 +87,6 @@ function doBattleTurnWrapper() {
     enemy,
     battleLog.value,
     onFinish,
-    setShowFinishButton,
     intervalRef
   )
 }
@@ -93,6 +94,7 @@ function doBattleTurnWrapper() {
 onMounted(() => {
   battleLog.value = []
   showFinishButton.value = false
+  showRestartButton.value = false
   intervalRef.value = setInterval(doBattleTurnWrapper, 200)
 })
 
@@ -235,7 +237,59 @@ onUnmounted(() => {
   font-size: 0.98em;
 }
 
+.battle-btn-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1.2rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+.genshin-btn {
+  background: linear-gradient(90deg, #e3eafc 60%, #f7fafd 100%);
+  color: #2d3142;
+  border-radius: 12px;
+  border: 2.5px solid #b2c7e1;
+  padding: 0.7em 2.2em;
+  font-weight: 700;
+  font-size: 1.18em;
+  box-shadow: 0 2px 10px #b2c7e144, 0 1.5px 0 #fff8 inset;
+  letter-spacing: 0.04em;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  outline: none;
+  cursor: pointer;
+}
+.genshin-btn:active, .genshin-btn:focus {
+  background: #c9e4ff;
+  color: #1a233a;
+  box-shadow: 0 2px 16px #43e97b33;
+}
+.genshin-btn-finish {
+  border-color: #43e97b;
+  background: linear-gradient(90deg, #43e97b 60%, #38f9d7 100%);
+  color: #2d3142;
+  box-shadow: 0 2px 12px #43e97b33, 0 1.5px 0 #fff8 inset;
+}
+.genshin-btn-finish:active, .genshin-btn-finish:focus {
+  background: #43e97b;
+  color: #fff;
+}
+.genshin-btn-restart {
+  border-color: #e53935;
+  background: linear-gradient(90deg, #e53935 60%, #f7baba 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px #e5393533, 0 1.5px 0 #fff8 inset;
+}
+.genshin-btn-restart:active, .genshin-btn-restart:focus {
+  background: #e53935;
+  color: #fff;
+}
+
+
+.fight-main-container {
+  padding: 1.2rem 0.7rem 1.5rem 0.7rem;
+  box-sizing: border-box;
+}
+
 
 </style>
-
 
