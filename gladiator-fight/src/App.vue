@@ -61,7 +61,8 @@ function handleStartFight() {
     (e: any) => { enemy.value = e },
     (scene: string) => { currentScene.value = scene },
     game.randomCharacter,
-    scenes
+    scenes,
+    game.characterHistory
   )
 }
 

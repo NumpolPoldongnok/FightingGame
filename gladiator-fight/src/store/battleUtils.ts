@@ -116,12 +116,24 @@ export function startFight(
   setEnemy: (enemy: Character) => void,
   setScene: (scene: string) => void,
   randomCharacter: (statusTotal: number, baseStatus?: any) => Character,
-  scenes: any
+  scenes: any,
+  characterHistory?: Character[]
 ) {
   console.log('startFight', character)
   console.log('character status', character.hp, character.winStreak)
-  const total = 20 + (character.winStreak ?? 0) * 10
-  const newEnemy = randomCharacter(total)
-  setEnemy({ ...newEnemy, hp: newEnemy.maxHp })
-  setScene(scenes.FIGHT)
+  let newEnemy: Character;
+  if (characterHistory && Array.isArray(characterHistory)) {
+    const match = characterHistory.find(c => c.winStreak === character.winStreak);
+    if (match) {
+      newEnemy = { ...match, name: match.name + ' (Rival)', hp: match.maxHp };
+    } else {
+      const total = 20 + (character.winStreak ?? 0) * 10;
+      newEnemy = randomCharacter(total);
+    }
+  } else {
+    const total = 20 + (character.winStreak ?? 0) * 10;
+    newEnemy = randomCharacter(total);
+  }
+  setEnemy({ ...newEnemy, hp: newEnemy.maxHp });
+  setScene(scenes.FIGHT);
 }
