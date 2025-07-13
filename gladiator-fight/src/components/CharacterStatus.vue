@@ -7,19 +7,22 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="status-container">
-    <div class="player-status">
-      <h3 v-if="title">{{ title }}</h3>
-      <ul class="status-grid">
-        <li><span class="stat-label">STR</span><span class="stat-value">{{ status.str }}</span></li>
-        <li><span class="stat-label">AGI</span><span class="stat-value">{{ status.agi }}</span></li>
-        <li><span class="stat-label">VIT</span><span class="stat-value">{{ status.vit }}</span></li>
-        <li><span class="stat-label">DEX</span><span class="stat-value">{{ status.dex }}</span></li>
-        <li><span class="stat-label">INT</span><span class="stat-value">{{ status.int }}</span></li>
-        <li><span class="stat-label">LUK</span><span class="stat-value">{{ status.luk }}</span></li>
-      </ul>
+  <details class="status-fold" open="false">
+    <summary class="status-summary">สถานะ</summary>
+    <div class="status-container">
+      <div class="player-status">
+        <h3 v-if="title">{{ title }}</h3>
+        <ul class="status-grid">
+          <li><span class="stat-label">STR</span><span class="stat-value">{{ status.str }}</span></li>
+          <li><span class="stat-label">AGI</span><span class="stat-value">{{ status.agi }}</span></li>
+          <li><span class="stat-label">VIT</span><span class="stat-value">{{ status.vit }}</span></li>
+          <li><span class="stat-label">DEX</span><span class="stat-value">{{ status.dex }}</span></li>
+          <li><span class="stat-label">INT</span><span class="stat-value">{{ status.int }}</span></li>
+          <li><span class="stat-label">LUK</span><span class="stat-value">{{ status.luk }}</span></li>
+        </ul>
+      </div>
     </div>
-  </div>
+  </details>
 </template>
 
 <style scoped>
@@ -91,3 +94,25 @@ const props = defineProps<{
   text-shadow: 0 1px 0 #fff8;
 }
 </style>
+
+/* Foldable status block (copied from FightScene.vue for reuse) */
+.status-fold {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  border-radius: 8px;
+  background: #f7fafd;
+  box-shadow: 0 1px 4px #b2c7e122;
+  border: 1.5px solid #b2c7e1;
+  padding: 0.2em 0.7em 0.5em 0.7em;
+}
+.status-summary {
+  font-weight: 600;
+  font-size: 1em;
+  color: #2d3142;
+  cursor: pointer;
+  outline: none;
+  padding: 0.2em 0;
+}
+.status-fold[open] .status-summary {
+  color: #43e97b;
+}

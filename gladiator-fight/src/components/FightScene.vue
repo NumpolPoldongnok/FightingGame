@@ -108,30 +108,24 @@ onUnmounted(() => {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 2.2rem;
+  gap: 1.2rem;
   margin-bottom: 1.3rem;
-}
-@media (max-width: 700px) {
-  .status-row {
-    flex-direction: column;
-    gap: 1.1rem;
-    margin-bottom: 0.7rem;
-  }
-  .status-block {
-    min-width: 0;
-    padding: 1rem 0.7rem 1.1rem 0.7rem;
-  }
+  width: 100%;
 }
 .status-block {
   background: linear-gradient(135deg, #e3eafc 60%, #f7fafd 100%);
   color: #2d3142;
   border-radius: 18px;
-  padding: 1.3rem 2.1rem 1.5rem 2.1rem;
-  min-width: 260px;
-  flex: 1;
+  padding: 1.1rem 1.1rem 1.2rem 1.1rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 420px;
+  flex: 1 1 0;
   box-shadow: 0 4px 18px #b2c7e155, 0 1.5px 0 #fff8 inset;
   border: 2.5px solid #b2c7e1;
   margin-bottom: 0.2em;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .status-block.player {
   border: 2.5px solid #43e97b;
@@ -160,7 +154,25 @@ onUnmounted(() => {
   box-shadow: 0 4px 18px #b2c7e155, 0 1.5px 0 #fff8 inset;
   border: 2px solid #b2c7e1;
 }
+@media (max-width: 900px) {
+  .status-row {
+    gap: 0.7rem;
+  }
+  .status-block {
+    padding: 0.7rem 0.5rem 0.8rem 0.5rem;
+    max-width: 99vw;
+    font-size: 0.97em;
+  }
+}
 @media (max-width: 700px) {
+  .status-row {
+    gap: 0.3rem;
+  }
+  .status-block {
+    padding: 0.5rem 0.2rem 0.6rem 0.2rem;
+    max-width: 100vw;
+    font-size: 0.93em;
+  }
   .battle-log-container {
     font-size: 0.97rem;
     padding: 0.5rem 0.5rem 0.5rem 0.5rem;
@@ -225,4 +237,5 @@ onUnmounted(() => {
 
 
 </style>
+
 
