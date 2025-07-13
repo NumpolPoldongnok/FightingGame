@@ -105,22 +105,10 @@ export function calcReward(character: Character): number {
 }
 
 export function calcHealCost(character: Character): number {
-  // ลดได้สูงสุด 99% แบบสุ่มตาม luk
+  // luk ใกล้ MAX_STATUS ยิ่งลดราคาใกล้ 99%
   const base = 100;
-  const maxDiscount = 0.99; // 99%
-  // โอกาสลด: luk/MAX_STATUS (ถ้า luk=MAX_STATUS มีโอกาส 99.9%)
-  const luckRoll = Math.random();
-  const luckChance = Math.min(character.status.luk, MAX_STATUS) / 1000;
-  let discount = 0;
-  if (luckRoll < luckChance) {
-    // ได้ลดแบบสุ่ม 0-99%
-    discount = Math.random() * maxDiscount;
-  } else {
-    // ลดปกติ luk*2
-    discount = Math.min(character.status.luk * 2 / base, maxDiscount);
-  }
-  const cost = Math.round(base * (1 - discount));
-  return Math.max(1, cost);
+  const result = base - Math.floor((character.status.luk / 99) * base)
+  return Math.max(1, result);
 }
 
 export function startFight(

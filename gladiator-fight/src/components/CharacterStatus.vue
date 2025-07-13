@@ -15,7 +15,8 @@ const statusKeys: (keyof Status)[] = ['str','agi','vit','dex','int','luk']
 const store = useGameStore()
 
 function decreaseStatusWithCost(character: Character, key: keyof Status) {
-  const cost = calcHealCost(character)
+  //const cost = calcHealCost(character)
+  const cost = 1
   if (store.userProfile.money >= cost) {
     store.userProfile.money -= cost
     // @ts-ignore
