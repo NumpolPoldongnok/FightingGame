@@ -1,3 +1,6 @@
+// --- Skill Logic ---
+import type { Character } from './useGameStore'
+
 // --- Cooldown-based Battle Logic ---
 export type BattleFighter = Character & { cooldown: number };
 
@@ -6,7 +9,7 @@ export type BattleFighter = Character & { cooldown: number };
 let BATTLE_MAX_COOLDOWN = 100;
 
 export function setBattleMaxCooldown(charAgi: number, enemyAgi: number): number {
-  BATTLE_MAX_COOLDOWN = Math.max(1, (charAgi + enemyAgi)*2);
+  BATTLE_MAX_COOLDOWN = Math.max(1, (charAgi + enemyAgi) * 2);
   return BATTLE_MAX_COOLDOWN;
 }
 
@@ -41,8 +44,6 @@ export function calcEvasionChance(defender: BattleFighter, attacker: BattleFight
 export function tryEvade(defender: BattleFighter, attacker: BattleFighter): boolean {
   return Math.random() * 100 < calcEvasionChance(defender, attacker);
 }
-// --- Skill Logic ---
-import type { Character } from './useGameStore'
 
 export function calcPhysicalDamage(attacker: Character, defender: Character): number {
   let base = attacker.status.str * 2 + attacker.status.dex + Math.floor(attacker.status.int * 0.2)
@@ -51,12 +52,9 @@ export function calcPhysicalDamage(attacker: Character, defender: Character): nu
     base = Math.floor(base * 1.5)
   }
   base -= Math.floor(defender.status.vit * 0.7)
+  base -= Math.floor(defender.status.str * 0.3)
   if (base < 1) base = 1
   return base
-}
-
-export function calcEvasion(defender: Character): number {
-  return Math.min(40, defender.status.agi * 0.7)
 }
 
 export function calcMagicDamage(attacker: Character, defender: Character): number {
@@ -83,8 +81,8 @@ export function startFight(
   randomCharacter: (statusTotal: number, baseStatus?: any) => Character,
   scenes: any
 ) {
-    console.log('startFight', character)
-console.log('character status', character?.hp, character?.winStreak)
+  console.log('startFight', character)
+  console.log('character status', character?.hp, character?.winStreak)
   const total = 20 + (character?.winStreak ?? 0) * 2
   const newEnemy = randomCharacter(total)
   setEnemy({ ...newEnemy, hp: newEnemy.maxHp })

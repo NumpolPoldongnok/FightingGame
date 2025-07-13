@@ -7,7 +7,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <details class="status-fold" open="true">
+  <details class="status-fold" open="false">
     <summary class="status-summary">สถานะ</summary>
     <div class="status-container">
       <div class="player-status">
