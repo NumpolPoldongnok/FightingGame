@@ -7,7 +7,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <details class="status-fold" open="false">
+  <details class="status-fold" open="true">
     <summary class="status-summary">สถานะ</summary>
     <div class="status-container">
       <div class="player-status">
@@ -93,8 +93,6 @@ const props = defineProps<{
   letter-spacing: 1.5px;
   text-shadow: 0 1px 0 #fff8;
 }
-</style>
-
 /* Foldable status block (copied from FightScene.vue for reuse) */
 .status-fold {
   margin-top: 0.5em;
@@ -116,3 +114,4 @@ const props = defineProps<{
 .status-fold[open] .status-summary {
   color: #43e97b;
 }
+</style>

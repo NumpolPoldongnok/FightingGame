@@ -9,7 +9,6 @@
           <CharacterStatus :status="character.status" />
           <CooldownBar :value="character.cooldown ?? 0" :max="maxCooldown"/>
       <div>
-        <strong>Skill:</strong>
         <SkillList :skills="character.skills.filter(s => s.active === true)" />
       </div>
         </div>
@@ -19,7 +18,6 @@
           <CharacterStatus :status="enemy.status" />
           <CooldownBar :value="enemy.cooldown ?? 0" :max="maxCooldown"/>
       <div>
-        <strong>Skill:</strong>
         <SkillList :skills="character.skills.filter(s => s.active === true)" />
       </div>
         </div>

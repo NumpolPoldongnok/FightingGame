@@ -9,10 +9,7 @@
         </div>
         <div class="hp">HP: <span>{{ c.hp }}</span> / <span>{{ c.maxHp }}</span></div>
         <CharacterStatus :status="c.status" />
-        <div class="skill-row">
-          <span class="skill-label">Skill:</span>
-          <SkillList :skills="c.skills" />
-        </div>
+        <SkillList :skills="c.skills" />
       </div>
     </div>
     <button @click="$emit('back')">กลับ</button>
