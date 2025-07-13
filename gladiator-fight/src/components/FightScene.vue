@@ -1,19 +1,8 @@
 <script lang="ts" setup>
-// Helper to classify log type for styling (must be defined as const for template usage)
-// Helper to classify log type for styling (must be top-level const in <script setup> for template access)
-const getLogClass = (log: string) => {
-  if (log.startsWith('คุณโจมตี') && log.includes('หลบได้')) return 'log-player log-evade';
-  if (log.startsWith('คุณโจมตี')) return 'log-player';
-  if (log.startsWith('คุณแพ้')) return 'log-lose';
-  if (log.startsWith('---')) return 'log-end';
-  if (log.startsWith('ศัตรู') || log.startsWith('Enemy') || log.startsWith('AI') || log.startsWith('โจมตีคุณ') || log.startsWith('คุณหลบได้')) return 'log-enemy';
-  if (log.includes('โจมตีคุณ')) return 'log-enemy';
-  if (log.includes('แพ้!')) return 'log-lose';
-  return '';
-}
+
 
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { doBattleTurn } from '../store/battleUtilsFight'
+import { doBattleTurn, getLogClass } from '../store/battleUtilsFight'
 import CooldownBar from './CooldownBar.vue'
 import type { Character } from '../store/useGameStore'
 import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
@@ -92,7 +81,7 @@ onUnmounted(() => {
         </div>
       </div>
       <div class="battle-btn-row">
-        <button v-if="showFinishButton" class="genshin-btn genshin-btn-finish" @click="emit('battle-finished')">จบการต่อสู้</button>
+        <button v-if="showFinishButton" class="genshin-btn genshin-btn-finish" @click="emit('battle-finished', character)">จบการต่อสู้</button>
         <button v-if="showRestartButton" class="genshin-btn genshin-btn-restart" @click="emit('restart')">เกิดใหม่</button>
       </div>
     </div>

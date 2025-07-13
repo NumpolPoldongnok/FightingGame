@@ -55,6 +55,7 @@ function handleRandomSkillChoices() {
 }
 
 function handleStartFight() {
+  if (!character.value) return;
   startFight(
     character.value,
     (e: any) => { enemy.value = e },
@@ -71,10 +72,9 @@ function handleStartFight() {
 <UserLayout
   @history="currentScene = scenes.HISTORY"
   @result="currentScene = scenes.RESULT"
-  @townhall="showTownhall = true"
+  @townhall="showTownhall = true; currentScene = scenes.PREPARE"
   @prepare="currentScene = scenes.PREPARE"
 >
-  <div>
     <PrepareScene v-if="currentScene === scenes.PREPARE && character" 
       :character="character"
       @start-fight="handleStartFight"
@@ -94,100 +94,5 @@ function handleStartFight() {
       @refresh-skill="handleRandomSkillChoices" />
     <HistoryScene v-if="currentScene === scenes.HISTORY" :character-history="characterHistory"
       @back="currentScene = scenes.PREPARE" />
-  </div>
 </UserLayout>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-.main-header {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding-bottom: 0.5rem;
-}
-
-.logo-title-row {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-}
-
-.logo {
-  margin: 0 0.5rem 0 0;
-}
-
-.game-title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.game-title {
-  margin: 0;
-  font-size: 2.1rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.profile-money {
-  font-size: 1.1rem;
-  color: #ffd700;
-  margin-top: 0.2rem;
-}
-
-@media (min-width: 1024px) {
-  .main-header {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo-title-row {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  .main-header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-box {
-  background: #232323;
-  color: #fff;
-  border-radius: 12px;
-  padding: 2rem 2.5rem;
-  min-width: 300px;
-  box-shadow: 0 2px 16px #000a;
-  text-align: center;
-}
-</style>

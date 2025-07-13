@@ -1,3 +1,4 @@
+const MAX_STATUS = 999;
 import type { Character, Status } from './useGameStore'
 
 export type SkillData = {
@@ -15,18 +16,18 @@ export type Skill = {
 
 export function randomSkillChoices(luk: number = 0): Skill[] {
   function randIntLuck(min: number, max: number, luk: number) {
-    if (Math.random() < Math.min(luk, 9999) / 9999) return max;
+    if (Math.random() < Math.min(luk, MAX_STATUS) / MAX_STATUS) return max;
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   function randPercentLuck(luk: number) {
-    if (Math.random() < Math.min(luk, 9999) / 9999) return (5).toFixed(2);
+    if (Math.random() < Math.min(luk, MAX_STATUS) / MAX_STATUS) return (5).toFixed(2);
     return (Math.random() * 4 + 1).toFixed(2);
   }
   const statusTypes = ['str', 'agi', 'vit', 'dex', 'int', 'luk'];
   const choices: Skill[] = [];
   let minChoices = 3;
   let maxChoices = 5;
-  let numChoices = minChoices + Math.floor((Math.min(luk, 9999) / 9999) * (maxChoices - minChoices + 1));
+  let numChoices = minChoices + Math.floor((Math.min(luk, MAX_STATUS) / MAX_STATUS) * (maxChoices - minChoices + 1));
   numChoices = Math.max(minChoices, Math.min(maxChoices, numChoices));
   for (let i = 0; i < 5; i++) {
     // Randomly pick type and value or multiply (not both)

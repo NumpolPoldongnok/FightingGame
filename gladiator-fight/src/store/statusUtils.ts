@@ -1,7 +1,8 @@
+export const MAX_STATUS = 999;
 import type { Character, Status } from './useGameStore'
 
 export function canIncreaseStatus(character: Character, key: keyof Status): boolean {
-  return character.statusPoint > 0;
+  return character.statusPoint > 0 && character.status[key] < MAX_STATUS;
 }
 
 export function canDecreaseStatus(character: Character, key: keyof Status): boolean {
@@ -10,7 +11,7 @@ export function canDecreaseStatus(character: Character, key: keyof Status): bool
 }
 
 export function increaseStatus(character: Character, key: keyof Status): boolean {
-  if (character.statusPoint > 0) {
+  if (character.statusPoint > 0 && character.status[key] < MAX_STATUS) {
     character.status[key]++;
     character.statusPoint--;
     console.log(`Increased ${key} to ${character.status[key]}`);

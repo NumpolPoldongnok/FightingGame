@@ -3,8 +3,8 @@
     <div class="modal-box">
       <h2>Townhall</h2>
       <p>เงินของคุณ: {{ userProfile.money }}</p>
-      <button @click="buyHeal" :disabled="userProfile.money < 100 || character!.hp >= character!.maxHp">
-        ซื้อยา (+10% max HP, 100 เงิน)
+      <button @click="buyHeal" :disabled="userProfile.money < cost || character!.hp >= character!.maxHp">
+        ซื้อยา (heal +20% max HP, {{ cost }} เงิน)
       </button>
       <button @click="$emit('close')" style="margin-left:1rem">ออก</button>
     </div>
@@ -13,12 +13,15 @@
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
+import * as battleUtils from '../store/battleUtils'
 const props = defineProps<{
   userProfile: { money: number },
   character: any
   buyHeal: () => void
 }>()
 defineEmits(['close'])
+
+const cost = battleUtils.calcHealCost(props.character)
 </script>
 
 <style scoped>

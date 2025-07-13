@@ -1,14 +1,29 @@
 <script lang="ts" setup>
 import type { Status, Character } from '../store/useGameStore'
-import { increaseStatus, decreaseStatus, canIncreaseStatus, canDecreaseStatus } from '../store/statusUtils'
+import { increaseStatus, canIncreaseStatus, canDecreaseStatus } from '../store/statusUtils'
+import { calcHealCost } from '../store/battleUtils'
+import { useGameStore } from '../store/useGameStore'
 import { computed } from 'vue'
 const props = defineProps<{
   character: Character
   title?: string,
+  showButtons?: boolean,
 }>()
 
-const showButtons = computed(() => !!props.character)
 const statusKeys: (keyof Status)[] = ['str','agi','vit','dex','int','luk']
+
+const store = useGameStore()
+
+function decreaseStatusWithCost(character: Character, key: keyof Status) {
+  const cost = calcHealCost(character)
+  if (store.userProfile.money >= cost) {
+    store.userProfile.money -= cost
+    // @ts-ignore
+    import('../store/statusUtils').then(mod => mod.decreaseStatus(character, key))
+  } else {
+    alert('เงินไม่พอสำหรับลดค่าสถานะ ต้องใช้ ' + cost + ' Gold')
+  }
+}
 </script>
 
 <template>
@@ -27,7 +42,7 @@ const statusKeys: (keyof Status)[] = ['str','agi','vit','dex','int','luk']
             <span class="stat-value">{{ character.status[key] }}</span>
             <template v-if="showButtons">
               <button class="stat-btn stat-btn-plus" :disabled="!canIncreaseStatus(props.character!, key)" @click="increaseStatus(props.character!, key)">+</button>
-              <button class="stat-btn stat-btn-minus" :disabled="!canDecreaseStatus(props.character!, key)" @click="decreaseStatus(props.character!, key)">-</button>
+              <button class="stat-btn stat-btn-minus" :disabled="!canDecreaseStatus(props.character!, key)" @click="decreaseStatusWithCost(props.character!, key)">-</button>
             </template>
           </li>
         </ul>

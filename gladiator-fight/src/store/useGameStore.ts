@@ -82,7 +82,7 @@ export const useGameStore = defineStore('game', () => {
   // Logic
   function randomStatus(total: number, base: Status = { str: 1, agi: 1, vit: 1, dex: 1, int: 1, luk: 1 }): Status {
     console.log('randomStatus', total, base)
-    let remain = total - 7
+    let remain = total - 6
     const keys = Object.keys(base) as (keyof Status)[]
     const status: Status = { ...base }
     while (remain > 0) {
@@ -152,7 +152,7 @@ export const useGameStore = defineStore('game', () => {
     const cost = battleUtils.calcHealCost(character.value)
     if (userProfile.value.money >= cost && character.value.hp < character.value.maxHp) {
       userProfile.value.money -= cost
-      const heal = Math.floor(character.value.maxHp * 0.1)
+      const heal = Math.floor(character.value.maxHp * 0.2)
       character.value.hp += heal
       if (character.value.hp > character.value.maxHp) character.value.hp = character.value.maxHp
     }
