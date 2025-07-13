@@ -111,6 +111,17 @@ onUnmounted(() => {
   gap: 2.2rem;
   margin-bottom: 1.3rem;
 }
+@media (max-width: 700px) {
+  .status-row {
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-bottom: 0.7rem;
+  }
+  .status-block {
+    min-width: 0;
+    padding: 1rem 0.7rem 1.1rem 0.7rem;
+  }
+}
 .status-block {
   background: linear-gradient(135deg, #e3eafc 60%, #f7fafd 100%);
   color: #2d3142;
@@ -137,7 +148,6 @@ onUnmounted(() => {
   margin-bottom: 0.5rem;
 }
 
-
 .battle-log-container {
   max-height: 240px;
   overflow-y: auto;
@@ -150,6 +160,12 @@ onUnmounted(() => {
   box-shadow: 0 4px 18px #b2c7e155, 0 1.5px 0 #fff8 inset;
   border: 2px solid #b2c7e1;
 }
+@media (max-width: 700px) {
+  .battle-log-container {
+    font-size: 0.97rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  }
+}
 .battle-log-row {
   margin-bottom: 0.38rem;
   white-space: pre-line;
@@ -159,6 +175,13 @@ onUnmounted(() => {
   word-break: break-word;
   display: block;
   font-family: 'Montserrat', 'Prompt', Arial, sans-serif;
+}
+@media (max-width: 700px) {
+  .battle-log-row {
+    padding: 0.4em 0.5em;
+    font-size: 0.98em;
+    max-width: 100%;
+  }
 }
 .log-player {
   background: linear-gradient(90deg, #43e97b 60%, #38f9d7 100%);
