@@ -8,20 +8,10 @@
           <span class="win">🏆 {{ c.winStreak ?? 0 }}</span>
         </div>
         <div class="hp">HP: <span>{{ c.hp }}</span> / <span>{{ c.maxHp }}</span></div>
-        <div class="status-row">
-          <span class="stat">STR: <b>{{ c.status.str }}</b></span>
-          <span class="stat">AGI: <b>{{ c.status.agi }}</b></span>
-          <span class="stat">VIT: <b>{{ c.status.vit }}</b></span>
-          <span class="stat">DEX: <b>{{ c.status.dex }}</b></span>
-          <span class="stat">INT: <b>{{ c.status.int }}</b></span>
-          <span class="stat">LUK: <b>{{ c.status.luk }}</b></span>
-          <span class="stat">CHA: <b>{{ c.status.cha }}</b></span>
-        </div>
+        <CharacterStatus :status="c.status" />
         <div class="skill-row">
           <span class="skill-label">Skill:</span>
-          <span class="skill-list">
-            <span v-for="(s, i) in c.skills" :key="i" class="skill-item">{{ s }}</span>
-          </span>
+          <SkillList :skills="c.skills" />
         </div>
       </div>
     </div>
@@ -31,6 +21,8 @@
 
 <script setup lang="ts">
 import type { Character } from '../store/useGameStore'
+import SkillList from './SkillList.vue'
+import CharacterStatus from './CharacterStatus.vue'
 const props = defineProps<{ characterHistory: Character[] }>()
 defineEmits(['back'])
 </script>

@@ -8,6 +8,7 @@ import ResultScene from './components/ResultScene.vue'
 import HistoryScene from './components/HistoryScene.vue'
 import TownhallScene from './components/TownhallScene.vue'
 import { storeToRefs } from 'pinia'
+import UserLayout from './layouts/UserLayout.vue'
 
 const game = useGameStore()
 const {
@@ -69,6 +70,7 @@ function handleStartFight() {
 
 
 <template>
+  <UserLayout>
   <header class="main-header">
     <div class="logo-title-row">
       <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="90" height="90" />
@@ -124,6 +126,7 @@ function handleStartFight() {
       @back="currentScene = scenes.PREPARE"
     />
   </main>
+  </UserLayout>
 </template>
 
 <style scoped>
