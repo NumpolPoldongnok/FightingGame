@@ -28,7 +28,7 @@ onMounted(() => {
 
     <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
       <HPBar v-if="character" :value="character.hp" :max="character.maxHp" />
-      <CharacterStatus :status="character.status" title="Status หลังชนะ" />
+      <CharacterStatus :character="character" title="Status หลังชนะ" />
     </div>
 
     <div style="display:flex;align-items:center;gap:1rem;justify-content:center;">

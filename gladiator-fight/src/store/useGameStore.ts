@@ -26,6 +26,7 @@ export type Character = {
   winStreak: number
   lastMoneyEarned?: number
   totalMoneyEarned: number
+  statusPoint: number
 }
 
 const STORAGE_KEY = 'gladiator-save-v1';
@@ -116,6 +117,7 @@ export const useGameStore = defineStore('game', () => {
       skills: [],
       winStreak: 0,
       totalMoneyEarned: 0,
+      statusPoint: 0,
     }
   }
   function startNewGame() {

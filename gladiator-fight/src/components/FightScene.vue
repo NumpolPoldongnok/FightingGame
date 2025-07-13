@@ -6,7 +6,7 @@
         <div class="status-block player">
           <h3>คุณ: {{ character.name }}</h3>
           <HPBar :value="character.hp" :max="character.maxHp" />
-          <CharacterStatus :status="character.status" />
+          <CharacterStatus :character="character" />
           <CooldownBar :value="character.cooldown ?? 0" :max="maxCooldown"/>
       <div>
         <SkillList :skills="character.skills.filter(s => s.active === true)" />
@@ -15,7 +15,7 @@
         <div class="status-block enemy">
           <h3>ศัตรู: {{ enemy.name }}</h3>
           <HPBar :value="enemy.hp" :max="enemy.maxHp" />
-          <CharacterStatus :status="enemy.status" />
+          <CharacterStatus :character="enemy" />
           <CooldownBar :value="enemy.cooldown ?? 0" :max="maxCooldown"/>
       <div>
         <SkillList :skills="character.skills.filter(s => s.active === true)" />

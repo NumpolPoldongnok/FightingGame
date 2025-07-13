@@ -1,3 +1,32 @@
+// --- Status Point Logic ---
+// Assumes Character has: status: {str, agi, vit, dex, int, luk}, and statusPoint: number
+
+export function canIncreaseStatus(character: Character, key: keyof Character['status']): boolean {
+  return character.statusPoint > 0;
+}
+
+export function canDecreaseStatus(character: Character, key: keyof Character['status']): boolean {
+  // Prevent stat < 1
+  return character.status[key] > 1;
+}
+
+export function increaseStatus(character: Character, key: keyof Character['status']): boolean {
+  if (character.statusPoint > 0) {
+    character.status[key]++;
+    character.statusPoint--;
+    return true;
+  }
+  return false;
+}
+
+export function decreaseStatus(character: Character, key: keyof Character['status']): boolean {
+  if (character.status[key] > 1) {
+    character.status[key]--;
+    character.statusPoint++;
+    return true;
+  }
+  return false;
+}
 // --- Skill Logic ---
 import type { Character } from './useGameStore'
 

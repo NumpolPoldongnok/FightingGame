@@ -8,7 +8,7 @@
           <span class="win">🏆 {{ c.winStreak ?? 0 }}</span>
         </div>
         <div class="hp">HP: <span>{{ c.hp }}</span> / <span>{{ c.maxHp }}</span></div>
-        <CharacterStatus :status="c.status" />
+        <CharacterStatus :character="c" />
         <SkillList :skills="c.skills" />
       </div>
     </div>

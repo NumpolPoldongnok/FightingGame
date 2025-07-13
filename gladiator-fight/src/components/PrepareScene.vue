@@ -25,7 +25,7 @@ function totalStatus(c: Character) {
         <span class="streak-value">{{ character.winStreak }}</span>
       </div>
       <HPBar :value="character.hp" :max="character.maxHp" />
-      <CharacterStatus :status="character.status" title="Status" />
+      <CharacterStatus :character="character" title="Status" />
       <SkillList :skills="character.skills" />
       <div v-if="character.hp <= 0" class="prepare-btn-row">
         <p class="dead-label">ตายแล้ว</p>

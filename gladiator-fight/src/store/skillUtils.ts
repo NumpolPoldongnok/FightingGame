@@ -22,7 +22,7 @@ export function randomSkillChoices(luk: number = 0): Skill[] {
     if (Math.random() < Math.min(luk, 9999) / 9999) return (5).toFixed(2);
     return (Math.random() * 4 + 1).toFixed(2);
   }
-  const statusTypes = ['str', 'agi', 'vit', 'dex', 'int', 'luk', 'cha'];
+  const statusTypes = ['str', 'agi', 'vit', 'dex', 'int', 'luk'];
   const choices: Skill[] = [];
   let minChoices = 3;
   let maxChoices = 5;
