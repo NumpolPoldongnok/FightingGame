@@ -47,26 +47,13 @@ const props = defineProps<{
   overflow-x: auto;
 }
 .status-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 0.3rem 1.5rem;
   list-style: none;
   padding: 0;
   margin: 0;
   min-width: 0;
-}
-@media (max-width: 420px) {
-  .status-grid {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 0.5rem;
-  }
-  .status-grid li {
-    min-width: 80px;
-    margin-bottom: 0;
-  }
 }
 .status-grid li {
   display: flex;
