@@ -20,8 +20,7 @@ defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
     <p v-else>คุณแพ้</p>
     <p>ชนะติดต่อกัน: <strong>{{ character.winStreak }}</strong></p>
     <p v-if="win">ได้เงิน: <strong>{{ character.lastMoneyEarned }}</strong></p>
-    <div v-if="win && skillChoices.length">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
         <HPBar v-if="character" :value="character.hp" :max="character.maxHp" />
         <CharacterStatus :status="character.status" title="Status หลังชนะ" />
       </div>
@@ -29,6 +28,12 @@ defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
         <h3 style="margin:0;">เลือก Skill หลังชนะ</h3>
         <button @click="$emit('refresh-skill')" style="font-size:1.1em;padding:0.2em 0.7em;">🔄</button>
       </div>
+    <div v-if="character.hp <= 0">
+      <p style="color:#ff5252;font-weight:bold;">ตายแล้ว</p>
+      <button @click="$emit('restart')">เกิดใหม่</button>
+      <button @click="$emit('back')">กลับหน้าเตรียมตัว</button>
+    </div>
+    <div v-else-if="win && skillChoices.length">
       <ul>
         <li v-for="(s, i) in skillChoices" :key="i">
           <SkillChoiceButton :skill="s" :index="i" @choose="$emit('choose-skill', i)" />
@@ -37,7 +42,6 @@ defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
       <button class="back-btn" @click="$emit('back')">กลับไปเตรียมตัว</button>
     </div>
     <div v-else>
-      <button @click="$emit('restart')">เกิดใหม่</button>
       <button @click="$emit('back')">กลับหน้าเตรียมตัว</button>
     </div>
   </div>

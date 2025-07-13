@@ -68,28 +68,29 @@ function handleStartFight() {
 
 
 <template>
-  <UserLayout>
-    <div>
-      <button @click="currentScene = scenes.HISTORY" style="margin-bottom:1rem">ดูประวัติตัวละครที่เคยใช้</button>
-      <button @click="currentScene = scenes.RESULT" style="margin-bottom:1rem">ResultScene</button>
-      <PrepareScene v-if="currentScene === scenes.PREPARE && character" :character="character"
-        :dead-characters="deadCharacters" @start-fight="handleStartFight"
-        @open-townhall="() => { showTownhall = true }">
-        <template #money>
-          {{ userProfile.money }}
-        </template>
-      </PrepareScene>
-      <TownhallScene v-if="showTownhall && currentScene === scenes.PREPARE && character" :user-profile="userProfile"
-        :character="character" :buy-heal="buyHeal" @close="showTownhall = false" />
-      <FightScene v-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
-        @battle-finished="onBattleFinished" />
-      <ResultScene v-if="currentScene === scenes.RESULT && character" :win="lastBattleWin" :character="character"
-        :skill-choices="lastBattleWin ? skillChoices : []" @choose-skill="handleChooseSkill" @restart="startNewGame"
-        @back="() => { currentScene = scenes.PREPARE }" @refresh-skill="handleRandomSkillChoices" />
-      <HistoryScene v-if="currentScene === scenes.HISTORY" :character-history="characterHistory"
-        @back="currentScene = scenes.PREPARE" />
-    </div>
-  </UserLayout>
+<UserLayout
+  @history="currentScene = scenes.HISTORY"
+  @result="currentScene = scenes.RESULT"
+  @townhall="showTownhall = true"
+  @prepare="currentScene = scenes.PREPARE"
+>
+  <div>
+    <PrepareScene v-if="currentScene === scenes.PREPARE && character" :character="character"
+      :dead-characters="deadCharacters" 
+      @start-fight="handleStartFight"
+      @open-townhall="() => { showTownhall = true }"
+      @restart="startNewGame" />
+    <TownhallScene v-if="showTownhall && currentScene === scenes.PREPARE && character" :user-profile="userProfile"
+      :character="character" :buy-heal="buyHeal" @close="showTownhall = false" />
+    <FightScene v-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
+      @battle-finished="onBattleFinished" />
+    <ResultScene v-if="currentScene === scenes.RESULT && character" :win="lastBattleWin" :character="character"
+      :skill-choices="lastBattleWin ? skillChoices : []" @choose-skill="handleChooseSkill" @restart="startNewGame"
+      @back="() => { currentScene = scenes.PREPARE }" @refresh-skill="handleRandomSkillChoices" />
+    <HistoryScene v-if="currentScene === scenes.HISTORY" :character-history="characterHistory"
+      @back="currentScene = scenes.PREPARE" />
+  </div>
+</UserLayout>
 </template>
 
 <style scoped>
