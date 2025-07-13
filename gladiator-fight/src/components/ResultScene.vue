@@ -4,14 +4,14 @@ import type { Skill } from '../store/skillUtils'
 import CharacterStatus from './CharacterStatus.vue'
 import HPBar from './HPBar.vue'
 import SkillChoiceButton from './SkillChoiceButton.vue'
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 const props = defineProps<{
-  win: boolean,
   character: Character,
   skillChoices: Skill[]
 }>()
 defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
 
+const win = computed(() => props.character.hp > 0)
 onMounted(() => {
   console.log('Mounting ResultScene with skill choices:', props.skillChoices)
 })

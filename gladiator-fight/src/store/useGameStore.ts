@@ -43,11 +43,7 @@ export const useGameStore = defineStore('game', () => {
   const character = ref<Character | null>(null)
   const enemy = ref<Character | null>(null)
   const currentScene = ref(scenes.PREPARE)
-  const deadCharacters = ref<Character[]>([])
   const skillChoices = ref<Skill[]>([])
-  const showSkillSelect = ref(false)
-  const showResultButton = ref(false)
-  const lastBattleWin = ref(false)
   const characterHistory = ref<Character[]>([])
   let statusTotal = 30
 
@@ -59,11 +55,7 @@ export const useGameStore = defineStore('game', () => {
       enemy: enemy.value,
       winStreak: character.value?.winStreak ?? 0,
       currentScene: currentScene.value,
-      deadCharacters: deadCharacters.value,
       skillChoices: skillChoices.value,
-      showSkillSelect: showSkillSelect.value,
-      showResultButton: showResultButton.value,
-      lastBattleWin: lastBattleWin.value,
       lastMoneyEarned: character.value?.lastMoneyEarned ?? 0,
       characterHistory: characterHistory.value,
       userProfile: userProfile.value,
@@ -81,18 +73,14 @@ export const useGameStore = defineStore('game', () => {
       if (data.enemy) enemy.value = data.enemy
       if (data.character && typeof data.character.winStreak === 'number' && character.value) character.value.winStreak = data.character.winStreak
       if (typeof data.currentScene === 'string') currentScene.value = data.currentScene
-      if (Array.isArray(data.deadCharacters)) deadCharacters.value = data.deadCharacters
       if (Array.isArray(data.skillChoices)) skillChoices.value = data.skillChoices as Skill[]
-      if (typeof data.showSkillSelect === 'boolean') showSkillSelect.value = data.showSkillSelect
-      if (typeof data.showResultButton === 'boolean') showResultButton.value = data.showResultButton
-      if (typeof data.lastBattleWin === 'boolean') lastBattleWin.value = data.lastBattleWin
       if (typeof data.lastMoneyEarned === 'number' && character.value) character.value.lastMoneyEarned = data.lastMoneyEarned
       if (Array.isArray(data.characterHistory)) characterHistory.value = data.characterHistory
     } catch (e) { /* ignore */ }
   }
 
   // Logic
-  function randomStatus(total: number, base: Status = {str:1,agi:1,vit:1,dex:1,int:1,luk:1}): Status {
+  function randomStatus(total: number, base: Status = { str: 1, agi: 1, vit: 1, dex: 1, int: 1, luk: 1 }): Status {
     console.log('randomStatus', total, base)
     let remain = total - 7
     const keys = Object.keys(base) as (keyof Status)[]
@@ -136,31 +124,24 @@ export const useGameStore = defineStore('game', () => {
     character.value = randomCharacter(statusTotal, base)
     character.value.totalMoneyEarned = 0
     character.value.winStreak = 0
-    deadCharacters.value = []
     currentScene.value = scenes.PREPARE
   }
-  function calcMoneyEarned(win: boolean) {
-    console.log('calcMoneyEarned', win)
-    if (!character.value) return 0
-    return win ? battleUtils.calcReward(character.value) : 0
+  function calcMoneyEarned(c: Character) {
+    return battleUtils.calcReward(c)
   }
-  function onBattleFinished(win = false) {
-    console.log('onBattleFinished', win)
-    showResultButton.value = true
-    lastBattleWin.value = win
-    if (character.value) {
-      if (win) {
-        character.value.winStreak++;
-        // 1. randomSkillChoices
-        skillChoices.value = skillUtils.randomSkillChoices(character.value.status.luk);
-        // 2. Userprofile money += lastMoneyEarned
-        character.value.lastMoneyEarned = calcMoneyEarned(true);
-        userProfile.value.money += character.value.lastMoneyEarned ?? 0;
-        console.log('Money earned:', character.value.lastMoneyEarned, 'Total money:', userProfile.value.money);
-      } else {
-        character.value.lastMoneyEarned = calcMoneyEarned(false);
-      }
+  function onBattleFinished(c: Character) {
+    if (c.hp > 0) {
+      c.winStreak++;
+      c.lastMoneyEarned = calcMoneyEarned(c);
+      skillChoices.value = skillUtils.randomSkillChoices(c.status.luk);
+    } else {
+      c.lastMoneyEarned = 0
+      skillChoices.value = []
     }
+    // Update to store
+    userProfile.value.money += c.lastMoneyEarned ?? 0;
+    character.value = c
+    // Set scene to result
     currentScene.value = scenes.RESULT
   }
 
@@ -183,7 +164,7 @@ export const useGameStore = defineStore('game', () => {
     if (!character.value) startNewGame()
   })
   watch([
-    character, enemy, currentScene, deadCharacters, skillChoices, showSkillSelect, showResultButton, lastBattleWin, characterHistory
+    character, enemy, currentScene, skillChoices, characterHistory
   ], saveToLocal, { deep: true })
 
   return {
@@ -192,18 +173,13 @@ export const useGameStore = defineStore('game', () => {
     character,
     enemy,
     currentScene,
-    deadCharacters,
     skillChoices,
-    showSkillSelect,
-    showResultButton,
-    lastBattleWin,
     characterHistory,
     randomStatus,
     randomCharacter,
     startNewGame,
     onBattleFinished,
     buyHeal,
-    calcMoneyEarned,
     ...battleUtils,
   }
 })

@@ -14,7 +14,7 @@ export function doBattleTurn(
   character: Character,
   enemy: Character,
   battleLog: string[],
-  onFinish: (win: boolean) => void,
+  onFinish: (character: Character) => void,
   intervalRef: { value: any }
 ) {
   // Convert to BattleFighter with cooldown if not already
@@ -24,11 +24,11 @@ export function doBattleTurn(
   if (enemy.cooldown === undefined) Object.assign(enemy, toBattleFighter(enemy));
 
   if (character.hp <= 0) {
-    onFinish(false);
+    onFinish(character);
     return;
   }
   if (enemy.hp <= 0) {
-    onFinish(true);
+    onFinish(character);
     return;
   }
 
@@ -60,7 +60,7 @@ export function doBattleTurn(
     clearInterval(intervalRef.value);
     setTimeout(() => {
       battleLog.unshift('--- จบการต่อสู้ ---');
-      onFinish(true);
+      onFinish(character);
     }, 200);
     return;
   }
@@ -89,7 +89,7 @@ export function doBattleTurn(
     clearInterval(intervalRef.value);
     setTimeout(() => {
       battleLog.unshift('--- จบการต่อสู้ ---');
-      onFinish(false);
+      onFinish(character);
     }, 200);
   }
 }

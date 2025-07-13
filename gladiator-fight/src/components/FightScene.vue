@@ -20,7 +20,6 @@ import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
 import SkillList from './SkillList.vue'
 import CharacterStatus from './CharacterStatus.vue'
 import HPBar from './HPBar.vue'
-
 const props = defineProps<{ character: Character, enemy: Character }>()
 const maxCooldown = setBattleMaxCooldown(props.character.status.agi, props.enemy.status.agi)
 const character = toBattleFighter(props.character)
@@ -31,9 +30,9 @@ const showFinishButton = ref(false)
 const showRestartButton = ref(false)
 const intervalRef = { value: undefined as any }
 
-function onFinish(win: boolean) {
-  showFinishButton.value = win
-  showRestartButton.value = !win
+function onFinish(character: Character) {
+  showFinishButton.value = character.hp > 0
+  showRestartButton.value = character.hp <= 0
 }
 
 function doBattleTurnWrapper() {

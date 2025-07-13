@@ -13,9 +13,7 @@ const {
   character,
   enemy,
   currentScene,
-  deadCharacters,
   skillChoices,
-  lastBattleWin,
   characterHistory,
   userProfile,
 } = storeToRefs(game)
@@ -77,8 +75,8 @@ function handleStartFight() {
   @prepare="currentScene = scenes.PREPARE"
 >
   <div>
-    <PrepareScene v-if="currentScene === scenes.PREPARE && character" :character="character"
-      :dead-characters="deadCharacters" 
+    <PrepareScene v-if="currentScene === scenes.PREPARE && character" 
+      :character="character"
       @start-fight="handleStartFight"
       @open-townhall="() => { showTownhall = true }"
       @restart="startNewGame" />
@@ -87,8 +85,7 @@ function handleStartFight() {
     <FightScene v-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
       @battle-finished="onBattleFinished"
       @restart="startNewGame" />
-    <ResultScene v-if="currentScene === scenes.RESULT && character" 
-      :win="lastBattleWin" 
+    <ResultScene v-if="currentScene === scenes.RESULT && character"
       :character="character"
       :skill-choices= skillChoices
       @choose-skill="handleChooseSkill"
