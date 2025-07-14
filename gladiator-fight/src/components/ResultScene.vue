@@ -1,10 +1,12 @@
 <script lang="ts" setup>
-import { Character } from 'src/store/useGameStore';
+import { Character } from '../store/useGameStore';
 import type { Skill } from '../store/skillUtils'
 import CharacterStatus from './CharacterStatus.vue'
 import HPBar from './HPBar.vue'
-import SkillChoiceButton from './SkillChoiceButton.vue'
 import { computed, onMounted } from 'vue';
+
+import SkillChoicePanel from './SkillChoicePanel.vue'
+
 const props = defineProps<{
   character: Character,
   skillChoices: Skill[]
@@ -19,37 +21,36 @@ onMounted(() => {
 
 <template>
   <div>
-    <h2>ผลการต่อสู้</h2>
-    <p v-if="win">คุณชนะ!</p>
-    <p v-else>คุณแพ้</p>
+
     <div>
-      <span>ชนะติดต่อกัน: {{ character.winStreak }}</span>
+      <table>
+        <tbody>
+            <tr style="vertical-align: top; text-align: center;">
+            <td>
+              <h2>ผลการต่อสู้</h2>
+              <div>
+              <span>ชนะติดต่อกัน: {{ character.winStreak }}</span>
+              <span v-if="win">ได้เงิน: <strong>{{ character.lastMoneyEarned }}</strong></span>
+              </div>
+              <HPBar v-if="character" :value="character.hp" :max="character.maxHp" />
+              <CharacterStatus :character="character" title="Status หลังชนะ" />
+            </td>
+            <td>
+              <div>
+              <h2 v-if="win">คุณชนะ!</h2>
+              <h2 v-else>คุณแพ้</h2>
+              </div>
+              <SkillChoicePanel :skill-choices="skillChoices" @choose-skill="$emit('choose-skill', $event)"
+              @refresh-skill="$emit('refresh-skill')" @back="$emit('back')" />
+            </td>
+            </tr>
+        </tbody>
+      </table>
     </div>
-    <p v-if="win">ได้เงิน: <strong>{{ character.lastMoneyEarned }}</strong></p>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
-      <HPBar v-if="character" :value="character.hp" :max="character.maxHp" />
-      <CharacterStatus :character="character" title="Status หลังชนะ" />
-    </div>
-
-    <div style="display:flex;align-items:center;gap:1rem;justify-content:center;">
-      <h3 style="margin:0;">เลือก Skill หลังชนะ</h3>
-      <button @click="$emit('refresh-skill')" style="font-size:1.1em;padding:0.2em 0.7em;">🔄</button>
-    </div>
-
     <div v-if="character.hp <= 0">
-      <p style="color:#ff5252;font-weight:bold;">ตายแล้ว</p>
+      <p>ตายแล้ว</p>
       <button @click="$emit('restart')">เกิดใหม่</button>
       <button @click="$emit('back')">กลับหน้าเตรียมตัว</button>
     </div>
-    <div v-else>
-      <ul>
-        <li v-for="(s, i) in skillChoices" :key="i">
-          <SkillChoiceButton :skill="s" :index="i" @choose="$emit('choose-skill', i)" />
-        </li>
-      </ul>
-      <button @click="$emit('back')">กลับไปเตรียมตัว</button>
-    </div>
   </div>
 </template>
-
-
