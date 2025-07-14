@@ -154,6 +154,7 @@ export const useGameStore = defineStore('game', () => {
     if (c.hp > 0) {
       c.winStreak++;
       c.lastMoneyEarned = calcMoneyEarned(c);
+      c.statusPoint += 5;
       skillChoices.value = skillUtils.randomSkillChoices(c.status.luk);
     }
     // Update to store

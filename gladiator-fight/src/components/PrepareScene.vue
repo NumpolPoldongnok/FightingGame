@@ -4,7 +4,6 @@ import CharacterStatus from './CharacterStatus.vue';
 import HPBar from './HPBar.vue';
 import SkillList from './SkillList.vue';
 
-
 const props = defineProps<{
   character: Character
 }>()
@@ -17,67 +16,137 @@ function totalStatus(c: Character) {
 </script>
 
 <template>
-  <div class="gladiator-prepare-bg max-w-2xl mx-auto rounded-2xl shadow-2xl border-8 border-yellow-800 p-8 mt-8 mb-8">
-    <h2 class="text-2xl font-extrabold mb-4 text-center text-yellow-900 tracking-widest gladiator-title">เตรียมตัวก่อนต่อสู้</h2>
+    <h2 class="prepare-title">{{ character.name }}</h2>
     <div v-if="character">
-      <div class="flex flex-col sm:flex-row items-center justify-between mb-2 gap-2 gladiator-header">
-        <span class="text-xl font-bold text-yellow-900 gladiator-name">{{ character.name }}</span>
-        <span class="text-base text-yellow-800 gladiator-status-sum">Status รวม: <span class="font-bold text-yellow-900">{{ totalStatus(character) }}</span></span>
-      </div>
-      <div class="mb-2 text-yellow-800 gladiator-streak">ชนะติดต่อกัน: <span class="font-bold">{{ character.winStreak }}</span></div>
-      <HPBar :value="character.hp" :max="character.maxHp" />
-      <CharacterStatus :character="character" title="Status" :showButtons="true"/>
-      <SkillList :skills="character.skills" />
-      <div v-if="character.hp <= 0" class="mt-4 text-center">
-        <p class="text-lg text-red-700 font-bold mb-2">ตายแล้ว</p>
-        <button @click="$emit('restart')" class="gladiator-btn bg-gradient-to-r from-yellow-700 to-yellow-900 text-yellow-100 font-extrabold shadow-lg border-2 border-yellow-800 hover:from-yellow-800 hover:to-yellow-900 transition-colors px-6 py-2 rounded-lg">เกิดใหม่</button>
-      </div>
-      <template v-else>
-        <div class="flex justify-center mt-4">
-          <button @click="$emit('start-fight')" class="gladiator-btn bg-gradient-to-r from-yellow-700 to-yellow-900 text-yellow-100 font-extrabold shadow-lg border-2 border-yellow-800 hover:from-yellow-800 hover:to-yellow-900 transition-colors px-8 py-2 rounded-lg">เริ่มต่อสู้</button>
+      <!-- Character Info Header -->
+      <header class="character-header">
+        <div class="header-main">
+          <span class="status-sum">Total Stats: {{ totalStatus(character) }}</span>
         </div>
-      </template>
+        <div class="win-streak">Win Streak: {{ character.winStreak }}</div>
+      </header>
+
+      <!-- Main Content Body -->
+      <div class="prepare-body">
+        <HPBar :value="character.hp" :max="character.maxHp" type="player" />
+        <CharacterStatus :character="character" :showButtons="true"/>
+        <SkillList :skills="character.skills" />
+      </div>
+
+      <!-- Action Footer -->
+      <footer class="prepare-footer">
+        <div v-if="character.hp <= 0" class="text-center">
+          <p class="death-message">YOU HAVE FALLEN</p>
+          <button @click="$emit('restart')" class="action-btn btn-restart">
+            RESTART
+          </button>
+        </div>
+      </footer>
     </div>
-  </div>
 </template>
 
 <style scoped>
-.gladiator-prepare-bg {
-  background: repeating-linear-gradient(135deg, #f9e7b3 0 40px, #f5d97c 40px 80px, #f9e7b3 80px 120px);
-  box-shadow: 0 12px 36px #bfa10044, 0 2px 0 #fff8 inset;
-  margin-top: 2.5rem;
-  margin-bottom: 2.5rem;
-  border-radius: 1.5rem;
-  border: 8px solid #bfa100;
-  padding: 2.5rem 2rem 2.5rem 2rem;
-}
-.gladiator-title {
-  text-shadow: 0 2px 0 #fff8, 0 4px 12px #bfa10044;
-  letter-spacing: 0.15em;
-  color: #181818 !important;
-}
-.gladiator-header {
-  border-bottom: 2px solid #bfa100;
-  padding-bottom: 0.3em;
-}
-.gladiator-name {
+/* === Gladiator Themed Prepare Scene === */
+
+.prepare-title {
   font-family: 'Cinzel', serif;
-  letter-spacing: 0.04em;
-  color: #181818 !important;
+  font-size: 1.2rem;
+  font-weight: 900;
+  text-align: center;
+  color: #e2c178;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  margin: 0 0 1.5rem 0;
 }
-.gladiator-status-sum {
-  font-family: 'Share Tech Mono', monospace;
-  color: #181818 !important;
+
+.character-header {
+  background-color: #fdf6e7;
+  color: #44341b;
+  border-radius: 8px;
+  border: 2px solid #8a703d;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
 }
-.gladiator-streak {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 1.1em;
-  color: #181818 !important;
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(138, 112, 61, 0.2);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
 }
-.gladiator-btn {
+
+.character-name {
   font-family: 'Cinzel', serif;
-  letter-spacing: 0.08em;
-  font-size: 1.13em;
-  color: #181818 !important;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.status-sum, .win-streak {
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: rgba(138, 112, 61, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.prepare-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.prepare-footer {
+  margin-top: 2rem;
+}
+
+.death-message {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #b71c1c;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.action-btn {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 0.75rem 2.5rem;
+  border-radius: 8px;
+  border-width: 3px;
+  border-style: solid;
+  color: #fff;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+
+.btn-fight {
+  background: linear-gradient(to bottom, #c08d2c, #8a621c);
+  border-color: #f7d88b;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.btn-fight:hover {
+  background: linear-gradient(to bottom, #d89e31, #a07421);
+  box-shadow: 0 0 15px #e2c17880;
+}
+
+.btn-restart {
+  background: linear-gradient(to bottom, #b71c1c, #8a1414);
+  border-color: #ef4444;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.btn-restart:hover {
+  background: linear-gradient(to bottom, #c92c2c, #a02424);
+  box-shadow: 0 0 15px #b71c1c80;
 }
 </style>
