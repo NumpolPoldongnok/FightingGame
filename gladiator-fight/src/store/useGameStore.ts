@@ -1,186 +1,208 @@
 import { defineStore } from 'pinia'
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import * as battleUtils from './battleUtils'
 import * as skillUtils from './skillUtils'
 import type { Skill } from './skillUtils'
 
+// --- TYPE DEFINITIONS ---
 export type Status = {
-  str: number
-  agi: number
-  vit: number
-  dex: number
-  int: number
-  luk: number
+  str: number; agi: number; vit: number;
+  dex: number; int: number; luk: number;
 }
-
-export type UserProfile = {
-  money: number
-}
-
+export type UserProfile = { money: number }
 export type Character = {
-  name: string
-  hp: number
-  maxHp: number
-  status: Status
-  skills: Skill[]
-  winStreak: number
-  lastMoneyEarned?: number
-  totalMoneyEarned: number
-  statusPoint: number
+  id: string; // Unique ID for each character instance
+  name: string;
+  hp: number;
+  maxHp: number;
+  status: Status;
+  skills: Skill[];
+  winStreak: number;
+  lastMoneyEarned: number;
+  statusPoint: number;
 }
 
-const STORAGE_KEY = 'gladiator-save-v1';
+const STORAGE_KEY = 'gladiator-save-v2'; // Bump version for new structure
 
+// --- UTILITY FUNCTIONS ---
+function getOrdinalSuffix(i: number): string {
+  const j = i % 10, k = i % 100;
+  if (j == 1 && k != 11) return "st";
+  if (j == 2 && k != 12) return "nd";
+  if (j == 3 && k != 13) return "rd";
+  return "th";
+}
+
+// --- PINIA STORE DEFINITION ---
 export const useGameStore = defineStore('game', () => {
-  // State
+  // === STATE ===
   const scenes = {
-    PREPARE: 'prepare',
-    FIGHT: 'fight',
-    RESULT: 'result',
-    HISTORY: 'history',
-    CREATE: 'create',
+    PREPARE: 'prepare', FIGHT: 'fight', RESULT: 'result',
+    HISTORY: 'history', CREATE: 'create',
   }
-  const userProfile = ref<UserProfile>({ money: 0 })
+  const userProfile = ref<UserProfile>({ money: 100 })
   const character = ref<Character | null>(null)
   const enemy = ref<Character | null>(null)
-  const currentScene = ref(scenes.PREPARE)
+  const currentScene = ref(scenes.CREATE)
   const skillChoices = ref<Skill[]>([])
   const characterHistory = ref<Character[]>([])
-  let statusTotal = 30
 
-  // LocalStorage
-  function saveToLocal() {
-    console.log('saveToLocal')
-    const data = {
-      character: character.value,
-      enemy: enemy.value,
-      winStreak: character.value?.winStreak ?? 0,
-      currentScene: currentScene.value,
-      skillChoices: skillChoices.value,
-      lastMoneyEarned: character.value?.lastMoneyEarned ?? 0,
-      characterHistory: characterHistory.value,
-      userProfile: userProfile.value,
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-  }
-  function loadFromLocal() {
-    console.log('loadFromLocal')
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-    try {
-      const data = JSON.parse(raw)
-      if (data.character) character.value = data.character
-      if (data.userProfile) userProfile.value = data.userProfile
-      if (data.enemy) enemy.value = data.enemy
-      if (data.character && typeof data.character.winStreak === 'number' && character.value) character.value.winStreak = data.character.winStreak
-      if (typeof data.currentScene === 'string') currentScene.value = data.currentScene
-      if (Array.isArray(data.skillChoices)) skillChoices.value = data.skillChoices as Skill[]
-      if (typeof data.lastMoneyEarned === 'number' && character.value) character.value.lastMoneyEarned = data.lastMoneyEarned
-      if (Array.isArray(data.characterHistory)) characterHistory.value = data.characterHistory
-    } catch (e) { /* ignore */ }
-  }
+  // === GETTERS ===
+  const totalStatusPoints = computed(() => {
+    if (!character.value) return 0;
+    const basePoints = Object.keys(character.value.status).length;
+    const allocatedPoints = Object.values(character.value.status).reduce((sum, val) => sum + val, 0);
+    return allocatedPoints - basePoints;
+  });
 
-  // Logic
-  function randomStatus(total: number, base: Status = { str: 1, agi: 1, vit: 1, dex: 1, int: 1, luk: 1 }): Status {
-    console.log('randomStatus', total, base)
-    let remain = total - 6
-    const keys = Object.keys(base) as (keyof Status)[]
-    const status: Status = { ...base }
-    while (remain > 0) {
-      const k = keys[Math.floor(Math.random() * keys.length)]
-      status[k]++
-      remain--
-    }
-    return status
-  }
-  function randomCharacter(statusTotal = 30, baseStatus?: Status): Character {
-    console.log('randomCharacter', statusTotal, baseStatus)
-    const names = ['Maximus', 'Spartacus', 'Crixus', 'Commodus', 'Tigris']
-    const status = randomStatus(statusTotal, baseStatus)
-    const maxHp = 100 + (status.vit * 10)
+  // === ACTIONS ===
+
+  // --- Character & Game Flow Management ---
+  function _createNewCharacter(name: string, status: Status): Character {
+    const maxHp = 100 + (status.vit * 10);
     return {
-      name: names[Math.floor(Math.random() * names.length)],
+      id: `char_${Date.now()}`, // Simple unique ID
+      name,
       hp: maxHp,
       maxHp,
       status,
       skills: [],
       winStreak: 0,
-      totalMoneyEarned: 0,
+      lastMoneyEarned: 0,
       statusPoint: 0,
-    }
+    };
   }
-  function startNewGame() {
-    // Show create character scene instead of random
-    currentScene.value = scenes.CREATE;
-  }
+
   function createCharacter({ name, status }: { name: string, status: Status }) {
-    console.log('createCharacter', name, status)
-    const maxHp = 100 + (status.vit * 10)
-    character.value = {
-      name,
-      hp: maxHp,
-      maxHp,
-      status: { ...status },
-      skills: [],
-      winStreak: 0,
-      totalMoneyEarned: 0,
-      statusPoint: 0,
-    }
+    const newChar = _createNewCharacter(name, status);
+    character.value = newChar;
     currentScene.value = scenes.PREPARE;
   }
-  function calcMoneyEarned(c: Character) {
-    return battleUtils.calcReward(c)
-  }
-  function onBattleFinished(c: Character) {
-    if (c.hp > 0) {
-      c.winStreak++;
-      c.lastMoneyEarned = calcMoneyEarned(c);
-      c.statusPoint += 5;
-      skillChoices.value = skillUtils.randomSkillChoices(c.status.luk);
-    }
-    // Update to store
-    userProfile.value.money += c.lastMoneyEarned ?? 0;
-    character.value = c
-    // Set scene to result
-    currentScene.value = scenes.RESULT
+
+  function startNewGame() {
+    character.value = null; // Clear character to ensure create screen shows
+    currentScene.value = scenes.CREATE;
   }
 
-  // Heal
+  function rebirthFromHistory() {
+    if (characterHistory.value.length === 0) {
+      console.warn("Rebirth called with no history. Starting new game.");
+      startNewGame();
+      return;
+    }
+
+    const template = characterHistory.value[Math.floor(Math.random() * characterHistory.value.length)];
+    const generation = characterHistory.value.length + 1;
+    const suffix = getOrdinalSuffix(generation);
+    
+    // Create the heir with pre-filled stats
+    const heir = _createNewCharacter(`${template.name} ${generation}${suffix}`, { ...template.status });
+
+    character.value = heir;
+    currentScene.value = scenes.PREPARE;
+    console.log(`Rebirthed as ${heir.name} from ${template.name}`);
+  }
+
+  function onBattleFinished(victoriousCharacter: Character) {
+    if (!character.value) return;
+
+    if (victoriousCharacter.hp > 0) { // Player won
+      character.value.winStreak++;
+      character.value.lastMoneyEarned = battleUtils.calcReward(character.value);
+      character.value.statusPoint += 5;
+      userProfile.value.money += character.value.lastMoneyEarned;
+      skillChoices.value = skillUtils.randomSkillChoices(character.value.status.luk);
+    } else { // Player lost
+      character.value.lastMoneyEarned = 0;
+      // Add the fallen gladiator to history
+      characterHistory.value.push(JSON.parse(JSON.stringify(character.value)));
+    }
+    
+    // Always go to result scene after a battle
+    currentScene.value = scenes.RESULT;
+  }
+  
+  // --- In-Game Actions ---
   function buyHeal() {
-    console.log('buyHeal')
-    if (!character.value) return
-    const cost = battleUtils.calcHealCost(character.value)
+    if (!character.value) return;
+    const cost = battleUtils.calcHealCost(character.value);
     if (userProfile.value.money >= cost && character.value.hp < character.value.maxHp) {
-      userProfile.value.money -= cost
-      const heal = Math.floor(character.value.maxHp * 0.2)
-      character.value.hp += heal
-      if (character.value.hp > character.value.maxHp) character.value.hp = character.value.maxHp
+      userProfile.value.money -= cost;
+      const healAmount = Math.floor(character.value.maxHp * 0.2);
+      character.value.hp = Math.min(character.value.maxHp, character.value.hp + healAmount);
     }
   }
 
-  // Load on mount
-  onMounted(() => {
-    loadFromLocal()
-    if (!character.value) startNewGame()
-  })
-  watch([
-    character, enemy, currentScene, skillChoices, characterHistory
-  ], saveToLocal, { deep: true })
+  function randomStatus(totalPoints: number, base = 1): Status {
+    let remainingPoints = totalPoints - (Object.keys(skillUtils.BASE_STATUS).length * base);
+    const keys = Object.keys(skillUtils.BASE_STATUS) as (keyof Status)[];
+    const status: Status = { str: base, agi: base, vit: base, dex: base, int: base, luk: base };
+    
+    while (remainingPoints > 0) {
+      const randomKey = keys[Math.floor(Math.random() * keys.length)];
+      status[randomKey]++;
+      remainingPoints--;
+    }
+    return status;
+  }
+
+  // --- Persistence (Save/Load) ---
+  function saveToLocal() {
+    const saveData = {
+      userProfile: userProfile.value,
+      character: character.value,
+      currentScene: currentScene.value,
+      skillChoices: skillChoices.value,
+      characterHistory: characterHistory.value,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+  }
+
+  function loadFromLocal() {
+    const rawData = localStorage.getItem(STORAGE_KEY);
+    if (!rawData) {
+      console.log('No save data found. Starting fresh.');
+      startNewGame();
+      return;
+    }
+    try {
+      const data = JSON.parse(rawData);
+      if (data.userProfile) userProfile.value = data.userProfile;
+      if (data.character) character.value = data.character;
+      if (data.currentScene) currentScene.value = data.currentScene;
+      if (data.skillChoices) skillChoices.value = data.skillChoices;
+      if (data.characterHistory) characterHistory.value = data.characterHistory;
+
+      // If loaded data is empty, start new game
+      if (!character.value) {
+        startNewGame();
+      }
+    } catch (e) {
+      console.error('Failed to load save data:', e);
+      localStorage.removeItem(STORAGE_KEY); // Corrupted data, clear it
+      startNewGame();
+    }
+  }
+  
+  // Initialize and watch for changes
+  onMounted(loadFromLocal);
+  watch(
+    () => [userProfile.value, character.value, currentScene.value, characterHistory.value],
+    saveToLocal,
+    { deep: true }
+  );
 
   return {
-    scenes,
-    userProfile,
-    character,
-    enemy,
-    currentScene,
-    skillChoices,
-    characterHistory,
-    randomStatus,
-    randomCharacter,
-    startNewGame,
-    createCharacter,
-    onBattleFinished,
-    buyHeal,
+    // State
+    scenes, userProfile, character, enemy, currentScene,
+    skillChoices, characterHistory,
+    // Getters
+    totalStatusPoints,
+    // Actions
+    startNewGame, createCharacter, rebirthFromHistory,
+    onBattleFinished, buyHeal, randomStatus,
+    // Utilities (forwarded for convenience)
     ...battleUtils,
+    ...skillUtils,
   }
 })

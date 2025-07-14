@@ -158,3 +158,7 @@ export function startFight(
   setEnemy({ ...newEnemy, hp: newEnemy.maxHp });
   setScene(scenes.FIGHT);
 }
+export function randomEnemyName(): string {
+  throw new Error('Function not implemented.');
+}
+

@@ -129,3 +129,7 @@ function skillStatus(character: Character, type: keyof Character['status'], skil
   }
   return val
 }
+
+export function BASE_STATUS(BASE_STATUS: any): (keyof Status)[] {
+  throw new Error('Function not implemented.');
+}
