@@ -7,7 +7,7 @@ defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
 <template>
     <div>
         <!-- Compact Genshin-style Fixed Top Bar Heade -->
-        <header>
+        <header class="gladiator-header-bg">
             <div>
                 <div>
                   <span>฿</span>
@@ -23,7 +23,9 @@ defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
         </header>
         <!-- Main content with mobile padding and header offset -->
         <main>
-            <slot></slot>
+            <div class="main-container">
+                <slot></slot>
+            </div>
         </main>
     </div>
 </template>
@@ -49,5 +51,17 @@ defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
 .header-btn:active, .header-btn:focus {
   background: #c9e4ff;
   color: #1a233a;
+}
+.main-container {
+  padding: 1.5rem 0.7rem 2.5rem 0.7rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.gladiator-header-bg {
+  background: linear-gradient(90deg, #e2c178 0%, #bfa76a 60%, #a88c4a 100%);
+  border-bottom: 4px solid #bfa100;
+  box-shadow: 0 2px 12px #bfa10044;
+  padding: 0.5em 0;
 }
 </style>

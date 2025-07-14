@@ -58,17 +58,21 @@ function totalStatus(c: Character) {
 .gladiator-name {
   font-family: 'Cinzel', serif;
   letter-spacing: 0.04em;
+  color: #181818 !important;
 }
 .gladiator-status-sum {
   font-family: 'Share Tech Mono', monospace;
+  color: #181818 !important;
 }
 .gladiator-streak {
   font-family: 'Share Tech Mono', monospace;
   font-size: 1.1em;
+  color: #181818 !important;
 }
 .gladiator-btn {
   font-family: 'Cinzel', serif;
   letter-spacing: 0.08em;
   font-size: 1.13em;
+  color: #181818 !important;
 }
 </style>
