@@ -38,6 +38,7 @@ export const useGameStore = defineStore('game', () => {
     FIGHT: 'fight',
     RESULT: 'result',
     HISTORY: 'history',
+    CREATE: 'create',
   }
   const userProfile = ref<UserProfile>({ money: 0 })
   const character = ref<Character | null>(null)
@@ -109,43 +110,23 @@ export const useGameStore = defineStore('game', () => {
     }
   }
   function startNewGame() {
-    console.log('startNewGame', character.value)
-    // Save current character to history if exists and not already in history
-    if (character.value) {
-      characterHistory.value.push({ ...character.value })
+    // Show create character scene instead of random
+    currentScene.value = scenes.CREATE;
+  }
+  function createCharacter({ name, status }: { name: string, status: Status }) {
+    console.log('createCharacter', name, status)
+    const maxHp = 100 + (status.vit * 10)
+    character.value = {
+      name,
+      hp: maxHp,
+      maxHp,
+      status: { ...status },
+      skills: [],
+      winStreak: 0,
+      totalMoneyEarned: 0,
+      statusPoint: 0,
     }
-    let base: Status | undefined = undefined
-    // 30% โอกาสเกิดใหม่จาก characterHistory
-    let revived = false;
-    if (characterHistory.value.length > 0 && Math.random() < 0.9) {
-      // สุ่มตัวละครจาก history
-      const idx = Math.floor(Math.random() * characterHistory.value.length);
-      const prevChar = characterHistory.value[idx];
-      // นับจำนวนครั้งที่ชื่อนี้เคยเกิดใหม่
-      const baseName = prevChar.name.replace(/ \(\d+(st|nd|rd|th)\)$/i, '');
-      const count = characterHistory.value.filter(c => c.name.startsWith(baseName)).length + 1;
-      let suffix = '';
-      if (count === 2) suffix = ' (2nd)';
-      else if (count === 3) suffix = ' (3rd)';
-      else if (count > 3) suffix = ` (${count}th)`;
-      character.value = {
-        ...prevChar,
-        name: baseName + suffix,
-        hp: prevChar.maxHp,
-        winStreak: 0,
-        totalMoneyEarned: 0,
-        statusPoint: 0,
-        skills: [],
-      };
-      revived = true;
-    }
-    if (!revived) {
-      const totlal = statusTotal + (characterHistory.value.length * 2)
-      character.value = randomCharacter(totlal, base)
-      character.value.totalMoneyEarned = 0
-      character.value.winStreak = 0
-    }
-    currentScene.value = scenes.PREPARE
+    currentScene.value = scenes.PREPARE;
   }
   function calcMoneyEarned(c: Character) {
     return battleUtils.calcReward(c)
@@ -197,6 +178,7 @@ export const useGameStore = defineStore('game', () => {
     randomStatus,
     randomCharacter,
     startNewGame,
+    createCharacter,
     onBattleFinished,
     buyHeal,
     ...battleUtils,

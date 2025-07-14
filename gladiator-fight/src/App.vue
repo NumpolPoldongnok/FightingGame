@@ -7,6 +7,7 @@ import HistoryScene from './components/HistoryScene.vue'
 import TownhallScene from './components/TownhallScene.vue'
 import { storeToRefs } from 'pinia'
 import UserLayout from './layouts/UserLayout.vue'
+import CreateCharacterScene from './components/CreateCharacterScene.vue'
 
 const game = useGameStore()
 const {
@@ -19,8 +20,9 @@ const {
 } = storeToRefs(game)
 
 const { scenes } = game
-// เพิ่ม scenes.HISTORY
+// Ensure all scenes exist
 if (!scenes.HISTORY) scenes.HISTORY = 'history'
+if (!scenes.CREATE) scenes.CREATE = 'create'
 import { ref } from 'vue'
 import { applySkill, randomSkillChoices, type Skill } from './store/skillUtils'
 const showTownhall = ref(false)
@@ -69,7 +71,12 @@ function handleStartFight() {
 </script>
 
 <template>
-  <ResultScene v-if="currentScene === scenes.RESULT && character" :character="character" :skill-choices="skillChoices"
+  <CreateCharacterScene
+    v-if="currentScene === scenes.CREATE"
+    @create="game.createCharacter"
+    @cancel="currentScene = scenes.PREPARE"
+  />
+  <ResultScene v-else-if="currentScene === scenes.RESULT && character" :character="character" :skill-choices="skillChoices"
     @choose-skill="handleChooseSkill" @restart="startNewGame" @back="() => { currentScene = scenes.PREPARE }"
     @refresh-skill="handleRandomSkillChoices" />
   <FightScene v-else-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
