@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Character } from '../store/useGameStore'
-import SkillList from './SkillList.vue'
-import CharacterStatus from './CharacterStatus.vue'
+import { Character } from '../store/useGameStore'
+import { computed } from 'vue'
+
 const props = defineProps<{ characterHistory: Character[] }>()
 defineEmits(['back'])
 
-import { computed } from 'vue'
-// Group by winStreak descending, as array for easier rendering
+// Group by winStreak descending, as an array for easier rendering
 const groupedHistoryArr = computed(() => {
+  if (!props.characterHistory) return [];
   const groups: Record<number, Character[]> = {}
   for (const c of props.characterHistory) {
     const ws = c.winStreak ?? 0
@@ -27,84 +27,167 @@ const statusSum = (c: Character) => {
 </script>
 
 <template>
-  <div class="p-8 max-w-4xl mx-auto gladiator-bg min-h-screen rounded-2xl shadow-2xl border-8 border-yellow-800 mt-8 mb-8">
-    <h2 class="text-2xl font-extrabold mb-6 text-center text-yellow-900 tracking-widest gladiator-title">ประวัตินักสู้ผู้กล้า</h2>
-    <div v-for="(group, idx) in groupedHistoryArr" :key="group.winStreak" class="mb-8">
-      <div class="flex items-center gap-3 mb-4 bg-yellow-900/90 rounded-t-2xl px-6 py-3 gladiator-group-header border-b-8 border-yellow-700 shadow-lg gladiator-border">
-        <span class="text-xl font-bold text-yellow-300 drop-shadow gladiator-crown">&#9876; {{ group.winStreak }}</span>
-        <span class="text-base text-yellow-100 font-semibold">ชัยชนะต่อเนื่อง</span>
-        <span class="ml-auto text-xs text-yellow-200 italic">{{ group.characters.length }} นักสู้</span>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-yellow-50/80 p-6 rounded-b-2xl gladiator-group-body border-2 border-yellow-200">
-        <div v-for="(c, cidx) in group.characters" :key="cidx" class="history-card gladiator-card bg-gradient-to-br from-yellow-200 via-yellow-100 to-yellow-50 border-4 border-yellow-700 rounded-2xl shadow-xl p-6 relative overflow-hidden hover:scale-105 transition-transform mt-2 mb-2">
-          <div class="flex items-center justify-between mb-2">
-            <strong class="truncate text-lg text-yellow-900 gladiator-name">{{ c.name }}</strong>
-            <span class="text-xs text-yellow-800 gladiator-hp">HP: {{ c.hp }} / {{ c.maxHp }}</span>
+  <div class="history-container">
+    <h2 class="history-title">HALL OF FAME</h2>
+
+    <div class="history-groups">
+      <details v-for="(group, idx) in groupedHistoryArr" :key="group.winStreak" class="history-group" :open="idx === 0">
+        <summary class="group-summary">
+          <div class="summary-title">
+            <span class="win-icon">🏆</span>
+            <span>{{ group.winStreak }} WINS STREAK</span>
           </div>
-          <div class="text-xs text-yellow-700 mb-2 gladiator-status-sum">STATUS รวม: <span class="font-bold text-yellow-900">{{ statusSum(c) }}</span></div>
-          <div class="absolute right-2 top-2 text-xs text-yellow-600 opacity-60 gladiator-badge">GLADIATOR</div>
+          <span class="character-count">{{ group.characters.length }} Fighters</span>
+        </summary>
+        <div class="character-grid">
+          <div v-for="(c, cidx) in group.characters" :key="cidx" class="character-card">
+            <strong class="character-name">{{ c.name }}</strong>
+            <span class="character-stats">Total Stats: {{ statusSum(c) }}</span>
+            <span class="character-hp">HP: {{ c.hp }}/{{ c.maxHp }}</span>
+          </div>
         </div>
-      </div>
+      </details>
     </div>
-    <button @click="$emit('back')" class="mt-6 w-full py-2 rounded-lg bg-gradient-to-r from-yellow-700 to-yellow-900 text-yellow-100 font-extrabold shadow-lg border-2 border-yellow-800 hover:from-yellow-800 hover:to-yellow-900 transition-colors gladiator-btn">กลับสู่สนาม</button>
+
+    <button @click="$emit('back')" class="back-btn">BACK TO ARENA</button>
   </div>
 </template>
 
 <style scoped>
-.gladiator-bg {
-  background: repeating-linear-gradient(135deg, #f9e7b3 0 40px, #f5d97c 40px 80px, #f9e7b3 80px 120px);
-  box-shadow: 0 8px 32px #bfa10033, 0 1.5px 0 #fff8 inset;
+/* === Gladiator Themed History Scene === */
+
+.history-container {
+  width: 100%;
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  border-radius: 12px;
+  border: 4px solid #6b552d;
+  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+  margin-top: 1rem;
 }
-.gladiator-title {
-  text-shadow: 0 2px 0 #fff8, 0 4px 12px #bfa10044;
-  letter-spacing: 0.15em;
-  color: #181818 !important;
-}
-.gladiator-group-header {
-  background: linear-gradient(90deg, #a97c2f 0%, #7c5a1a 100%);
-  border-radius: 1rem 1rem 0 0;
-  border-bottom: 4px solid #bfa100;
-  box-shadow: 0 2px 8px #bfa10033;
-  color: #181818 !important;
-}
-.gladiator-crown {
-  font-size: 1.5em;
-  filter: drop-shadow(0 1px 0 #fff8);
-  color: #181818 !important;
-}
-.gladiator-group-body {
-  border-radius: 0 0 1rem 1rem;
-  border-top: none;
-  color: #181818 !important;
-}
-.gladiator-card {
-  border: 2.5px solid #bfa100;
-  box-shadow: 0 4px 16px #bfa10022, 0 1.5px 0 #fff8 inset;
-  position: relative;
-  color: #181818 !important;
-}
-.gladiator-name {
-  letter-spacing: 0.04em;
+
+.history-title {
   font-family: 'Cinzel', serif;
-  color: #181818 !important;
-}
-.gladiator-hp {
-  font-family: 'Share Tech Mono', monospace;
-  color: #181818 !important;
-}
-.gladiator-status-sum {
-  font-family: 'Share Tech Mono', monospace;
-  color: #181818 !important;
-}
-.gladiator-badge {
-  font-family: 'Cinzel', serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-align: center;
+  color: #e2c178;
+  text-transform: uppercase;
   letter-spacing: 0.1em;
-  pointer-events: none;
-  color: #181818 !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  margin: 0 0 2rem 0;
 }
-.gladiator-btn {
+
+.history-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-group {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #6b552d;
+}
+
+.group-summary {
   font-family: 'Cinzel', serif;
-  letter-spacing: 0.08em;
-  color: #181818 !important;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  list-style: none; /* Hide default arrow */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.2s;
+  color: #c8ab6b;
+}
+.group-summary:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Custom arrow */
+.group-summary::before {
+  content: '▶';
+  display: inline-block;
+  margin-right: 1rem;
+  font-size: 0.8em;
+  transition: transform 0.2s ease-in-out;
+}
+.history-group[open] > .group-summary::before {
+  transform: rotate(90deg);
+}
+.summary-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.2rem;
+  color: #e2c178;
+}
+.win-icon {
+  font-size: 1.2em;
+}
+.character-count {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background-color: rgba(0,0,0,0.1);
+}
+
+.character-card {
+  background-color: #fdf6e7;
+  color: #44341b;
+  border-radius: 6px;
+  border: 2px solid #8a703d;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+.character-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+.character-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #6b552d;
+  border-bottom: 1px solid rgba(138, 112, 61, 0.2);
+  padding-bottom: 0.5rem;
+}
+.character-stats, .character-hp {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.back-btn {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 3px solid #8a703d;
+  color: #e2c178;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  width: 100%;
+  margin-top: 2rem;
+  background: transparent;
+}
+.back-btn:hover {
+  background-color: #8a703d;
+  color: #fff;
 }
 </style>

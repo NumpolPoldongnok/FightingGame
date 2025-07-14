@@ -1,52 +1,141 @@
-export const MAX_STATUS = 999;
 import type { Character, Status } from './useGameStore'
 
+// --- Constants ---
+/** ค่าพลังสถานะสูงสุดที่ตัวละครสามารถมีได้ */
+export const MAX_STATUS = 999;
+
+/** จำนวน HP สูงสุดที่ได้รับต่อค่า VIT 1 หน่วย */
+export const HP_PER_VIT = 10;
+
+
+// --- Helper Functions ---
+
+/**
+ * ตรวจสอบว่าสามารถเพิ่มค่าสถานะได้หรือไม่
+ * @param character - อ็อบเจกต์ตัวละคร
+ * @param key - ชื่อของค่าสถานะที่ต้องการตรวจสอบ (เช่น 'str', 'vit')
+ * @returns `true` ถ้าสามารถเพิ่มได้, มิฉะนั้น `false`
+ */
 export function canIncreaseStatus(character: Character, key: keyof Status): boolean {
   return character.statusPoint > 0 && character.status[key] < MAX_STATUS;
 }
 
+/**
+ * ตรวจสอบว่าสามารถลดค่าสถานะได้หรือไม่
+ * @param character - อ็อบเจกต์ตัวละคร
+ * @param key - ชื่อของค่าสถานะที่ต้องการตรวจสอบ (เช่น 'str', 'vit')
+ * @returns `true` ถ้าสามารถลดได้, มิฉะนั้น `false`
+ */
 export function canDecreaseStatus(character: Character, key: keyof Status): boolean {
-  // Prevent stat < 1
+  // ป้องกันไม่ให้ค่าสถานะต่ำกว่า 1
   return character.status[key] > 1;
 }
 
+
+// --- Core Mutating Functions ---
+// Design Note: These functions directly mutate the character object,
+// which is the intended pattern for this state management (e.g., with Pinia).
+
+/**
+ * เพิ่มค่าสถานะที่ระบุ 1 หน่วย และลด Status Point ลง 1
+ * @param character - อ็อบเจกต์ตัวละคร (จะถูกเปลี่ยนแปลงโดยตรง)
+ * @param key - ชื่อของค่าสถานะที่ต้องการเพิ่ม
+ * @returns `true` ถ้าเพิ่มสำเร็จ, มิฉะนั้น `false`
+ */
 export function increaseStatus(character: Character, key: keyof Status): boolean {
-  if (character.statusPoint > 0 && character.status[key] < MAX_STATUS) {
-    character.status[key]++;
-    character.statusPoint--;
-    console.log(`Increased ${key} to ${character.status[key]}`);
-    if (key === 'vit') {
-      character.maxHp += 10;
-      character.hp += 10;
-    }
-    return true;
+  if (!canIncreaseStatus(character, key)) {
+    return false;
   }
-  return false;
+
+  character.status[key]++;
+  character.statusPoint--;
+
+  // Special case for VIT affecting HP
+  if (key === 'vit') {
+    character.maxHp += HP_PER_VIT;
+    character.hp += HP_PER_VIT;
+  }
+  
+  return true;
 }
 
+/**
+ * ลดค่าสถานะที่ระบุ 1 หน่วย และเพิ่ม Status Point ขึ้น 1
+ * @param character - อ็อบเจกต์ตัวละคร (จะถูกเปลี่ยนแปลงโดยตรง)
+ * @param key - ชื่อของค่าสถานะที่ต้องการลด
+ * @returns `true` ถ้าลดสำเร็จ, มิฉะนั้น `false`
+ */
 export function decreaseStatus(character: Character, key: keyof Status): boolean {
-  if (character.status[key] > 1) {
-    character.status[key]--;
-    character.statusPoint++;
-    if (key === 'vit') {
-      character.maxHp = Math.max(1, character.maxHp - 10);
-      character.hp = Math.min(character.hp, character.maxHp);
-    }
-    return true;
+  if (!canDecreaseStatus(character, key)) {
+    return false;
   }
-  return false;
+
+  character.status[key]--;
+  character.statusPoint++;
+
+  // Special case for VIT affecting HP
+  if (key === 'vit') {
+    character.maxHp = Math.max(1, character.maxHp - HP_PER_VIT);
+    // Clamp current HP to the new max HP
+    character.hp = Math.min(character.hp, character.maxHp);
+  }
+
+  return true;
 }
 
-// ใส่ statusPoint ทั้งหมดลงใน key เดียว
-export function putAllPointsToStatus(character: Character, key: keyof Status) {
-  while (character.statusPoint > 0 && character.status[key] < MAX_STATUS) {
-    increaseStatus(character, key);
+
+// --- Bulk Operation Functions (Optimized) ---
+
+/**
+ * (Optimized) ใส่ Status Point ที่มีทั้งหมดลงในค่าสถานะเดียวจนกว่าจะเต็ม
+ * @param character - อ็อบเจกต์ตัวละคร (จะถูกเปลี่ยนแปลงโดยตรง)
+ * @param key - ชื่อของค่าสถานะที่ต้องการเพิ่ม
+ */
+export function putAllPointsToStatus(character: Character, key: keyof Status): void {
+  const pointsAvailable = character.statusPoint;
+  if (pointsAvailable <= 0) {
+    return; // ไม่มีแต้มให้อัป
+  }
+
+  const roomForPoints = MAX_STATUS - character.status[key];
+  const pointsToAdd = Math.min(pointsAvailable, roomForPoints);
+
+  if (pointsToAdd <= 0) {
+    return; // สถานะเต็มแล้ว
+  }
+  
+  character.status[key] += pointsToAdd;
+  character.statusPoint -= pointsToAdd;
+
+  // Special case for VIT affecting HP
+  if (key === 'vit') {
+    const hpGained = pointsToAdd * HP_PER_VIT;
+    character.maxHp += hpGained;
+    character.hp += hpGained;
   }
 }
 
-// รีเซ็ตค่าสถานะ key เดียวให้เหลือ 1 และคืน point กลับ
-export function resetStatusKeyToOne(character: Character, key: keyof Status) {
-  while (character.status[key] > 1) {
-    decreaseStatus(character, key);
+/**
+ * (Optimized) รีเซ็ตค่าสถานะเดียวให้เหลือ 1 และคืน Status Point ทั้งหมดกลับมา
+ * @param character - อ็อบเจกต์ตัวละคร (จะถูกเปลี่ยนแปลงโดยตรง)
+ * @param key - ชื่อของค่าสถานะที่ต้องการรีเซ็ต
+ */
+export function resetStatusKeyToOne(character: Character, key: keyof Status): void {
+  const currentStatusValue = character.status[key];
+  if (currentStatusValue <= 1) {
+    return; // ไม่สามารถลดได้อีก
+  }
+
+  const pointsToReturn = currentStatusValue - 1;
+
+  character.status[key] = 1;
+  character.statusPoint += pointsToReturn;
+
+  // Special case for VIT affecting HP
+  if (key === 'vit') {
+    const hpLost = pointsToReturn * HP_PER_VIT;
+    character.maxHp = Math.max(1, character.maxHp - hpLost);
+    // Clamp current HP to the new max HP
+    character.hp = Math.min(character.hp, character.maxHp);
   }
 }
