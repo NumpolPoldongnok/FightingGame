@@ -43,12 +43,6 @@ export function toBattleFighter(character: Character): BattleFighter {
 
 // Reduce cooldown by agi per turn, with luk chance to instantly reset cooldown to 0
 export function reduceCooldown(fighter: BattleFighter) {
-  // Chance: luk * 0.5% per turn to instantly set cooldown to 0
-  const lukChance = fighter.status.luk * 0.5;
-  if (Math.random() * 100 < lukChance) {
-    fighter.cooldown = 0;
-    return;
-  }
   fighter.cooldown -= fighter.status.agi;
   if (fighter.cooldown < 0) fighter.cooldown = 0;
 }
@@ -65,9 +59,8 @@ export function resetCooldown(fighter: BattleFighter) {
 
 // Calculate evasion: agi of defender vs dex of attacker
 export function calcEvasionChance(defender: BattleFighter, attacker: BattleFighter): number {
-  // Base 10% + (defender agi - attacker dex) * 0.5% + defender luk * 0.5%, min 0%, max 90%
-  let base = 10 + (defender.status.agi - attacker.status.dex) * 0.5 + defender.status.luk * 0.5;
-  return Math.max(0, Math.min(90, base));
+  let base = 10 + (defender.status.agi - attacker.status.dex) * 0.3 + (defender.status.luk - attacker.status.luk) * 0.7;
+  return Math.max(0, Math.min(99, base));
 }
 
 // Try to evade
@@ -75,11 +68,23 @@ export function tryEvade(defender: BattleFighter, attacker: BattleFighter): bool
   return Math.random() * 100 < calcEvasionChance(defender, attacker);
 }
 
+// Calculate critical chance based on attacker and defender stats (luk is main factor)
+export function calcCritChance(attacker: Character, defender: Character, type: 'phy' | 'magic' = 'phy'): number {
+  var baseLuk = (attacker.status.luk-defender.status.luk) * 0.8
+  if (type === 'phy') {
+    const base = baseLuk + (attacker.status.dex - defender.status.agi) * 0.2;
+    return Math.min(90, Math.max(0, base));
+  } else {
+    const base = baseLuk + (attacker.status.int - defender.status.int) * 0.2;
+    return Math.min(90, Math.max(0, base));
+  }
+}
+
 export function calcPhysicalDamage(attacker: Character, defender: Character): { value: number, crit: boolean } {
   let base = attacker.status.str * 2 + attacker.status.dex + Math.floor(attacker.status.int * 0.2)
-  const critChance = Math.min(50, Math.floor((attacker.status.dex + attacker.status.luk) / 2))
-  // Critical damage multiplier: 1.5 + (dex * 0.1)
-  let critMultiplier = 1.5 + attacker.status.dex * 0.1;
+  const critChance = calcCritChance(attacker, defender, 'phy');
+  // Critical damage multiplier: 1.1 + (dex * 0.1)
+  let critMultiplier = 1.1 + attacker.status.dex * 0.1;
   let isCrit = false;
   if (Math.random() * 100 < critChance) {
     base = Math.floor(base * critMultiplier);
@@ -95,8 +100,7 @@ export function calcPhysicalDamage(attacker: Character, defender: Character): { 
 
 export function calcMagicDamage(attacker: Character, defender: Character): { value: number, crit: boolean } {
   let base = attacker.status.int * 2 + Math.floor(attacker.status.str * 0.2)
-  // Magic crit: 10% + luk * 0.5%, max 50%
-  const critChance = Math.min(50, 10 + attacker.status.luk * 0.5);
+  const critChance = calcCritChance(attacker, defender, 'magic');
   let critMultiplier = 1.5 + attacker.status.int * 0.05;
   let isCrit = false;
   if (Math.random() * 100 < critChance) {
