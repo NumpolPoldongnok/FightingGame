@@ -154,6 +154,8 @@ export const useGameStore = defineStore('game', () => {
     } else {
       c.lastMoneyEarned = 0
       skillChoices.value = []
+      // Add to history if dead
+      characterHistory.value.push({ ...c })
     }
     // Update to store
     userProfile.value.money += c.lastMoneyEarned ?? 0;

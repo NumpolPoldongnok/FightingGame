@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Status, Character } from '../store/useGameStore'
-import { increaseStatus, canIncreaseStatus, canDecreaseStatus } from '../store/statusUtils'
+import { increaseStatus, canIncreaseStatus, canDecreaseStatus, putAllPointsToStatus, resetStatusKeyToOne } from '../store/statusUtils'
 import { calcHealCost } from '../store/battleUtils'
 import { useGameStore } from '../store/useGameStore'
 import { computed } from 'vue'
@@ -25,6 +25,14 @@ function decreaseStatusWithCost(character: Character, key: keyof Status) {
     alert('เงินไม่พอสำหรับลดค่าสถานะ ต้องใช้ ' + cost + ' Gold')
   }
 }
+
+function putAllPoints(key: keyof Status) {
+  putAllPointsToStatus(props.character, key)
+}
+
+function resetKeyToOne(key: keyof Status) {
+  resetStatusKeyToOne(props.character, key)
+}
 </script>
 
 <template>
@@ -44,6 +52,8 @@ function decreaseStatusWithCost(character: Character, key: keyof Status) {
             <template v-if="showButtons">
               <button class="stat-btn stat-btn-plus" :disabled="!canIncreaseStatus(props.character!, key)" @click="increaseStatus(props.character!, key)">+</button>
               <button class="stat-btn stat-btn-minus" :disabled="!canDecreaseStatus(props.character!, key)" @click="decreaseStatusWithCost(props.character!, key)">-</button>
+              <button class="stat-btn stat-btn-all" :disabled="!(props.character.statusPoint > 0 && character.status[key] < 999)" @click="putAllPoints(key)">++</button>
+              <button class="stat-btn stat-btn-reset" :disabled="character.status[key] <= 1" @click="resetKeyToOne(key)">--</button>
             </template>
           </li>
         </ul>
@@ -164,8 +174,8 @@ function decreaseStatusWithCost(character: Character, key: keyof Status) {
   padding: 0.1em 0.7em;
 }
 .stat-btn {
-  margin-left: 0.4em;
-  margin-right: 0.1em;
+  margin-left: 2px;
+  margin-right: 0px;
   font-size: 1.1em;
   font-weight: 700;
   border-radius: 6px;
@@ -195,6 +205,30 @@ function decreaseStatusWithCost(character: Character, key: keyof Status) {
   border-color: #e53935;
 }
 .stat-btn-minus:active, .stat-btn-minus:focus {
+  background: #e53935;
+  color: #fff;
+}
+.stat-btn-all {
+  background: linear-gradient(90deg, #43e97b 60%, #38f9d7 100%);
+  color: #fff;
+  border-color: #43e97b;
+  font-size: 0.95em;
+  margin-left: 2px;
+  padding: 0.1em 0.7em;
+}
+.stat-btn-all:active, .stat-btn-all:focus {
+  background: #43e97b;
+  color: #fff;
+}
+.stat-btn-reset {
+  background: linear-gradient(90deg, #e53935 60%, #f7baba 100%);
+  color: #fff;
+  border-color: #e53935;
+  font-size: 0.95em;
+  margin-left: 2px;
+  padding: 0.1em 0.7em;
+}
+.stat-btn-reset:active, .stat-btn-reset:focus {
   background: #e53935;
   color: #fff;
 }

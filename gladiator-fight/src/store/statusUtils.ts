@@ -36,3 +36,17 @@ export function decreaseStatus(character: Character, key: keyof Status): boolean
   }
   return false;
 }
+
+// ใส่ statusPoint ทั้งหมดลงใน key เดียว
+export function putAllPointsToStatus(character: Character, key: keyof Status) {
+  while (character.statusPoint > 0 && character.status[key] < MAX_STATUS) {
+    increaseStatus(character, key);
+  }
+}
+
+// รีเซ็ตค่าสถานะ key เดียวให้เหลือ 1 และคืน point กลับ
+export function resetStatusKeyToOne(character: Character, key: keyof Status) {
+  while (character.status[key] > 1) {
+    decreaseStatus(character, key);
+  }
+}
