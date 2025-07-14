@@ -109,7 +109,11 @@ export const useGameStore = defineStore('game', () => {
     }
   }
   function startNewGame() {
-    console.log('startNewGame')
+    console.log('startNewGame', character.value)
+    // Save current character to history if exists and not already in history
+    if (character.value) {
+      characterHistory.value.push({ ...character.value })
+    }
     let base: Status | undefined = undefined
     // 30% โอกาสเกิดใหม่จาก characterHistory
     let revived = false;
@@ -151,11 +155,6 @@ export const useGameStore = defineStore('game', () => {
       c.winStreak++;
       c.lastMoneyEarned = calcMoneyEarned(c);
       skillChoices.value = skillUtils.randomSkillChoices(c.status.luk);
-    } else {
-      c.lastMoneyEarned = 0
-      skillChoices.value = []
-      // Add to history if dead
-      characterHistory.value.push({ ...c })
     }
     // Update to store
     userProfile.value.money += c.lastMoneyEarned ?? 0;

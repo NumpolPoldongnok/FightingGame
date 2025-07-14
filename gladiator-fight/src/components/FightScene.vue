@@ -62,46 +62,44 @@ onUnmounted(() => {
 <template>
   <div class="fight-main-container">
     <h2>ฉากต่อสู้</h2>
+    <div class="battle-btn-row">
+      <div style="display:flex;align-items:center;gap:0.7em;">
+        <span style="font-size:0.98em;">ความเร็ว:</span>
+        <button :class="['genshin-btn', speed === 1 && 'genshin-btn-finish']" @click="setSpeed(1)">1x</button>
+        <button :class="['genshin-btn', speed === 2 && 'genshin-btn-finish']" @click="setSpeed(2)">2x</button>
+        <button :class="['genshin-btn', speed === 4 && 'genshin-btn-finish']" @click="setSpeed(4)">4x</button>
+        <button :class="['genshin-btn', speed === 8 && 'genshin-btn-finish']" @click="setSpeed(8)">8x</button>
+      </div>
+      <button v-if="showFinishButton" class="genshin-btn genshin-btn-finish"
+        @click="emit('battle-finished', character)">จบการต่อสู้</button>
+      <button v-if="showRestartButton" class="genshin-btn genshin-btn-restart"
+        @click="emit('restart')">เกิดใหม่</button>
+    </div>
     <div v-if="character && enemy">
       <div class="status-row">
         <div class="status-block player">
           <h3>คุณ: {{ character.name }}</h3>
           <HPBar :value="character.hp" :max="character.maxHp" />
           <CharacterStatus :character="character" />
-          <CooldownBar :value="character.cooldown ?? 0" :max="maxCooldown"/>
-      <div>
-        <SkillList :skills="character.skills.filter(s => s.active === true)" />
-      </div>
+          <CooldownBar :value="character.cooldown ?? 0" :max="maxCooldown" />
+          <div>
+            <SkillList :skills="character.skills.filter(s => s.active === true)" />
+          </div>
         </div>
         <div class="status-block enemy">
           <h3>ศัตรู: {{ enemy.name }}</h3>
           <HPBar :value="enemy.hp" :max="enemy.maxHp" />
           <CharacterStatus :character="enemy" />
-          <CooldownBar :value="enemy.cooldown ?? 0" :max="maxCooldown"/>
-      <div>
-        <SkillList :skills="character.skills.filter(s => s.active === true)" />
-      </div>
+          <CooldownBar :value="enemy.cooldown ?? 0" :max="maxCooldown" />
+          <div>
+            <SkillList :skills="character.skills.filter(s => s.active === true)" />
+          </div>
         </div>
       </div>
       <div class="battle-log-container">
-        <div
-          v-for="(log, idx) in battleLog"
-          :key="idx"
-          :class="['battle-log-row', getLogClass(log)]"
-        >
+        <div v-for="(log, idx) in battleLog" :key="idx" :class="['battle-log-row', getLogClass(log)]">
           {{ log }}
         </div>
-      </div>
-      <div class="battle-btn-row">
-        <div style="display:flex;align-items:center;gap:0.7em;">
-          <span style="font-size:0.98em;">ความเร็ว:</span>
-          <button :class="['genshin-btn', speed===1 && 'genshin-btn-finish']" @click="setSpeed(1)">1x</button>
-          <button :class="['genshin-btn', speed===2 && 'genshin-btn-finish']" @click="setSpeed(2)">2x</button>
-          <button :class="['genshin-btn', speed===4 && 'genshin-btn-finish']" @click="setSpeed(4)">4x</button>
-          <button :class="['genshin-btn', speed===8 && 'genshin-btn-finish']" @click="setSpeed(8)">8x</button>
-        </div>
-        <button v-if="showFinishButton" class="genshin-btn genshin-btn-finish" @click="emit('battle-finished', character)">จบการต่อสู้</button>
-        <button v-if="showRestartButton" class="genshin-btn genshin-btn-restart" @click="emit('restart')">เกิดใหม่</button>
       </div>
     </div>
   </div>
@@ -117,6 +115,7 @@ onUnmounted(() => {
   margin-bottom: 1.3rem;
   width: 100%;
 }
+
 .status-block {
   background: linear-gradient(135deg, #e3eafc 60%, #f7fafd 100%);
   color: #2d3142;
@@ -132,14 +131,17 @@ onUnmounted(() => {
   box-sizing: border-box;
   overflow: hidden;
 }
+
 .status-block.player {
   border: 2.5px solid #43e97b;
   box-shadow: 0 4px 18px #43e97b33, 0 1.5px 0 #fff8 inset;
 }
+
 .status-block.enemy {
   border: 2.5px solid #e53935;
   box-shadow: 0 4px 18px #e5393533, 0 1.5px 0 #fff8 inset;
 }
+
 .status-list {
   display: flex;
   flex-wrap: wrap;
@@ -159,30 +161,36 @@ onUnmounted(() => {
   box-shadow: 0 4px 18px #b2c7e155, 0 1.5px 0 #fff8 inset;
   border: 2px solid #b2c7e1;
 }
+
 @media (max-width: 900px) {
   .status-row {
     gap: 0.7rem;
   }
+
   .status-block {
     padding: 0.7rem 0.5rem 0.8rem 0.5rem;
     max-width: 99vw;
     font-size: 0.97em;
   }
 }
+
 @media (max-width: 700px) {
   .status-row {
     gap: 0.3rem;
   }
+
   .status-block {
     padding: 0.5rem 0.2rem 0.6rem 0.2rem;
     max-width: 100vw;
     font-size: 0.93em;
   }
+
   .battle-log-container {
     font-size: 0.97rem;
     padding: 0.5rem 0.5rem 0.5rem 0.5rem;
   }
 }
+
 .battle-log-row {
   margin-bottom: 0.38rem;
   white-space: pre-line;
@@ -193,6 +201,7 @@ onUnmounted(() => {
   display: block;
   font-family: 'Montserrat', 'Prompt', Arial, sans-serif;
 }
+
 @media (max-width: 700px) {
   .battle-log-row {
     padding: 0.4em 0.5em;
@@ -200,6 +209,7 @@ onUnmounted(() => {
     max-width: 100%;
   }
 }
+
 .log-player {
   background: linear-gradient(90deg, #43e97b 60%, #38f9d7 100%);
   color: #2d3142;
@@ -209,6 +219,7 @@ onUnmounted(() => {
   box-shadow: 0 1px 6px #43e97b22;
   font-weight: 700;
 }
+
 .log-enemy {
   background: linear-gradient(270deg, #e53935 60%, #f7baba 100%);
   color: #2d3142;
@@ -218,10 +229,12 @@ onUnmounted(() => {
   box-shadow: 0 1px 6px #e5393522;
   font-weight: 700;
 }
+
 .log-evade {
   font-style: italic;
   opacity: 0.85;
 }
+
 .log-lose {
   background: #fff3e0;
   color: #ff9800;
@@ -231,6 +244,7 @@ onUnmounted(() => {
   font-weight: bold;
   border-radius: 10px;
 }
+
 .log-end {
   background: none;
   color: #aaa;
@@ -247,6 +261,7 @@ onUnmounted(() => {
   justify-content: center;
   margin-top: 1.5rem;
 }
+
 .genshin-btn {
   background: linear-gradient(90deg, #e3eafc 60%, #f7fafd 100%);
   color: #2d3142;
@@ -261,28 +276,36 @@ onUnmounted(() => {
   outline: none;
   cursor: pointer;
 }
-.genshin-btn:active, .genshin-btn:focus {
+
+.genshin-btn:active,
+.genshin-btn:focus {
   background: #c9e4ff;
   color: #1a233a;
   box-shadow: 0 2px 16px #43e97b33;
 }
+
 .genshin-btn-finish {
   border-color: #43e97b;
   background: linear-gradient(90deg, #43e97b 60%, #38f9d7 100%);
   color: #2d3142;
   box-shadow: 0 2px 12px #43e97b33, 0 1.5px 0 #fff8 inset;
 }
-.genshin-btn-finish:active, .genshin-btn-finish:focus {
+
+.genshin-btn-finish:active,
+.genshin-btn-finish:focus {
   background: #43e97b;
   color: #fff;
 }
+
 .genshin-btn-restart {
   border-color: #e53935;
   background: linear-gradient(90deg, #e53935 60%, #f7baba 100%);
   color: #fff;
   box-shadow: 0 2px 12px #e5393533, 0 1.5px 0 #fff8 inset;
 }
-.genshin-btn-restart:active, .genshin-btn-restart:focus {
+
+.genshin-btn-restart:active,
+.genshin-btn-restart:focus {
   background: #e53935;
   color: #fff;
 }
@@ -293,4 +316,3 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 </style>
-

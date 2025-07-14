@@ -26,7 +26,6 @@ onMounted(() => {
       <span>ชนะติดต่อกัน: {{ character.winStreak }}</span>
     </div>
     <p v-if="win">ได้เงิน: <strong>{{ character.lastMoneyEarned }}</strong></p>
-
     <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
       <HPBar v-if="character" :value="character.hp" :max="character.maxHp" />
       <CharacterStatus :character="character" title="Status หลังชนะ" />

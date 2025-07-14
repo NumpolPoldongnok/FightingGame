@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGameStore } from '../store/useGameStore'
 const store = useGameStore()
-defineEmits(['history', 'result', 'townhall', 'prepare'])
+defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
 </script>
 
 <template>
@@ -18,6 +18,7 @@ defineEmits(['history', 'result', 'townhall', 'prepare'])
                 <button @click="$emit('result')" class="header-btn">Result</button>
                 <button @click="$emit('townhall')" class="header-btn">Townhall</button>
                 <button @click="$emit('prepare')" class="header-btn">PREPARE</button>
+                <button @click="$emit('fight')" class="header-btn">FIGHT</button>
             </div>
         </header>
         <!-- Main content with mobile padding and header offset -->

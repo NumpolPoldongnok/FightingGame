@@ -75,6 +75,7 @@ function handleStartFight() {
   @result="currentScene = scenes.RESULT"
   @townhall="showTownhall = true; currentScene = scenes.PREPARE"
   @prepare="currentScene = scenes.PREPARE"
+  @fight="handleStartFight"
 >
     <PrepareScene v-if="currentScene === scenes.PREPARE && character" 
       :character="character"
