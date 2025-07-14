@@ -111,19 +111,36 @@ export const useGameStore = defineStore('game', () => {
   function startNewGame() {
     console.log('startNewGame')
     let base: Status | undefined = undefined
-    if (character.value) {
-      characterHistory.value.push({ ...character.value })
-      base = { ...character.value.status }
-      Object.keys(base).forEach(k => {
-        base![k as keyof Status] = Math.floor(base![k as keyof Status] * 0.1)
-      })
-      statusTotal++
-    } else {
-      statusTotal = 30
+    // 30% โอกาสเกิดใหม่จาก characterHistory
+    let revived = false;
+    if (characterHistory.value.length > 0 && Math.random() < 0.9) {
+      // สุ่มตัวละครจาก history
+      const idx = Math.floor(Math.random() * characterHistory.value.length);
+      const prevChar = characterHistory.value[idx];
+      // นับจำนวนครั้งที่ชื่อนี้เคยเกิดใหม่
+      const baseName = prevChar.name.replace(/ \(\d+(st|nd|rd|th)\)$/i, '');
+      const count = characterHistory.value.filter(c => c.name.startsWith(baseName)).length + 1;
+      let suffix = '';
+      if (count === 2) suffix = ' (2nd)';
+      else if (count === 3) suffix = ' (3rd)';
+      else if (count > 3) suffix = ` (${count}th)`;
+      character.value = {
+        ...prevChar,
+        name: baseName + suffix,
+        hp: prevChar.maxHp,
+        winStreak: 0,
+        totalMoneyEarned: 0,
+        statusPoint: 0,
+        skills: [],
+      };
+      revived = true;
     }
-    character.value = randomCharacter(statusTotal, base)
-    character.value.totalMoneyEarned = 0
-    character.value.winStreak = 0
+    if (!revived) {
+      const totlal = statusTotal + (characterHistory.value.length * 2)
+      character.value = randomCharacter(totlal, base)
+      character.value.totalMoneyEarned = 0
+      character.value.winStreak = 0
+    }
     currentScene.value = scenes.PREPARE
   }
   function calcMoneyEarned(c: Character) {

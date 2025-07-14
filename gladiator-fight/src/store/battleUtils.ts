@@ -1,7 +1,7 @@
 import { MAX_STATUS } from './statusUtils'
 // Calculate best damage type based on int comparison
 // Returns: { type: 'phy' | 'magic' | 'mix', value: number }
-export function calcDamage(attacker: Character, defender: Character): { type: 'phy' | 'magic' | 'mix', value: number } {
+export function calcDamage(attacker: Character, defender: Character): { type: 'phy' | 'magic' | 'mix', value: number, crit: boolean } {
   const phy = calcPhysicalDamage(attacker, defender);
   const magic = calcMagicDamage(attacker, defender);
   const intA = attacker.status.int;
@@ -9,18 +9,18 @@ export function calcDamage(attacker: Character, defender: Character): { type: 'p
   if (intA > intD) {
     if (intA >= intD * 1.5 && intA >= 50) {
       // int มากกว่า 50% ขึ้นไป รวม damage ทั้งสอง
-      return { type: 'mix', value: phy + magic };
+      return { type: 'mix', value: phy.value + magic.value, crit: phy.crit || magic.crit };
     } else {
       // int มากกว่า enemy ใช้ damage ที่มากกว่า
-      if (magic >= phy) {
-        return { type: 'magic', value: magic };
+      if (magic.value >= phy.value) {
+        return { type: 'magic', value: magic.value, crit: magic.crit };
       } else {
-        return { type: 'phy', value: phy };
+        return { type: 'phy', value: phy.value, crit: phy.crit };
       }
     }
   } else {
     // int ไม่มากกว่า enemy ใช้ physical
-    return { type: 'phy', value: phy };
+    return { type: 'phy', value: phy.value, crit: phy.crit };
   }
 }
 import type { Character } from './useGameStore'
@@ -75,27 +75,37 @@ export function tryEvade(defender: BattleFighter, attacker: BattleFighter): bool
   return Math.random() * 100 < calcEvasionChance(defender, attacker);
 }
 
-export function calcPhysicalDamage(attacker: Character, defender: Character): number {
+export function calcPhysicalDamage(attacker: Character, defender: Character): { value: number, crit: boolean } {
   let base = attacker.status.str * 2 + attacker.status.dex + Math.floor(attacker.status.int * 0.2)
   const critChance = Math.min(50, Math.floor((attacker.status.dex + attacker.status.luk) / 2))
   // Critical damage multiplier: 1.5 + (dex * 0.1)
   let critMultiplier = 1.5 + attacker.status.dex * 0.1;
+  let isCrit = false;
   if (Math.random() * 100 < critChance) {
     base = Math.floor(base * critMultiplier);
+    isCrit = true;
   }
   base -= Math.floor(defender.status.vit * 0.7)
   base -= Math.floor(defender.status.str * 0.3)
   // Minimum base damage is 1 + (dex * 0.1)
   const minBase = 1 + attacker.status.dex * 0.1;
   if (base < minBase) base = minBase;
-  return Math.ceil(base)
+  return { value: Math.ceil(base), crit: isCrit };
 }
 
-export function calcMagicDamage(attacker: Character, defender: Character): number {
+export function calcMagicDamage(attacker: Character, defender: Character): { value: number, crit: boolean } {
   let base = attacker.status.int * 2 + Math.floor(attacker.status.str * 0.2)
+  // Magic crit: 10% + luk * 0.5%, max 50%
+  const critChance = Math.min(50, 10 + attacker.status.luk * 0.5);
+  let critMultiplier = 1.5 + attacker.status.int * 0.05;
+  let isCrit = false;
+  if (Math.random() * 100 < critChance) {
+    base = Math.floor(base * critMultiplier);
+    isCrit = true;
+  }
   base -= Math.floor(defender.status.int * 0.7)
   if (base < 1) base = 1
-  return Math.ceil(base)
+  return { value: Math.ceil(base), crit: isCrit };
 }
 
 export function calcReward(character: Character): number {
@@ -123,7 +133,13 @@ export function startFight(
   console.log('character status', character.hp, character.winStreak)
   let newEnemy: Character;
   if (characterHistory && Array.isArray(characterHistory)) {
-    const match = characterHistory.find(c => c.winStreak === character.winStreak);
+    // shuffle array ก่อนหา match
+    const shuffled = [...characterHistory];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const match = shuffled.find(c => c.winStreak === character.winStreak);
     if (match) {
       newEnemy = { ...match, name: match.name + ' (Rival)', hp: match.maxHp };
     } else {

@@ -18,11 +18,14 @@ const battleLog = ref<string[]>([])
 const showFinishButton = ref(false)
 const showRestartButton = ref(false)
 const intervalRef = { value: undefined as any }
+const speed = ref(1)
+const baseInterval = 200
 
 function onFinish(character: Character) {
   showFinishButton.value = character.hp > 0
   showRestartButton.value = character.hp <= 0
 }
+
 
 function doBattleTurnWrapper() {
   doBattleTurn(
@@ -34,11 +37,20 @@ function doBattleTurnWrapper() {
   )
 }
 
+function setSpeed(mult: number) {
+  speed.value = mult
+  if (intervalRef.value) {
+    clearInterval(intervalRef.value)
+    intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
+  }
+}
+
+
 onMounted(() => {
   battleLog.value = []
   showFinishButton.value = false
   showRestartButton.value = false
-  intervalRef.value = setInterval(doBattleTurnWrapper, 200)
+  intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
 })
 
 onUnmounted(() => {
@@ -81,6 +93,13 @@ onUnmounted(() => {
         </div>
       </div>
       <div class="battle-btn-row">
+        <div style="display:flex;align-items:center;gap:0.7em;">
+          <span style="font-size:0.98em;">ความเร็ว:</span>
+          <button :class="['genshin-btn', speed===1 && 'genshin-btn-finish']" @click="setSpeed(1)">1x</button>
+          <button :class="['genshin-btn', speed===2 && 'genshin-btn-finish']" @click="setSpeed(2)">2x</button>
+          <button :class="['genshin-btn', speed===4 && 'genshin-btn-finish']" @click="setSpeed(4)">4x</button>
+          <button :class="['genshin-btn', speed===8 && 'genshin-btn-finish']" @click="setSpeed(8)">8x</button>
+        </div>
         <button v-if="showFinishButton" class="genshin-btn genshin-btn-finish" @click="emit('battle-finished', character)">จบการต่อสู้</button>
         <button v-if="showRestartButton" class="genshin-btn genshin-btn-restart" @click="emit('restart')">เกิดใหม่</button>
       </div>

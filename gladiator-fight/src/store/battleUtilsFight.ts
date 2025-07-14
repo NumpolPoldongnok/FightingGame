@@ -40,13 +40,26 @@ export function doBattleTurn(
     if (!tryEvade(enemy as BattleFighter, character as BattleFighter)) {
       const dmgResult = calcDamage(character, enemy);
       enemy.hp -= dmgResult.value;
-      let dmgTypeText = '';
-      if (dmgResult.type === 'phy') dmgTypeText = 'กายภาพ';
-      else if (dmgResult.type === 'magic') dmgTypeText = 'เวทย์มนต์';
-      else if (dmgResult.type === 'mix') dmgTypeText = 'เวทย์ผสาน';
-      battleLog.unshift(`คุณโจมตี ${enemy.name} ${dmgTypeText} ${dmgResult.value} dmg (HP เหลือ ${enemy.hp < 0 ? 0 : enemy.hp})`);
+      battleLog.unshift(
+        createBattleLog({
+          attacker: character,
+          defender: enemy,
+          value: dmgResult.value,
+          type: dmgResult.type,
+          crit: dmgResult.crit,
+          isPlayer: true,
+          isEvade: false
+        })
+      );
     } else {
-      battleLog.unshift(`คุณโจมตี ${enemy.name} แต่ ${enemy.name} หลบได้!`);
+      battleLog.unshift(
+        createBattleLog({
+          attacker: character,
+          defender: enemy,
+          isPlayer: true,
+          isEvade: true
+        })
+      );
     }
     resetCooldown(character as BattleFighter);
   }
@@ -66,15 +79,60 @@ export function doBattleTurn(
     if (!tryEvade(character as BattleFighter, enemy as BattleFighter)) {
       const dmgResult = calcDamage(enemy, character);
       character.hp -= dmgResult.value;
-      let dmgTypeText = '';
-      if (dmgResult.type === 'phy') dmgTypeText = 'dmg';
-      else if (dmgResult.type === 'magic') dmgTypeText = 'magic';
-      else if (dmgResult.type === 'mix') dmgTypeText = 'mix';
-      battleLog.unshift(`${enemy.name} โจมตีคุณ ${dmgResult.value} ${dmgTypeText} (HP เหลือ ${character.hp < 0 ? 0 : character.hp})`);
+      battleLog.unshift(
+        createBattleLog({
+          attacker: enemy,
+          defender: character,
+          value: dmgResult.value,
+          type: dmgResult.type,
+          crit: dmgResult.crit,
+          isPlayer: false,
+          isEvade: false
+        })
+      );
     } else {
-      battleLog.unshift(`${enemy.name} โจมตีคุณ แต่คุณหลบได้!`);
+      battleLog.unshift(
+        createBattleLog({
+          attacker: enemy,
+          defender: character,
+          isPlayer: false,
+          isEvade: true
+        })
+      );
     }
     resetCooldown(enemy as BattleFighter);
+  }
+  // สร้างข้อความ log การต่อสู้ ใช้ร่วมกันทั้ง player และ enemy
+  interface BattleLogParams {
+    attacker: Character;
+    defender: Character;
+    value?: number;
+    type?: string;
+    crit?: boolean;
+    isPlayer: boolean;
+    isEvade: boolean;
+  }
+
+  function createBattleLog(params: BattleLogParams): string {
+    const { attacker, defender, value, type, crit, isPlayer, isEvade } = params;
+    if (isEvade) {
+      if (isPlayer) {
+        return `คุณโจมตี ${defender.name} แต่ ${defender.name} หลบได้!`;
+      } else {
+        return `${attacker.name} โจมตีคุณ แต่คุณหลบได้!`;
+      }
+    } else {
+      let dmgTypeText = '';
+      if (type === 'phy') dmgTypeText = 'กายภาพ';
+      else if (type === 'magic') dmgTypeText = 'เวทย์มนต์';
+      else if (type === 'mix') dmgTypeText = 'เวทย์ผสาน';
+      const critText = crit ? ' (คริติคอล!)' : '';
+      if (isPlayer) {
+        return `คุณโจมตี ${defender.name} ${dmgTypeText} ${value} dmg${critText} (HP เหลือ ${defender.hp < 0 ? 0 : defender.hp})`;
+      } else {
+        return `${attacker.name} โจมตีคุณ ${dmgTypeText} ${value} dmg${critText} (HP เหลือ ${defender.hp < 0 ? 0 : defender.hp})`;
+      }
+    }
   }
 
   if (character.hp <= 0) {
@@ -89,7 +147,7 @@ export function doBattleTurn(
 
 // Helper to classify log type for styling (must be defined as const for template usage)
 // Helper to classify log type for styling (must be top-level const in <script setup> for template access)
-export function getLogClass (log: string): string {
+export function getLogClass(log: string): string {
   if (log.startsWith('คุณโจมตี') && log.includes('หลบได้')) return 'log-player log-evade';
   if (log.startsWith('คุณโจมตี')) return 'log-player';
   if (log.startsWith('คุณแพ้')) return 'log-lose';
