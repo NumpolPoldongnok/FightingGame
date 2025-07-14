@@ -1,74 +1,93 @@
 <template>
-  <div class="cooldown-bar" :class="{ attacking: isAttacking }">
-    <div class="cooldown-fill" :style="{ width: fillWidth + '%' }"></div>
-    <transition name="attack-effect">
-      <div v-if="isAttacking" class="attack-effect">Attacking!</div>
-    </transition>
+  <div class="cooldown-container">
+    <!-- Bar visuals -->
+    <div class="cooldown-bar" :class="{ attacking: isAttacking }">
+      <div class="cooldown-fill" :style="{ width: fillWidth + '%' }"></div>
+    </div>
+    <!-- Text label that changes based on state -->
+    <span class="cooldown-label" :class="{ 'attacking-text': isAttacking }">
+      <template v-if="isAttacking">READY!</template>
+      <template v-else>{{ value }} / {{ max }}</template>
+    </span>
   </div>
-  <span v-if="!isAttacking">Cooldown: {{ value }}/{{ max }}</span>
-  <span v-else class="attacking-text">Attacking!</span>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 const props = defineProps<{ value: number, max: number }>()
+
+// Cooldown logic: bar fills up as value approaches max
 const fillWidth = computed(() => {
-  const percent = 100 - ((props.value ?? 0) / (props.max ?? 100)) * 100;
+  const percent = ((props.value ?? 0) / (props.max ?? 100)) * 100;
   return Math.max(0, Math.min(100, percent));
 })
+
 const isAttacking = computed(() => (props.value ?? 0) >= (props.max ?? 100))
 </script>
 
 <style scoped>
+/* === Gladiator Themed CooldownBar === */
+
+.cooldown-container {
+  /* << CHANGED >> Use flexbox for responsive alignment */
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%; /* Fit the parent container */
+}
 
 .cooldown-bar {
-  width: 100px;
-  height: 12px;
-  background: #333;
-  border-radius: 6px;
-  margin: 4px 0;
+  flex-grow: 1; /* Allow the bar to take up available space */
+  height: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  border: 1px solid #5c451b;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
   overflow: hidden;
-  display: inline-block;
-  vertical-align: middle;
   position: relative;
+  transition: box-shadow 0.3s ease;
 }
-.cooldown-bar.attacking {
-  box-shadow: 0 0 8px 2px #ffeb3b, 0 0 16px 4px #ff9800;
-  animation: attack-glow 0.5s alternate infinite;
-}
+
 .cooldown-fill {
   height: 100%;
-  background: #4caf50;
-  transition: width 0.2s;
+  background: linear-gradient(to right, #d39e3f, #ffc966);
+  transition: width 0.1s linear; /* Use linear for smooth cooldown ticking */
 }
-.attack-effect {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
-  font-weight: bold;
-  font-size: 0.95rem;
-  text-shadow: 0 0 6px #ff9800, 0 0 2px #fff;
-  pointer-events: none;
-  z-index: 2;
+
+.cooldown-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #c8ab6b;
+  flex-shrink: 0; /* Prevent text from wrapping */
 }
+
+/* --- Attacking State --- */
+.cooldown-bar.attacking {
+  animation: attack-glow 1s infinite alternate;
+}
+
 .attacking-text {
-  color: #ff9800;
-  font-weight: bold;
-  margin-left: 0.5em;
+  font-weight: 700;
+  color: #ffc966;
+  text-shadow: 0 0 5px #ff9800, 0 0 2px #fff;
+  animation: text-glow 1s infinite alternate;
 }
+
 @keyframes attack-glow {
-  from { box-shadow: 0 0 8px 2px #ffeb3b, 0 0 16px 4px #ff9800; }
-  to { box-shadow: 0 0 16px 6px #fff176, 0 0 32px 8px #ff9800; }
+  from {
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5), 0 0 5px #ff9800;
+  }
+  to {
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5), 0 0 15px 3px #ff9800;
+  }
 }
-.attack-effect-enter-active, .attack-effect-leave-active {
-  transition: opacity 0.3s;
-}
-.attack-effect-enter-from, .attack-effect-leave-to {
-  opacity: 0;
-}
-.attack-effect-enter-to, .attack-effect-leave-from {
-  opacity: 1;
+@keyframes text-glow {
+  from {
+    text-shadow: 0 0 5px #ff9800, 0 0 2px #fff;
+  }
+  to {
+    text-shadow: 0 0 10px #ff9800, 0 0 5px #ffc966;
+  }
 }
 </style>

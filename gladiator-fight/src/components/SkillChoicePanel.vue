@@ -1,39 +1,219 @@
 <template>
-    <div>
-        <span>เลือก Skill รางวัล</span>
-        <span style="margin: 0 8px;"></span>
-        <button @click="$emit('refresh-skill')">🔄</button>
+  <div class="skill-choice-panel">
+    <!-- Panel Header -->
+    <header class="panel-header">
+      <h3 class="panel-title">CHOOSE YOUR REWARD</h3>
+      <button @click="$emit('refresh-skill')" class="refresh-btn" title="Refresh Skill Choices">
+        🔄
+      </button>
+    </header>
+
+    <!-- Skill Choices Grid -->
+    <div class="choices-grid">
+      <SkillChoiceButton
+        v-for="(s, i) in skillChoices"
+        :key="i"
+        :skill="s"
+        :index="i"
+        @choose="$emit('choose-skill', i)"
+      />
     </div>
-    <ul>
-        <li v-for="(s, i) in skillChoices" :key="i">
-            <SkillChoiceButton :skill="s" :index="i" @choose="$emit('choose-skill', i)" />
-        </li>
-    </ul>
-    <div>
-        <button @click="showConfirm = true">กลับไปเตรียมตัว</button>
-        <div v-if="showConfirm" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;z-index:1000;">
-            <div style="background:white;padding:2em 2.5em;border-radius:1em;box-shadow:0 2px 16px #0002;min-width:220px;text-align:center;">
-                <div style="margin-bottom:1em;font-weight:bold;color:#222;">
-                  ยังไม่ได้รับรางวัล<br>ยืนยันกลับไปเตรียมตัว?
-                </div>
-                <button @click="showConfirm = false" style="margin-right:1em;">ยกเลิก</button>
-                <button @click="confirmBack">ยืนยัน</button>
-            </div>
+
+    <!-- Panel Footer -->
+    <footer class="panel-footer">
+      <button @click="showConfirm = true" class="back-btn">Back to Prepare</button>
+    </footer>
+
+    <!-- Confirmation Modal -->
+    <transition name="fade">
+      <div v-if="showConfirm" class="modal-overlay">
+        <div class="modal-content">
+          <h4>Confirm</h4>
+          <p>You have not chosen a reward. Are you sure you want to go back?</p>
+          <div class="modal-actions">
+            <button @click="showConfirm = false" class="modal-btn btn-cancel">Cancel</button>
+            <button @click="confirmBack" class="modal-btn btn-confirm">Confirm</button>
+          </div>
         </div>
-    </div>
+      </div>
+    </transition>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Skill } from '../store/skillUtils'
 import SkillChoiceButton from './SkillChoiceButton.vue'
+
 const props = defineProps<{
-    skillChoices: Skill[]
+  skillChoices: Skill[]
 }>()
+
 const emit = defineEmits(['choose-skill', 'refresh-skill', 'back'])
+
 const showConfirm = ref(false)
+
 function confirmBack() {
-    showConfirm.value = false
-    emit('back')
+  showConfirm.value = false
+  emit('back')
 }
 </script>
+
+<style scoped>
+/* === Gladiator Themed SkillChoicePanel === */
+
+.skill-choice-panel {
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  border: 2px solid #6b552d;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #6b552d;
+}
+
+.panel-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e2c178;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.refresh-btn {
+  background: #4a3c23;
+  border: 2px solid #8a703d;
+  color: #e2c178;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.refresh-btn:hover {
+  background-color: #6b552d;
+  border-color: #e2c178;
+  transform: rotate(180deg);
+}
+
+.choices-grid {
+  display: grid;
+  /* << IMPORTANT >> This creates a responsive grid. */
+  /* It creates as many columns as can fit, with each being at least 220px wide. */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.panel-footer {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.back-btn {
+  background: transparent;
+  border: 2px solid #8a703d;
+  color: #c8ab6b;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.back-btn:hover {
+  background-color: #8a703d;
+  color: #fff;
+}
+
+/* --- Confirmation Modal --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fdf6e7; /* Parchment background */
+  color: #44341b;
+  border-radius: 8px;
+  border: 2px solid #8a703d;
+  padding: 2rem;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+}
+
+.modal-content h4 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+}
+.modal-content p {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.modal-btn {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border-width: 3px;
+  border-style: solid;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel {
+  background: linear-gradient(to bottom, #6b552d, #4a3c23);
+  border-color: #c8ab6b;
+  color: #fff;
+}
+.btn-cancel:hover {
+  background: linear-gradient(to bottom, #8a703d, #6b552d);
+}
+.btn-confirm {
+  background: linear-gradient(to bottom, #b71c1c, #8a1414);
+  border-color: #ef4444;
+  color: #fff;
+}
+.btn-confirm:hover {
+  background: linear-gradient(to bottom, #c92c2c, #a02424);
+}
+
+/* Fade Transition for Modal */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
