@@ -73,6 +73,12 @@ defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
   font-family: 'Cinzel', serif;
 }
 
+.gladiator-header-title {
+  color: #4a3c23;
+  letter-spacing: 0.12em;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.4);
+}
+
 .gladiator-header-fixed, .gladiator-footer-fixed {
   flex-shrink: 0;
   position: sticky;
