@@ -17,7 +17,7 @@ function totalStatus(c: Character) {
 </script>
 
 <template>
-  <div class="gladiator-prepare-bg max-w-2xl mx-auto rounded-xl shadow-xl border-4 border-yellow-900 p-4 mt-4">
+  <div class="gladiator-prepare-bg max-w-2xl mx-auto rounded-2xl shadow-2xl border-8 border-yellow-800 p-8 mt-8 mb-8">
     <h2 class="text-2xl font-extrabold mb-4 text-center text-yellow-900 tracking-widest gladiator-title">เตรียมตัวก่อนต่อสู้</h2>
     <div v-if="character">
       <div class="flex flex-col sm:flex-row items-center justify-between mb-2 gap-2 gladiator-header">
@@ -44,7 +44,12 @@ function totalStatus(c: Character) {
 <style scoped>
 .gladiator-prepare-bg {
   background: repeating-linear-gradient(135deg, #f9e7b3 0 40px, #f5d97c 40px 80px, #f9e7b3 80px 120px);
-  box-shadow: 0 8px 32px #bfa10033, 0 1.5px 0 #fff8 inset;
+  box-shadow: 0 12px 36px #bfa10044, 0 2px 0 #fff8 inset;
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+  border-radius: 1.5rem;
+  border: 8px solid #bfa100;
+  padding: 2.5rem 2rem 2.5rem 2rem;
 }
 .gladiator-title {
   text-shadow: 0 2px 0 #fff8, 0 4px 12px #bfa10044;

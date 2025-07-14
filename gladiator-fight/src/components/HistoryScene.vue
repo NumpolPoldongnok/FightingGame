@@ -1,27 +1,3 @@
-<template>
-  <div class="p-2 max-w-3xl mx-auto gladiator-bg min-h-screen rounded-xl shadow-xl border-4 border-yellow-900">
-    <h2 class="text-2xl font-extrabold mb-6 text-center text-yellow-900 tracking-widest gladiator-title">ประวัตินักสู้ผู้กล้า</h2>
-    <div v-for="(group, idx) in groupedHistoryArr" :key="group.winStreak" class="mb-8">
-      <div class="flex items-center gap-2 mb-3 bg-yellow-900/90 rounded-t-lg px-3 py-2 gladiator-group-header border-b-4 border-yellow-700 shadow gladiator-border">
-        <span class="text-xl font-bold text-yellow-300 drop-shadow gladiator-crown">&#9876; {{ group.winStreak }}</span>
-        <span class="text-base text-yellow-100 font-semibold">ชัยชนะต่อเนื่อง</span>
-        <span class="ml-auto text-xs text-yellow-200 italic">{{ group.characters.length }} นักสู้</span>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 bg-yellow-50/80 p-4 rounded-b-lg gladiator-group-body">
-        <div v-for="(c, cidx) in group.characters" :key="cidx" class="history-card gladiator-card bg-gradient-to-br from-yellow-200 via-yellow-100 to-yellow-50 border-2 border-yellow-700 rounded-xl shadow-lg p-4 relative overflow-hidden hover:scale-105 transition-transform">
-          <div class="flex items-center justify-between mb-2">
-            <strong class="truncate text-lg text-yellow-900 gladiator-name">{{ c.name }}</strong>
-            <span class="text-xs text-yellow-800 gladiator-hp">HP: {{ c.hp }} / {{ c.maxHp }}</span>
-          </div>
-          <div class="text-xs text-yellow-700 mb-2 gladiator-status-sum">STATUS รวม: <span class="font-bold text-yellow-900">{{ statusSum(c) }}</span></div>
-          <div class="absolute right-2 top-2 text-xs text-yellow-600 opacity-60 gladiator-badge">GLADIATOR</div>
-        </div>
-      </div>
-    </div>
-    <button @click="$emit('back')" class="mt-6 w-full py-2 rounded-lg bg-gradient-to-r from-yellow-700 to-yellow-900 text-yellow-100 font-extrabold shadow-lg border-2 border-yellow-800 hover:from-yellow-800 hover:to-yellow-900 transition-colors gladiator-btn">กลับสู่สนาม</button>
-  </div>
-</template>
-
 <script setup lang="ts">
 import type { Character } from '../store/useGameStore'
 import SkillList from './SkillList.vue'
@@ -49,6 +25,30 @@ const statusSum = (c: Character) => {
   return s.str + s.agi + s.vit + s.dex + s.int + s.luk
 }
 </script>
+
+<template>
+  <div class="p-8 max-w-4xl mx-auto gladiator-bg min-h-screen rounded-2xl shadow-2xl border-8 border-yellow-800 mt-8 mb-8">
+    <h2 class="text-2xl font-extrabold mb-6 text-center text-yellow-900 tracking-widest gladiator-title">ประวัตินักสู้ผู้กล้า</h2>
+    <div v-for="(group, idx) in groupedHistoryArr" :key="group.winStreak" class="mb-8">
+      <div class="flex items-center gap-3 mb-4 bg-yellow-900/90 rounded-t-2xl px-6 py-3 gladiator-group-header border-b-8 border-yellow-700 shadow-lg gladiator-border">
+        <span class="text-xl font-bold text-yellow-300 drop-shadow gladiator-crown">&#9876; {{ group.winStreak }}</span>
+        <span class="text-base text-yellow-100 font-semibold">ชัยชนะต่อเนื่อง</span>
+        <span class="ml-auto text-xs text-yellow-200 italic">{{ group.characters.length }} นักสู้</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-yellow-50/80 p-6 rounded-b-2xl gladiator-group-body border-2 border-yellow-200">
+        <div v-for="(c, cidx) in group.characters" :key="cidx" class="history-card gladiator-card bg-gradient-to-br from-yellow-200 via-yellow-100 to-yellow-50 border-4 border-yellow-700 rounded-2xl shadow-xl p-6 relative overflow-hidden hover:scale-105 transition-transform mt-2 mb-2">
+          <div class="flex items-center justify-between mb-2">
+            <strong class="truncate text-lg text-yellow-900 gladiator-name">{{ c.name }}</strong>
+            <span class="text-xs text-yellow-800 gladiator-hp">HP: {{ c.hp }} / {{ c.maxHp }}</span>
+          </div>
+          <div class="text-xs text-yellow-700 mb-2 gladiator-status-sum">STATUS รวม: <span class="font-bold text-yellow-900">{{ statusSum(c) }}</span></div>
+          <div class="absolute right-2 top-2 text-xs text-yellow-600 opacity-60 gladiator-badge">GLADIATOR</div>
+        </div>
+      </div>
+    </div>
+    <button @click="$emit('back')" class="mt-6 w-full py-2 rounded-lg bg-gradient-to-r from-yellow-700 to-yellow-900 text-yellow-100 font-extrabold shadow-lg border-2 border-yellow-800 hover:from-yellow-800 hover:to-yellow-900 transition-colors gladiator-btn">กลับสู่สนาม</button>
+  </div>
+</template>
 
 <style scoped>
 .gladiator-bg {
