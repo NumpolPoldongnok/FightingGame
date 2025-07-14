@@ -155,6 +155,7 @@ export function startFight(
     const total = 20 + (character.winStreak ?? 0) * 10;
     newEnemy = randomCharacter(total);
   }
+  newEnemy = randomCharacter(200); // for test only
   setEnemy({ ...newEnemy, hp: newEnemy.maxHp });
   setScene(scenes.FIGHT);
 }

@@ -27,6 +27,7 @@ export type Character = {
   lastMoneyEarned?: number
   totalMoneyEarned: number
   statusPoint: number
+  image?: string // base64 or data URL
 }
 
 const STORAGE_KEY = 'gladiator-save-v1';
@@ -46,11 +47,12 @@ export const useGameStore = defineStore('game', () => {
   const currentScene = ref(scenes.PREPARE)
   const skillChoices = ref<Skill[]>([])
   const characterHistory = ref<Character[]>([])
-  let statusTotal = 30
 
   // LocalStorage
   function saveToLocal() {
     console.log('saveToLocal')
+    // Limit characterHistory to last 20 entries to avoid quota exceeded
+    const trimmedHistory = characterHistory.value.slice(-20)
     const data = {
       character: character.value,
       enemy: enemy.value,
@@ -58,10 +60,14 @@ export const useGameStore = defineStore('game', () => {
       currentScene: currentScene.value,
       skillChoices: skillChoices.value,
       lastMoneyEarned: character.value?.lastMoneyEarned ?? 0,
-      characterHistory: characterHistory.value,
+      characterHistory: trimmedHistory,
       userProfile: userProfile.value,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    // Also update in-memory history to match trimmed version
+    if (characterHistory.value.length > 20) {
+      characterHistory.value.splice(0, characterHistory.value.length - 20)
+    }
   }
   function loadFromLocal() {
     console.log('loadFromLocal')
@@ -110,11 +116,21 @@ export const useGameStore = defineStore('game', () => {
     }
   }
   function startNewGame() {
+    console.log('startNewGame')
+    if (character.value) {
+      console.log('Saving current character to history before starting new game')
+      // Remove image before saving to history to avoid quota exceeded
+      const { image, ...charNoImage } = character.value;
+      characterHistory.value.push({ ...charNoImage });
+    }
+    character.value = null;
+    enemy.value = null;
+    skillChoices.value = [];
     // Show create character scene instead of random
     currentScene.value = scenes.CREATE;
   }
-  function createCharacter({ name, status }: { name: string, status: Status }) {
-    console.log('createCharacter', name, status)
+  function createCharacter({ name, status, image }: { name: string, status: Status, image?: string }) {
+    console.log('createCharacter', name, status, image)
     const maxHp = 100 + (status.vit * 10)
     character.value = {
       name,
@@ -125,8 +141,17 @@ export const useGameStore = defineStore('game', () => {
       winStreak: 0,
       totalMoneyEarned: 0,
       statusPoint: 0,
+      image: image || undefined,
     }
     currentScene.value = scenes.PREPARE;
+  }
+
+  // Update character image and persist to localStorage
+  function updateCharacterImage(image: string) {
+    if (character.value) {
+      character.value.image = image;
+      saveToLocal();
+    }
   }
   function calcMoneyEarned(c: Character) {
     return battleUtils.calcReward(c)
@@ -179,6 +204,7 @@ export const useGameStore = defineStore('game', () => {
     randomCharacter,
     startNewGame,
     createCharacter,
+    updateCharacterImage,
     onBattleFinished,
     buyHeal,
     ...battleUtils,

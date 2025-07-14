@@ -83,7 +83,7 @@ function handleStartFight() {
     @battle-finished="onBattleFinished" @restart="startNewGame" />
   <UserLayout v-else @history="currentScene = scenes.HISTORY" @result="currentScene = scenes.RESULT"
     @townhall="showTownhall = true; currentScene = scenes.PREPARE" @prepare="currentScene = scenes.PREPARE"
-    @fight="handleStartFight">
+    @fight="handleStartFight" @restart="startNewGame">
     <PrepareScene v-if="currentScene === scenes.PREPARE && character" :character="character"
       @start-fight="handleStartFight" @open-townhall="() => { showTownhall = true }" @restart="startNewGame" />
     <TownhallScene v-if="showTownhall && currentScene === scenes.PREPARE && character" :user-profile="userProfile"

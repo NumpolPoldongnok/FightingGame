@@ -18,8 +18,13 @@ defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
           <span class="font-mono text-lg tracking-wider">{{ store.userProfile.money.toLocaleString() }}</span>
           <span class="text-yellow-800 font-semibold hidden sm:inline">Gold</span>
         </div>
+        <button @click="$emit('restart')" class="restart-btn" title="Restart Game">
+          <span class="icon">🔄</span>
+          <span class="label hidden sm:inline">Restart</span>
+        </button>
       </div>
     </header>
+
 
     <main class="gladiator-main-scroll">
       <!-- Content wrapper, now full-width -->
@@ -207,4 +212,26 @@ defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
     .gladiator-btn .icon, .gladiator-btn-fight .icon { font-size: 1.2rem; display: block; }
     .gladiator-btn .label, .gladiator-btn-fight .label { margin-top: 0.1rem; display: block; }
   }
+.restart-btn {
+  margin-left: 1.5rem;
+  background: linear-gradient(to bottom, #e2c178, #bfa100);
+  color: #4a3c23;
+  border: 2px solid #bfa100;
+  border-radius: 0.75rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.3rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: 0 2px 8px rgba(200,180,50,0.08);
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  cursor: pointer;
+}
+.restart-btn:hover {
+  background: linear-gradient(to bottom, #ffe9a0, #e2c178);
+  color: #a97c1a;
+  border-color: #e2c178;
+}
 </style>
