@@ -22,7 +22,10 @@ const percent = computed(() => Math.max(0, Math.min(100, (props.value / props.ma
 
 // >> ADDED <<: Computed property สำหรับกำหนดคลาสสีของแถบ HP
 const barClass = computed(() => {
-  return props.type === 'enemy' ? 'hp-bar-enemy' : 'hp-bar-player';
+  if (props.type === 'enemy') return 'hp-bar-enemy';
+  if (percent.value > 60) return 'hp-bar-green';
+  if (percent.value > 30) return 'hp-bar-yellow';
+  return 'hp-bar-red';
 })
 </script>
 
@@ -45,13 +48,20 @@ const barClass = computed(() => {
   transition: width 0.3s ease-out;
 }
 
-/* >> NEW <<: สีสำหรับผู้เล่น */
-.hp-bar-player {
-  background: linear-gradient(to right, #f7d88b, #c08d2c);
-  box-shadow: 0 0 8px #e2c17880;
-}
 
-/* >> NEW <<: สีสำหรับศัตรู */
+/* HP bar color stages for player */
+.hp-bar-green {
+  background: linear-gradient(to right, #4ade80, #22c55e);
+  box-shadow: 0 0 8px #22c55e80;
+}
+.hp-bar-yellow {
+  background: linear-gradient(to right, #fde68a, #facc15);
+  box-shadow: 0 0 8px #facc1580;
+}
+.hp-bar-red {
+  background: linear-gradient(to right, #ef4444, #b91c1c);
+  box-shadow: 0 0 8px #b91c1c80;
+}
 .hp-bar-enemy {
   background: linear-gradient(to right, #ef4444, #b91c1c);
   box-shadow: 0 0 8px #b71c1c80;

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { doBattleTurn, getLogClass } from '../store/battleUtilsFight'
 import CooldownBar from './CooldownBar.vue'
+import Popup from './Popup.vue'
 import type { Character } from '../store/useGameStore'
 import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
 import SkillList from './SkillList.vue'
@@ -20,7 +21,20 @@ const emit = defineEmits(['battle-finished', 'restart'])
 const battleLog = ref<string[]>([])
 const isBattleStarted = ref(false)
 const battleResult = ref<'win' | 'lose' | null>(null)
-const isResultPopupDismissed = ref(false) // NEW: Tracks if the result popup has been dismissed
+const isResultPopupDismissed = ref(false) // Tracks if the result popup has been dismissed
+
+// --- POPUP STATE ---
+const showStartPopup = computed({
+  get: () => !isBattleStarted.value,
+  set: (val: boolean) => { if (val) isBattleStarted.value = false }
+})
+const showResultPopup = computed({
+  get: () => Boolean(battleResult.value && !isResultPopupDismissed.value),
+  set: (val: boolean) => { if (!val) isResultPopupDismissed.value = true }
+})
+const resultPopupClass = computed(() =>
+  `modal-content ${battleResult.value === 'win' ? 'win-popup' : 'lose-popup'}`
+)
 const intervalRef = { value: undefined as any }
 const speed = ref(1)
 const baseInterval = 200
@@ -63,19 +77,15 @@ onUnmounted(() => {
 <template>
   <div class="fight-container">
     <!-- Start Battle Popup -->
-    <transition name="fade">
-      <div v-if="!isBattleStarted" class="start-popup-overlay">
-        <div class="start-popup-content">
-          <h2 class="popup-title">The Battle is Set!</h2>
-          <div class="faceoff-container">
-            <div class="fighter-preview player-preview">{{ character.name }}</div>
-            <div class="vs-text">VS</div>
-            <div class="fighter-preview enemy-preview">{{ enemy.name }}</div>
-          </div>
-          <button class="start-btn" @click="handleStartBattle">FIGHT!</button>
-        </div>
+    <Popup v-model="showStartPopup" customClass="start-popup-content" :showClose="false">
+      <h2 class="popup-title">The Battle is Set!</h2>
+      <div class="faceoff-container">
+        <div class="fighter-preview player-preview">{{ character.name }}</div>
+        <div class="vs-text">VS</div>
+        <div class="fighter-preview enemy-preview">{{ enemy.name }}</div>
       </div>
-    </transition>
+      <button class="start-btn" @click="handleStartBattle">FIGHT!</button>
+    </Popup>
 
     <!-- Battle Controls -->
     <div class="battle-controls">
@@ -126,20 +136,14 @@ onUnmounted(() => {
     </div>
     
     <!-- Battle Result Popup -->
-    <transition name="fade">
-      <div v-if="battleResult && !isResultPopupDismissed" class="modal-overlay">
-        <div class="modal-content" :class="battleResult === 'win' ? 'win-popup' : 'lose-popup'">
-          <h2 class="result-title">{{ battleResult === 'win' ? 'VICTORY' : 'DEFEAT' }}</h2>
-          <div class="modal-actions">
-            <!-- Main action button -->
-            <button v-if="battleResult === 'win'" class="modal-btn" @click="emit('battle-finished', character)">PROCEED</button>
-            <button v-if="battleResult === 'lose'" class="modal-btn" @click="emit('restart')">RESTART</button>
-            <!-- NEW: Dismiss button -->
-            <button class="dismiss-btn" @click="isResultPopupDismissed = true">Inspect Battle</button>
-          </div>
-        </div>
+    <Popup v-model="showResultPopup" :customClass="resultPopupClass" :showClose="false">
+      <h2 class="result-title">{{ battleResult === 'win' ? 'VICTORY' : 'DEFEAT' }}</h2>
+      <div class="modal-actions">
+        <button v-if="battleResult === 'win'" class="modal-btn" @click="emit('battle-finished', character)">PROCEED</button>
+        <button v-if="battleResult === 'lose'" class="modal-btn" @click="emit('restart')">RESTART</button>
+        <button class="dismiss-btn" @click="isResultPopupDismissed = true">Inspect Battle</button>
       </div>
-    </transition>
+    </Popup>
   </div>
 </template>
 
@@ -169,8 +173,6 @@ onUnmounted(() => {
 .log-lose, .log-end { text-align: center; font-weight: bold; background: rgba(138, 112, 61, 0.1); margin-top: 0.5rem; margin-bottom: 0.5rem; }
 @media (max-width: 768px) { .battle-arena { gap: 0.5rem; } .fighter-content { padding: 0.75rem; gap: 0.75rem; } .fighter-name { font-size: 1.1rem; } }
 @media (max-width: 640px) { .vs-separator { display: none; } .battle-controls { flex-direction: column; } }
-.modal-overlay, .start-popup-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal-content { text-align: center; padding: 2rem 3rem; border-radius: 12px; border-width: 4px; border-style: solid; }
 .win-popup { border-color: #e2c178; background: radial-gradient(circle, #4a3c1a 0%, #2a2a2a 70%); box-shadow: 0 0 30px #e2c17880; }
 .lose-popup { border-color: #8a1414; background: radial-gradient(circle, #4a1a1a 0%, #2a2a2a 70%); box-shadow: 0 0 30px #b71c1c80; }
 .result-title { font-family: 'Cinzel', serif; font-size: 4rem; font-weight: 900; line-height: 1; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2rem; }
@@ -180,7 +182,18 @@ onUnmounted(() => {
 .modal-btn:hover { background: #8a703d; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-.start-popup-content { background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%); border: 4px solid #6b552d; border-radius: 12px; padding: 2rem 3rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.start-popup-content {
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  border: 4px solid #6b552d;
+  border-radius: 12px;
+  padding: 2rem 3rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-sizing: border-box;
+}
 .popup-title { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 700; color: #c8ab6b; margin-bottom: 2rem; text-transform: uppercase; }
 .faceoff-container { display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 2.5rem; }
 .fighter-preview { font-family: 'Cinzel', serif; font-size: 1.8rem; font-weight: 700; padding: 1rem 1.5rem; border-width: 3px; border-style: solid; border-radius: 8px; min-width: 200px; }

@@ -157,11 +157,37 @@ function handleSubmit() {
 function onImageChange(e: Event) {
   const target = e.target as HTMLInputElement;
   if (target.files && target.files[0]) {
+    const file = target.files[0];
     const reader = new FileReader();
     reader.onload = (ev) => {
-      imageData.value = ev.target?.result as string;
+      const img = new window.Image();
+      img.onload = () => {
+        // Create canvas for resizing
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        // Aspect fit calculation
+        const maxSize = 200;
+        let w = img.width, h = img.height;
+        let drawW = maxSize, drawH = maxSize;
+        if (w > h) {
+          drawW = maxSize;
+          drawH = Math.round(h * (maxSize / w));
+        } else {
+          drawH = maxSize;
+          drawW = Math.round(w * (maxSize / h));
+        }
+        canvas.width = drawW;
+        canvas.height = drawH;
+        // Fill white background for PNG/JPEG
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Draw image aspect fit
+        ctx.drawImage(img, 0, 0, drawW, drawH);
+        imageData.value = canvas.toDataURL('image/png');
+      };
+      img.src = ev.target?.result as string;
     };
-    reader.readAsDataURL(target.files[0]);
+    reader.readAsDataURL(file);
   }
 }
 

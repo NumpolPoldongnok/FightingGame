@@ -20,6 +20,7 @@ function totalStatus(c: Character) {
     <div v-if="character">
       <!-- Character Info Header -->
       <header class="character-header">
+        <HPBar :value="character.hp" :max="character.maxHp" type="player" />
         <div class="header-main">
           <span class="status-sum">Total Stats: {{ totalStatus(character) }}</span>
         </div>
@@ -28,7 +29,6 @@ function totalStatus(c: Character) {
 
       <!-- Main Content Body -->
       <div class="prepare-body">
-        <HPBar :value="character.hp" :max="character.maxHp" type="player" />
         <CharacterStatus :character="character" :showButtons="true"/>
         <SkillList :skills="character.skills" />
       </div>

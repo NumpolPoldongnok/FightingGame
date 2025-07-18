@@ -25,12 +25,12 @@ if (!scenes.HISTORY) scenes.HISTORY = 'history'
 if (!scenes.CREATE) scenes.CREATE = 'create'
 import { ref } from 'vue'
 import { applySkill, randomSkillChoices, type Skill } from './store/skillUtils'
+import { startFight } from './store/battleUtils'
 const showTownhall = ref(false)
 
 
 const {
   startNewGame,
-  startFight,
   buyHeal,
   onBattleFinished,
 } = game
