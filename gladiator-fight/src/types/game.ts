@@ -17,6 +17,7 @@ export type Character = {
 
 export const scenes = {
   PREPARE: 'prepare',
+  COMPARE: 'compare',
   FIGHT: 'fight',
   RESULT: 'result',
   HISTORY: 'history',

@@ -1,26 +1,30 @@
 <script lang="ts" setup>
 import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
 import CharacterStatus from '../components/CharacterStatus.vue'
-import type { Character, UserProfile } from '../types/game'
+import type { Character } from '../types/game'
+import { useGameStore } from '../store/useGameStore'
+import { storeToRefs } from 'pinia'
 import { calcReward } from '../store/battleUtils'
 
 import { ref, computed } from 'vue'
 const props = defineProps<{
   character: Character,
   enemy: Character,
-  userProfile: UserProfile,
   show: boolean,
 }>()
+const game = useGameStore()
+const { userProfile } = storeToRefs(game)
 const emit = defineEmits(['start', 'close', 'retreat'])
 
 // Use calcReward from battleUtils for fightReward
 const fightReward = computed(() => calcReward(props.enemy))
-const canRetreat = computed(() => (props.userProfile.money ?? 0) >= fightReward.value * 2)
+const canRetreat = computed(() => (userProfile.value.money ?? 0) >= fightReward.value * 2)
 const showRetreatConfirm = ref(false)
 function tryRetreat() {
   showRetreatConfirm.value = true
 }
 function confirmRetreat() {
+  userProfile.value.money -= fightReward.value * 2;
   showRetreatConfirm.value = false
   emit('retreat')
 }

@@ -16,8 +16,7 @@ import UserLayout from './layouts/UserLayout.vue'
 
 // Import Types and Utils
 import type { Character, Scene } from './types/game'
-import { startFight, calcReward } from './store/battleUtils'
-import { applySkill, randomSkillChoices, Skill } from './store/skillUtils'
+import { calcReward, getEnemy } from './store/battleUtils'
 
 const game = useGameStore()
 const {
@@ -32,30 +31,19 @@ const {
 const { scenes, startNewGame, onBattleFinished: origOnBattleFinished } = game
 
 // --- Start Battle Popup State ---
-const isBattleStarted = ref(false)
 function handleStartBattle() {
-  isBattleStarted.value = true
+  currentScene.value = scenes.FIGHT
 }
 
 // --- BATTLE & NAVIGATION LOGIC ---
 
 function handleStartFight() {
-  if (!character.value) return;
-  startFight(
-    character.value,
-    (e: Character) => { enemy.value = e },
-    (scene: Scene) => { currentScene.value = scene },
-    game.randomCharacter,
-    scenes,
-    game.characterHistory
-  )
+    if (!character.value) return;
+  enemy.value = getEnemy(character.value, game.characterHistory, game.randomCharacter);
+  currentScene.value = scenes.COMPARE
 }
 
 function handleRetreat() {
-  // This logic correctly lives in App.vue as it affects global state (money, scene)
-  if (!enemy.value || !userProfile.value) return;
-  const cost = calcReward(enemy.value) * 2;
-  userProfile.value.money -= cost;
   currentScene.value = scenes.PREPARE;
 }
 
@@ -73,59 +61,25 @@ function handleFightHistory(historyChar: Character) {
 <template>
   <!-- Main Scene Router: Only one of these can ever be active -->
 
-  <CreateCharacterScene
-    v-if="currentScene === scenes.CREATE"
-    @create="game.createCharacter"
-  />
+  <CreateCharacterScene v-if="currentScene === scenes.CREATE" @create="game.createCharacter" />
 
-  <ResultScene
-    v-else-if="currentScene === scenes.RESULT && character"
-    @restart="startNewGame"
-    @back="currentScene = scenes.PREPARE"
-  />
+  <ResultScene v-else-if="currentScene === scenes.RESULT && character" @restart="startNewGame"
+    @back="currentScene = scenes.PREPARE" />
 
+  <StartBattleScene v-else-if="currentScene === scenes.COMPARE && character && enemy" :character="character"
+    :enemy="enemy" :show="true" @start="handleStartBattle" @retreat="handleRetreat" />
 
-  <StartBattleScene
-    v-else-if="currentScene === scenes.FIGHT && character && enemy && !isBattleStarted"
-    :character="character"
-    :enemy="enemy"
-    :userProfile="userProfile"
-    :show="true"
-    @start="handleStartBattle"
-    @retreat="handleRetreat"
-  />
-
-  <FightScene
-    v-else-if="currentScene === scenes.FIGHT && character && enemy && isBattleStarted"
-    :character="character"
-    :enemy="enemy"
-    @battle-finished="game.onBattleFinished"
-    @restart="startNewGame"
-    @retreat="handleRetreat"
-  />
+  <FightScene v-else-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
+    @battle-finished="game.onBattleFinished" @restart="startNewGame" @retreat="handleRetreat" />
 
   <!-- Default Layout for other scenes -->
-  <UserLayout
-    v-else
-    @history="currentScene = scenes.HISTORY"
-    @result="currentScene = scenes.RESULT"
-    @prepare="currentScene = scenes.PREPARE"
-    @fight="handleStartFight"
-    @restart="startNewGame"
-  >
+  <UserLayout v-else @history="currentScene = scenes.HISTORY" @result="currentScene = scenes.RESULT"
+    @prepare="currentScene = scenes.PREPARE" @fight="handleStartFight" @restart="startNewGame">
     <!-- Scene content within the layout -->
-    <PrepareScene
-      v-if="currentScene === scenes.PREPARE && character"
-      :character="character"
-      @start-fight="handleStartFight"
-      @restart="startNewGame"
-    />
+    <PrepareScene v-if="currentScene === scenes.PREPARE && character" :character="character"
+      @start-fight="handleStartFight" @restart="startNewGame" />
 
-    <HistoryScene
-      v-else-if="currentScene === scenes.HISTORY"
-      :character-history="characterHistory"
-      @back="currentScene = scenes.PREPARE"
-      @fightHistory="handleFightHistory"
-    />
+    <HistoryScene v-else-if="currentScene === scenes.HISTORY" :character-history="characterHistory"
+      @back="currentScene = scenes.PREPARE" @fightHistory="handleFightHistory" />
   </UserLayout>
 </template>

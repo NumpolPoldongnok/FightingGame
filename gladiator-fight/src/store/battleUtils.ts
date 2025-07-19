@@ -1,4 +1,4 @@
-import type { Character, Scene } from '../types/game'
+import type { Character } from '../types/game'
 
 export function doBattleTurn(
   character: Character,
@@ -220,7 +220,7 @@ export function tryEvade(defender: BattleFighter, attacker: BattleFighter): bool
 
 // Calculate critical chance based on attacker and defender stats (luk is main factor)
 export function calcCritChance(attacker: Character, defender: Character, type: 'phy' | 'magic' = 'phy'): number {
-  var baseLuk = (attacker.status.luk-defender.status.luk) * 0.8
+  var baseLuk = (attacker.status.luk - defender.status.luk) * 0.8
   if (type === 'phy') {
     const base = baseLuk + (attacker.status.dex - defender.status.agi) * 0.2;
     return Math.min(90, Math.max(0, base));
@@ -275,18 +275,13 @@ export function calcHealCost(character: Character): number {
   return Math.max(1, result);
 }
 
-export function startFight(
+export function getEnemy(
   character: Character,
-  setEnemy: (enemy: Character) => void,
-  setScene: (scene: Scene) => void,
-  randomCharacter: (statusTotal: number, baseStatus?: any) => Character,
-  scenes: any,
-  characterHistory?: Character[]
-) {
-  console.log('startFight', character)
-  console.log('history', characterHistory)
+  characterHistory: Character[],
+  randomCharacter: (points: number) => Character
+): Character {
   let newEnemy: Character | undefined;
-  if (characterHistory && Array.isArray(characterHistory)) {
+  if (characterHistory.length > 0) {
     // shuffle array ก่อนหา match
     const shuffled = [...characterHistory];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -297,18 +292,12 @@ export function startFight(
     if (match) {
       newEnemy = { ...match, name: match.name + ' (Rival)', hp: match.maxHp };
     }
-  } 
+  }
   if (!newEnemy) {
-    //
     const power = (character.winStreak ?? 1)
     const total = 20 + (power * power);
     console.log('total power for enemy:', total);
     newEnemy = randomCharacter(total);
   }
-  setEnemy({ ...newEnemy, hp: newEnemy.maxHp });
-  setScene(scenes.FIGHT);
+  return newEnemy
 }
-export function randomEnemyName(): string {
-  throw new Error('Function not implemented.');
-}
-
