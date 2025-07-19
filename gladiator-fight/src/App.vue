@@ -7,6 +7,7 @@ import { ref } from 'vue' // ref is no longer needed here for scene management
 import CreateCharacterScene from './scenes/CreateCharacterScene.vue'
 import PrepareScene from './scenes/PrepareScene.vue'
 import FightScene from './scenes/FightScene.vue'
+import StartBattleScene from './scenes/StartBattleScene.vue'
 import ResultScene from './scenes/ResultScene.vue'
 import HistoryScene from './scenes/HistoryScene.vue'
 
@@ -23,12 +24,18 @@ const {
   character,
   enemy,
   currentScene,
-  skillChoices,
   characterHistory,
   userProfile,
 } = storeToRefs(game)
 
+
 const { scenes, startNewGame, onBattleFinished: origOnBattleFinished } = game
+
+// --- Start Battle Popup State ---
+const isBattleStarted = ref(false)
+function handleStartBattle() {
+  isBattleStarted.value = true
+}
 
 // --- BATTLE & NAVIGATION LOGIC ---
 
@@ -77,8 +84,19 @@ function handleFightHistory(historyChar: Character) {
     @back="currentScene = scenes.PREPARE"
   />
 
+
+  <StartBattleScene
+    v-else-if="currentScene === scenes.FIGHT && character && enemy && !isBattleStarted"
+    :character="character"
+    :enemy="enemy"
+    :userProfile="userProfile"
+    :show="true"
+    @start="handleStartBattle"
+    @retreat="handleRetreat"
+  />
+
   <FightScene
-    v-else-if="currentScene === scenes.FIGHT && character && enemy"
+    v-else-if="currentScene === scenes.FIGHT && character && enemy && isBattleStarted"
     :character="character"
     :enemy="enemy"
     @battle-finished="game.onBattleFinished"

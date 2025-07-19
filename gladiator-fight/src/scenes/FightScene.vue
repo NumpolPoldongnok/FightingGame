@@ -2,7 +2,6 @@
 import { ref, onUnmounted, computed, onMounted } from 'vue'
 import CooldownBar from '../components/CooldownBar.vue'
 import Popup from '../components/Popup.vue'
-import StartBattleScene from './StartBattleScene.vue'
 import type { Character } from '../types/game'
 import { doBattleTurn, getLogClass } from '../store/battleUtils'
 import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
@@ -112,7 +111,6 @@ onUnmounted(() => {
         <h3 class="fighter-name">{{ character.name }}</h3>
         <div class="fighter-content">
           <HPBar :value="character.hp" :max="character.maxHp" type="player" />
-          <CharacterStatus :character="character" />
           <CooldownBar :value="character.cooldown ?? 0" :max="maxCooldown" />
           <SkillList :skills="character.skills.filter(s => s.active === true)" />
         </div>
@@ -122,7 +120,6 @@ onUnmounted(() => {
         <h3 class="fighter-name">{{ enemy.name }}</h3>
         <div class="fighter-content">
           <HPBar :value="enemy.hp" :max="enemy.maxHp" type="enemy" />
-          <CharacterStatus :character="enemy" />
           <CooldownBar :value="enemy.cooldown ?? 0" :max="maxCooldown" />
           <SkillList :skills="enemy.skills.filter(s => s.active === true)" />
         </div>
