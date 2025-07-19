@@ -66,9 +66,6 @@ function setSpeed(mult: number) {
 }
 
 // --- LIFECYCLE ---
-onMounted(() => {
-  battleLog.value = ['### The crowd roars as the combatants enter the arena! ###']
-})
 
 onUnmounted(() => {
   clearInterval(intervalRef.value)

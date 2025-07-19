@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import CharacterPictureFrame from './CharacterPictureFrame.vue'
 
 const props = defineProps<{ characterHistory: Character[] }>()
-defineEmits(['back'])
+const emit = defineEmits(['back', 'fightHistory'])
 
 // Group by winStreak descending, as an array for easier rendering
 const groupedHistoryArr = computed(() => {
@@ -48,6 +48,7 @@ const statusSum = (c: Character) => {
             </div>
             <span class="character-stats">Total Stats: {{ statusSum(c) }}</span>
             <span class="character-hp">HP: {{ c.hp }}/{{ c.maxHp }}</span>
+            <button class="fight-history-btn" @click="emit('fightHistory', c)">Fight This Gladiator</button>
           </div>
         </div>
       </details>
@@ -207,5 +208,25 @@ const statusSum = (c: Character) => {
 .back-btn:hover {
   background-color: #8a703d;
   color: #fff;
+}
+/* ...existing styles... */
+.fight-history-btn {
+  margin-top: 0.5rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.4rem 1.2rem;
+  border-radius: 6px;
+  border: 2px solid #b71c1c;
+  color: #fff;
+  background: #b71c1c;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.fight-history-btn:hover {
+  background: #e53935;
+  border-color: #e53935;
 }
 </style>

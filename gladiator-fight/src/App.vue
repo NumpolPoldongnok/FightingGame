@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useGameStore } from './store/useGameStore'
+import { Character, useGameStore } from './store/useGameStore'
 import PrepareScene from './components/PrepareScene.vue'
 import FightScene from './components/FightScene.vue'
 import ResultScene from './components/ResultScene.vue'
@@ -28,12 +28,32 @@ import { applySkill, randomSkillChoices, type Skill } from './store/skillUtils'
 import { startFight } from './store/battleUtils'
 const showTownhall = ref(false)
 
-
 const {
   startNewGame,
   buyHeal,
   onBattleFinished,
 } = game
+
+// --- Fight with History Gladiator ---
+function handleFightHistory(historyChar: Character) {
+  if (!character.value) return;
+  // Clone the history character as enemy (avoid mutating history)
+  enemy.value = JSON.parse(JSON.stringify(historyChar));
+  currentScene.value = scenes.FIGHT;
+  // Mark that this is a history fight (for win streak transfer)
+  (enemy.value as any)._fromHistory = true;
+}
+
+// Patch onBattleFinished to support win streak transfer
+const origOnBattleFinished = onBattleFinished;
+game.onBattleFinished = function() {
+  // If fighting a history enemy and player wins, transfer win streak
+  if (enemy.value && (enemy.value as any)._fromHistory && character.value && character.value.hp > 0) {
+    character.value.winStreak = Math.max(character.value.winStreak, enemy.value.winStreak);
+    // Optionally, add a bonus for defeating a Hall of Fame gladiator
+  }
+  origOnBattleFinished();
+}
 
 function handleChooseSkill(idx: number) {
   if (!character.value) return;
@@ -89,6 +109,7 @@ function handleStartFight() {
     <TownhallScene v-if="showTownhall && currentScene === scenes.PREPARE && character" :user-profile="userProfile"
       :character="character" :buy-heal="buyHeal" @close="showTownhall = false" />
     <HistoryScene v-if="currentScene === scenes.HISTORY" :character-history="characterHistory"
-      @back="currentScene = scenes.PREPARE" />
+      @back="currentScene = scenes.PREPARE"
+      @fightHistory="handleFightHistory" />
   </UserLayout>
 </template>
