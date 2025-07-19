@@ -2,6 +2,7 @@
 import type { Character } from '../store/useGameStore'
 import CharacterStatus from './CharacterStatus.vue';
 import HPBar from './HPBar.vue';
+import CharacterPictureFrame from './CharacterPictureFrame.vue';
 import SkillList from './SkillList.vue';
 
 const props = defineProps<{
@@ -20,11 +21,18 @@ function totalStatus(c: Character) {
     <div v-if="character">
       <!-- Character Info Header -->
       <header class="character-header">
-        <HPBar :value="character.hp" :max="character.maxHp" type="player" />
-        <div class="header-main">
-          <span class="status-sum">Total Stats: {{ totalStatus(character) }}</span>
+        <div class="header-top">
+          <div style="display: flex; align-items: center; gap: 1.5rem; width: 100%;">
+            <CharacterPictureFrame :character="character" :size="80" />
+            <div class="header-info" style="flex: 1;">
+              <HPBar :value="character.hp" :max="character.maxHp" type="player" />
+              <div class="header-main">
+                <span class="status-sum">Total Stats: {{ totalStatus(character) }}</span>
+              </div>
+              <div class="win-streak">Win Streak: {{ character.winStreak }}</div>
+            </div>
+          </div>
         </div>
-        <div class="win-streak">Win Streak: {{ character.winStreak }}</div>
       </header>
 
       <!-- Main Content Body -->

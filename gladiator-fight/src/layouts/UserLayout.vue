@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGameStore } from '../store/useGameStore'
 const store = useGameStore()
-defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
+defineEmits(['history', 'result', 'townhall', 'prepare', 'fight', 'restart'])
 </script>
 
 <template>
@@ -226,7 +226,7 @@ defineEmits(['history', 'result', 'townhall', 'prepare', 'fight'])
   align-items: center;
   gap: 0.3rem;
   box-shadow: 0 2px 8px rgba(200,180,50,0.08);
-  transition: background 0.2s, color 0.2s, border 0.2s;
+
   cursor: pointer;
 }
 .restart-btn:hover {

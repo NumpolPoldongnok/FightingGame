@@ -200,8 +200,6 @@ function prefillFromHistory() {
   name.value = `${template.name.split(' ')[0]} ${generation}${getOrdinalSuffix(generation)}`;
   // Prefill the stats
   status.value = JSON.parse(JSON.stringify(template.status));
-  // Prefill the image if available
-  imageData.value = template.image || null;
 }
 
 // << NEW >> Lifecycle Hook

@@ -23,7 +23,6 @@ export type Character = {
   winStreak: number;
   lastMoneyEarned: number;
   statusPoint: number;
-  image?: string; // This will be a temporary runtime property
 }
 
 const STORAGE_KEY = 'gladiator-save-v4'; // Bump version for new structure
@@ -55,14 +54,12 @@ export const useGameStore = defineStore('game', () => {
       id: `char_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`, // More robust ID
       name, hp: maxHp, maxHp, status, skills: [],
       winStreak: 0, lastMoneyEarned: 0, statusPoint: 0,
-      image: undefined,
     };
   }
 
   async function createCharacter({ name, status, image }: { name: string, status: Status, image?: string }) {
     const newChar = _createNewCharacter(name, status);
     if (image) {
-      newChar.image = image;
       // << CHANGED >> Save the image to IndexedDB
       await imageStore.saveImage(newChar.id, image);
     }
@@ -72,7 +69,6 @@ export const useGameStore = defineStore('game', () => {
 
   async function updateCharacterImage(image: string) {
     if (character.value) {
-      character.value.image = image;
       // << CHANGED >> Update the image in IndexedDB
       await imageStore.saveImage(character.value.id, image);
     }
@@ -82,12 +78,13 @@ export const useGameStore = defineStore('game', () => {
     if (character.value) {
       // History only stores data, not the live image property.
       // The image is already safe in IndexedDB.
-      characterHistory.value.push({ ...character.value, image: undefined });
+      characterHistory.value.push({ ...character.value });
     }
     character.value = null;
     currentScene.value = scenes.CREATE;
   }
-function randomCharacter(): Character {
+
+  function randomCharacter(): Character {
     const names = ['Maximus', 'Aurelius', 'Cassius', 'Valeria', 'Octavia', 'Livia', 'Tiberius', 'Lucius'];
     const name = names[Math.floor(Math.random() * names.length)];
     const status: Status = {
@@ -100,7 +97,7 @@ function randomCharacter(): Character {
     };
     const maxHp = 100 + status.vit * 10;
     return {
-      id: `enemy_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      id: `char_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       name,
       hp: maxHp,
       maxHp,
@@ -109,7 +106,6 @@ function randomCharacter(): Character {
       winStreak: 0,
       lastMoneyEarned: 0,
       statusPoint: 0,
-      image: undefined,
     };
   }
   function onBattleFinished() {
@@ -124,7 +120,7 @@ function randomCharacter(): Character {
     } else { // Player lost
       character.value.lastMoneyEarned = 0;
       // Add the fallen gladiator to history. Image is already in IndexedDB.
-      characterHistory.value.push({ ...character.value, image: undefined });
+      characterHistory.value.push({ ...character.value });
       character.value = null;
     }
     currentScene.value = scenes.RESULT;
@@ -141,7 +137,7 @@ function randomCharacter(): Character {
       return;
     }
     // Create a version of the character WITHOUT the image property for saving
-    const { image, ...characterToSave } = character.value;
+    const { ...characterToSave } = character.value;
     const trimmedHistory = characterHistory.value.slice(-20);
 
     const saveData = {
@@ -165,11 +161,6 @@ function randomCharacter(): Character {
       if (data.userProfile) userProfile.value = data.userProfile;
       if (data.character) {
         character.value = data.character;
-        // << CHANGED >> After loading character data, try to load its image
-        const savedImage = await imageStore.getImage(character.value!.id);
-        if (savedImage && character.value) {
-          character.value.image = savedImage;
-        }
       }
       if (data.currentScene) currentScene.value = data.currentScene;
       if (data.skillChoices) skillChoices.value = data.skillChoices;

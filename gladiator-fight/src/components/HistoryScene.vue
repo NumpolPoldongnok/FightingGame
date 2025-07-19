@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Character } from '../store/useGameStore'
+import type { Character } from '../store/useGameStore'
 import { computed } from 'vue'
+import CharacterPictureFrame from './CharacterPictureFrame.vue'
 
 const props = defineProps<{ characterHistory: Character[] }>()
 defineEmits(['back'])
@@ -41,7 +42,10 @@ const statusSum = (c: Character) => {
         </summary>
         <div class="character-grid">
           <div v-for="(c, cidx) in group.characters" :key="cidx" class="character-card">
-            <strong class="character-name">{{ c.name }}</strong>
+            <div class="card-row">
+              <CharacterPictureFrame :character="c" :size="48" />
+              <strong class="character-name">{{ c.name }}</strong>
+            </div>
             <span class="character-stats">Total Stats: {{ statusSum(c) }}</span>
             <span class="character-hp">HP: {{ c.hp }}/{{ c.maxHp }}</span>
           </div>
@@ -61,10 +65,10 @@ const statusSum = (c: Character) => {
   background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
   border-radius: 12px;
   border: 4px solid #6b552d;
-  padding: 1.5rem 2rem;
+  padding: 0.5rem 0.5rem;
   box-sizing: border-box;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-  margin-top: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  margin-top: 0.5rem;
 }
 
 .history-title {
@@ -147,11 +151,25 @@ const statusSum = (c: Character) => {
   color: #44341b;
   border-radius: 6px;
   border: 2px solid #8a703d;
-  padding: 1rem;
+  padding: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
   transition: all 0.2s;
+}
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+.character-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #6b552d;
+  border-bottom: none;
+  padding-bottom: 0;
 }
 .character-card:hover {
   transform: translateY(-3px);
