@@ -1,4 +1,4 @@
-import type { Character } from '../types/game'
+import type { Character, Scene } from '../types/game'
 
 export function doBattleTurn(
   character: Character,
@@ -278,7 +278,7 @@ export function calcHealCost(character: Character): number {
 export function startFight(
   character: Character,
   setEnemy: (enemy: Character) => void,
-  setScene: (scene: string) => void,
+  setScene: (scene: Scene) => void,
   randomCharacter: (statusTotal: number, baseStatus?: any) => Character,
   scenes: any,
   characterHistory?: Character[]

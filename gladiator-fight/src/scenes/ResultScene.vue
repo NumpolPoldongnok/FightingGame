@@ -1,35 +1,46 @@
 <script lang="ts" setup>
-import { Character } from '../store/useGameStore';
-import type { Skill } from '../store/skillUtils'
+import { useGameStore } from '../store/useGameStore'
+import { storeToRefs } from 'pinia'
+// No skillChoices or props needed
 import CharacterStatus from '../components/CharacterStatus.vue'
 import HPBar from '../components/HPBar.vue'
-import { computed, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import SkillChoicePanel from '../components/SkillChoicePanel.vue'
+import { randomSkillChoices, applySkill, type Skill } from '../store/skillUtils'
 
-const props = defineProps<{
-  character: Character,
-  skillChoices: Skill[]
-}>()
 
-defineEmits(['choose-skill', 'restart', 'back', 'refresh-skill'])
+const game = useGameStore()
+const { character } = storeToRefs(game)
 
-const win = computed(() => props.character.hp > 0)
+const emit = defineEmits(['restart', 'back'])
+const win = computed(() => !!character.value && character.value.hp > 0)
 
-onMounted(() => {
-  console.log('Mounting ResultScene with skill choices:', props.skillChoices)
-})
+// Skill choices state
+const skillChoices = ref<Skill[]>([])
+
+function refreshSkillChoices() {
+  if (!character.value) return
+  skillChoices.value = randomSkillChoices(character.value.status.luk)
+}
+
+function handleChooseSkill(idx: number) {
+  if (!character.value) return
+  applySkill(idx, character.value, skillChoices.value)
+  emit('back')
+}
+
+// Initialize skill choices on mount if win
+if (win.value) refreshSkillChoices()
+
 </script>
 
 <template>
-  <!-- Main container with dynamic class for win/lose state -->
-  <div class="result-container" :class="win ? 'result-win' : 'result-lose'">
-
+  <div v-if="character" class="result-container" :class="win ? 'result-win' : 'result-lose'">
     <!-- Header showing the main result -->
     <header class="result-header">
       <h2 class="result-title">{{ win ? 'VICTORY' : 'DEFEAT' }}</h2>
       <p class="result-subtitle">{{ win ? 'You are triumphant in the arena!' : 'You have fallen...' }}</p>
     </header>
-
     <!-- Summary of earnings and streaks -->
     <div class="result-summary">
       <div class="summary-item">
@@ -41,22 +52,20 @@ onMounted(() => {
         <strong class="gold-earned">+{{ character.lastMoneyEarned }}</strong>
       </div>
     </div>
-
     <!-- Character's final status -->
     <div class="character-final-status">
       <HPBar :value="character.hp" :max="character.maxHp" :type="win ? 'player' : 'enemy'" />
       <CharacterStatus :character="character" title="Final Status" :show-buttons="true" />
     </div>
-
     <!-- Main action panel based on result -->
-    <template v-if="win">
+    <div v-if="win">
       <SkillChoicePanel
         :skill-choices="skillChoices"
-        @choose-skill="$emit('choose-skill', $event)"
-        @refresh-skill="$emit('refresh-skill')"
-        @back="$emit('back')"
+        @choose-skill="handleChooseSkill"
+        @refresh-skill="refreshSkillChoices"
+        @back="() => emit('back')"
       />
-    </template>
+    </div>
     <template v-else>
       <div class="death-actions">
         <p>Your journey ends here... for now.</p>
@@ -64,7 +73,6 @@ onMounted(() => {
         <button class="action-btn btn-back" @click="$emit('back')">BACK TO PREPARE</button>
       </div>
     </template>
-
   </div>
 </template>
 

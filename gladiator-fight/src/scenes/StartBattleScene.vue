@@ -1,19 +1,21 @@
 <script lang="ts" setup>
 import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
 import CharacterStatus from '../components/CharacterStatus.vue'
-import type { Character } from '../types/game'
+import type { Character, UserProfile } from '../types/game'
+import { calcReward } from '../store/battleUtils'
 
 import { ref, computed } from 'vue'
 const props = defineProps<{
   character: Character,
   enemy: Character,
+  userProfile: UserProfile,
   show: boolean,
 }>()
 const emit = defineEmits(['start', 'close', 'retreat'])
 
-// Assume fight reward is enemy.reward or fallback to 100
-const fightReward = computed(() => (props.enemy as any).reward ?? 100)
-const canRetreat = computed(() => (props.character as any).money >= fightReward.value * 2)
+// Use calcReward from battleUtils for fightReward
+const fightReward = computed(() => calcReward(props.enemy))
+const canRetreat = computed(() => (props.userProfile.money ?? 0) >= fightReward.value * 2)
 const showRetreatConfirm = ref(false)
 function tryRetreat() {
   showRetreatConfirm.value = true

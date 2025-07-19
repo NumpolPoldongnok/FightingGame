@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onUnmounted, computed } from 'vue'
+import { ref, onUnmounted, computed, onMounted } from 'vue'
 import CooldownBar from '../components/CooldownBar.vue'
 import Popup from '../components/Popup.vue'
 import StartBattleScene from './StartBattleScene.vue'
@@ -66,6 +66,9 @@ function setSpeed(mult: number) {
 }
 
 // --- LIFECYCLE ---
+onMounted(() => {
+  handleStartBattle()
+})
 onUnmounted(() => {
   clearInterval(intervalRef.value)
   // Dismiss all popups and stop battle to avoid Vue errors on unmount
@@ -76,13 +79,7 @@ onUnmounted(() => {
 
 <template>
   <div class="fight-container">
-    <!-- Start Battle Popup (moved to StartBattleScene) -->
-    <StartBattleScene
-      :character="character"
-      :enemy="enemy"
-      :show="showStartPopup"
-      @start="handleStartBattle"
-    />
+    <!-- Start Battle Popup moved to App.vue -->
 
     <!-- Battle Controls (Consolidated) -->
     <div class="battle-controls">
