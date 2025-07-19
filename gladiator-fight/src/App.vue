@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Character, useGameStore } from './store/useGameStore'
+import { useGameStore } from './store/useGameStore'
 import PrepareScene from './scenes/PrepareScene.vue'
 import FightScene from './scenes/FightScene.vue'
 import ResultScene from './scenes/ResultScene.vue'
@@ -8,6 +8,10 @@ import TownhallScene from './scenes/TownhallScene.vue'
 import { storeToRefs } from 'pinia'
 import UserLayout from './layouts/UserLayout.vue'
 import CreateCharacterScene from './scenes/CreateCharacterScene.vue'
+import { ref } from 'vue'
+import { randomSkillChoices, type Skill } from './store/skillUtils'
+import { startFight } from './store/battleUtils'
+import { Character, Scene } from './types/game'
 
 const game = useGameStore()
 const {
@@ -20,12 +24,7 @@ const {
 } = storeToRefs(game)
 
 const { scenes } = game
-// Ensure all scenes exist
-if (!scenes.HISTORY) scenes.HISTORY = 'history'
-if (!scenes.CREATE) scenes.CREATE = 'create'
-import { ref } from 'vue'
-import { applySkill, randomSkillChoices, type Skill } from './store/skillUtils'
-import { startFight } from './store/battleUtils'
+
 const showTownhall = ref(false)
 
 const {
@@ -81,7 +80,7 @@ function handleStartFight() {
   startFight(
     character.value,
     (e: any) => { enemy.value = e },
-    (scene: string) => { currentScene.value = scene },
+    (scene: string) => { currentScene.value = scene as Scene },
     game.randomCharacter,
     scenes,
     game.characterHistory

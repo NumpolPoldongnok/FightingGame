@@ -6,9 +6,7 @@ import * as battleUtils from './battleUtils'
 import * as skillUtils from './skillUtils'
 import { imageStore } from './imageStore' // << NEW: Import the image store
 
-import type { UserProfile, Character, Scene } from '../types/game'
-import { scenes } from '../types/game'
-import type { Status } from '../types/game'
+import { Character, Scene, scenes, Status, UserProfile } from '../types/game'
 import type { Skill } from './skillUtils'
 import { randomCharacterStatus } from './statusUtils'
 

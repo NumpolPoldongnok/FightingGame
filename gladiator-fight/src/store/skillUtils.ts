@@ -1,6 +1,5 @@
-import { Status } from 'src/types/status'
 import { MAX_STATUS } from './statusUtils'
-import { Character } from './useGameStore'
+import { Character, Status } from '../types/game'
 
 export type SkillData = {
   statusType: string

@@ -1,4 +1,4 @@
-import type { Character } from './useGameStore'
+import type { Character } from '../types/game'
 
 export function doBattleTurn(
   character: Character,
@@ -299,7 +299,7 @@ export function startFight(
     }
   } 
   if (!newEnemy) {
-    // ถ้าไม่มี match หรือไม่ใช่ history ให้สุ่มศัตรูใหม่
+    //
     const power = (character.winStreak ?? 1)
     const total = 20 + (power * power);
     console.log('total power for enemy:', total);
