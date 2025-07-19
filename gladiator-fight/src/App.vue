@@ -15,8 +15,8 @@ import HistoryScene from './scenes/HistoryScene.vue'
 import UserLayout from './layouts/UserLayout.vue'
 
 // Import Types and Utils
-import type { Character, Scene } from './types/game'
-import { calcReward, getEnemy } from './store/battleUtils'
+import type { Character } from './types/game'
+import { getEnemy } from './store/battleUtils'
 
 const game = useGameStore()
 const {
@@ -27,8 +27,7 @@ const {
   userProfile,
 } = storeToRefs(game)
 
-
-const { scenes, startNewGame, onBattleFinished: origOnBattleFinished } = game
+const { scenes, startNewGame } = game
 
 // --- Start Battle Popup State ---
 function handleStartBattle() {
@@ -36,7 +35,6 @@ function handleStartBattle() {
 }
 
 // --- BATTLE & NAVIGATION LOGIC ---
-
 function handleStartFight() {
     if (!character.value) return;
   enemy.value = getEnemy(character.value, game.characterHistory, game.randomCharacter);
@@ -52,8 +50,6 @@ function handleFightHistory(historyChar: Character) {
   // Clone the history character as enemy (avoid mutating history)
   enemy.value = JSON.parse(JSON.stringify(historyChar));
   currentScene.value = scenes.FIGHT;
-  // Mark that this is a history fight (for win streak transfer)
-  (enemy.value as any)._fromHistory = true;
 }
 
 </script>
@@ -63,7 +59,7 @@ function handleFightHistory(historyChar: Character) {
 
   <CreateCharacterScene v-if="currentScene === scenes.CREATE" @create="game.createCharacter" />
 
-  <ResultScene v-else-if="currentScene === scenes.RESULT && character" @restart="startNewGame"
+  <ResultScene v-else-if="currentScene === scenes.RESULT" @restart="startNewGame"
     @back="currentScene = scenes.PREPARE" />
 
   <StartBattleScene v-else-if="currentScene === scenes.COMPARE && character && enemy" :character="character"

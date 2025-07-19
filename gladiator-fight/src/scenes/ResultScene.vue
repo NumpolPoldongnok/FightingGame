@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 // No skillChoices or props needed
 import CharacterStatus from '../components/CharacterStatus.vue'
 import HPBar from '../components/HPBar.vue'
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import SkillChoicePanel from '../components/SkillChoicePanel.vue'
 import { randomSkillChoices, applySkill, type Skill } from '../store/skillUtils'
 
@@ -13,15 +13,9 @@ const game = useGameStore()
 const { character } = storeToRefs(game)
 
 const emit = defineEmits(['restart', 'back'])
-const win = computed(() => !!character.value && character.value.hp > 0)
 
 // Skill choices state
 const skillChoices = ref<Skill[]>([])
-
-function refreshSkillChoices() {
-  if (!character.value) return
-  skillChoices.value = randomSkillChoices(character.value.status.luk)
-}
 
 function handleChooseSkill(idx: number) {
   if (!character.value) return
@@ -29,17 +23,23 @@ function handleChooseSkill(idx: number) {
   emit('back')
 }
 
-// Initialize skill choices on mount if win
-if (win.value) refreshSkillChoices()
+function refreshSkillChoices() {
+  if (!character.value) return
+  skillChoices.value = randomSkillChoices(character.value.status.luk)
+}
+
+onMounted(() => {
+  refreshSkillChoices()
+})
 
 </script>
 
 <template>
-  <div v-if="character" class="result-container" :class="win ? 'result-win' : 'result-lose'">
+  <div v-if="character" class="result-container result-win">
     <!-- Header showing the main result -->
     <header class="result-header">
-      <h2 class="result-title">{{ win ? 'VICTORY' : 'DEFEAT' }}</h2>
-      <p class="result-subtitle">{{ win ? 'You are triumphant in the arena!' : 'You have fallen...' }}</p>
+      <h2 class="result-title">VICTORY</h2>
+      <p class="result-subtitle">You are triumphant in the arena!</p>
     </header>
     <!-- Summary of earnings and streaks -->
     <div class="result-summary">
@@ -47,32 +47,23 @@ if (win.value) refreshSkillChoices()
         <span>Win Streak</span>
         <strong>{{ character.winStreak }}</strong>
       </div>
-      <div v-if="win" class="summary-item">
+      <div class="summary-item">
         <span>Gold Earned</span>
         <strong class="gold-earned">+{{ character.lastMoneyEarned }}</strong>
       </div>
     </div>
     <!-- Character's final status -->
     <div class="character-final-status">
-      <HPBar :value="character.hp" :max="character.maxHp" :type="win ? 'player' : 'enemy'" />
+      <HPBar :value="character.hp" :max="character.maxHp" type="player" />
       <CharacterStatus :character="character" title="Final Status" :show-buttons="true" />
     </div>
-    <!-- Main action panel based on result -->
-    <div v-if="win">
-      <SkillChoicePanel
-        :skill-choices="skillChoices"
-        @choose-skill="handleChooseSkill"
-        @refresh-skill="refreshSkillChoices"
-        @back="() => emit('back')"
-      />
-    </div>
-    <template v-else>
-      <div class="death-actions">
-        <p>Your journey ends here... for now.</p>
-        <button class="action-btn btn-restart" @click="$emit('restart')">RESTART</button>
-        <button class="action-btn btn-back" @click="$emit('back')">BACK TO PREPARE</button>
-      </div>
-    </template>
+    <!-- Main action panel: Skill choice only -->
+    <SkillChoicePanel
+      :skill-choices="skillChoices"
+      @choose-skill="handleChooseSkill"
+      @refresh-skill="refreshSkillChoices"
+      @back="() => emit('back')"
+    />
   </div>
 </template>
 
@@ -91,16 +82,11 @@ if (win.value) refreshSkillChoices()
 }
 
 /* --- THEMES --- */
-.result-win {
-  border-color: #e2c178;
-  background: radial-gradient(circle, #4a3c1a 0%, #2a2a2a 70%);
-  box-shadow: 0 5px 30px #e2c17844;
-}
-.result-lose {
-  border-color: #8a1414;
-  background: radial-gradient(circle, #4a1a1a 0%, #2a2a2a 70%);
-  box-shadow: 0 5px 30px #b71c1c44;
-}
+  .result-win {
+    border-color: #e2c178;
+    background: radial-gradient(circle, #4a3c1a 0%, #2a2a2a 70%);
+    box-shadow: 0 5px 30px #e2c17844;
+  }
 /* -------------- */
 
 .result-header {

@@ -130,9 +130,12 @@ export const useGameStore = defineStore('game', () => {
 
   function onBattleFinished() {
     if (!character.value) return;
-
+    if (!enemy.value) return;
     if (character.value.hp > 0) { // Player won
       character.value.winStreak++;
+      if (enemy.value.winStreak > character.value.winStreak) {
+        character.value.winStreak = enemy.value.winStreak + 1;
+      }
       character.value.lastMoneyEarned = battleUtils.calcReward(character.value);
       character.value.statusPoint += 5;
       userProfile.value.money += character.value.lastMoneyEarned;
