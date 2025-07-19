@@ -5,22 +5,13 @@ import { ref, watch, onMounted } from 'vue'
 import * as battleUtils from './battleUtils'
 import * as skillUtils from './skillUtils'
 import { imageStore } from './imageStore' // << NEW: Import the image store
+
+import type { UserProfile, Character, Scene } from '../types/game'
+import { scenes } from '../types/game'
+import type { Status } from '../types/game'
 import type { Skill } from './skillUtils'
-import type { Status } from '../types/status'
 import { randomCharacterStatus } from './statusUtils'
 
-export type UserProfile = { money: number }
-export type Character = {
-  id: string; // Unique ID is now essential
-  name: string;
-  hp: number;
-  maxHp: number;
-  status: Status;
-  skills: Skill[];
-  winStreak: number;
-  lastMoneyEarned: number;
-  statusPoint: number;
-}
 
 const STORAGE_KEY = 'gladiator-save-v4'; // Bump version for new structure
 
@@ -28,14 +19,6 @@ const STORAGE_KEY = 'gladiator-save-v4'; // Bump version for new structure
 
 export const useGameStore = defineStore('game', () => {
   // === STATE ===
-  const scenes = {
-    PREPARE: 'prepare',
-    FIGHT: 'fight',
-    RESULT: 'result',
-    HISTORY: 'history',
-    CREATE: 'create',
-  }
-  type Scene = typeof scenes[keyof typeof scenes];
   const userProfile = ref<UserProfile>({ money: 100 })
   const character = ref<Character | null>(null)
   const enemy = ref<Character | null>(null)
@@ -83,7 +66,7 @@ export const useGameStore = defineStore('game', () => {
 
   function randomCharacter(points: number): Character {
     // Define character types and name pools
-    const typeKeys: (keyof Status)[] = ['str', 'agi', 'vit', 'dex', 'int', 'luk'];
+    const typeKeys = ['str', 'agi', 'vit', 'dex', 'int', 'luk'] as (keyof Status)[];
     // Name pools for each type (no duplicates per session)
     const namePools: Record<keyof Status, string[]> = {
       str: ['Maximus', 'Brutus', 'Gaius', 'Titus', 'Drusus'],

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Character } from '../store/useGameStore'
+import type { Character } from '../types/game'
 import { computed } from 'vue'
 import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
 

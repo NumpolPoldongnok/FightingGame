@@ -58,11 +58,11 @@ game.onBattleFinished = function() {
 function handleChooseSkill(idx: number) {
   if (!character.value) return;
   // skillChoices is now Skill[]
-  applySkill(
-    idx,
-    character.value,
-    skillChoices.value as Skill[]
-  )
+  // applySkill(
+  //   idx,
+  //   character.value,
+  //   skillChoices.value as Skill[]
+  // )
   currentScene.value = scenes.PREPARE
 }
 

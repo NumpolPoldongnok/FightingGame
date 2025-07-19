@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Character } from '../store/useGameStore'
+import type { Character } from '../types/game'
 import CharacterStatus from '../components/CharacterStatus.vue';
 import HPBar from '../components/HPBar.vue';
 import CharacterPictureFrame from '../components/CharacterPictureFrame.vue';

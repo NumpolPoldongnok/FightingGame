@@ -17,7 +17,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { ref, watch, onMounted } from 'vue'
-import type { Character } from '../store/useGameStore'
+import type { Character } from '../types/game'
 import { imageStore } from '../store/imageStore'
 const props = defineProps<{
   character: Character,

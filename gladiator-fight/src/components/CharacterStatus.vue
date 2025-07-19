@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { Status } from '../types/status'
-import type { Character } from '../store/useGameStore'
+import type { Status } from '../types/game'
+import type { Character } from '../types/game'
 import { increaseStatus, canIncreaseStatus, canDecreaseStatus, putAllPointsToStatus, resetStatusKeyToOne } from '../store/statusUtils'
 import { useGameStore } from '../store/useGameStore'
 

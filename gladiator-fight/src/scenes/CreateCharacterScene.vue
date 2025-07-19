@@ -81,7 +81,7 @@
 import { ref, computed, onMounted } from 'vue' // << NEW >> Added onMounted
 import { useGameStore } from '../store/useGameStore'
 import VueApexCharts from 'vue3-apexcharts'
-import type { Status } from '../types/status'
+import type { Status } from '../types/game'
 
 const apexchart = VueApexCharts;
 const emit = defineEmits(['create'])

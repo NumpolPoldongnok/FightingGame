@@ -2,8 +2,8 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import CooldownBar from '../components/CooldownBar.vue'
 import Popup from '../components/Popup.vue'
-import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
-import type { Character } from '../store/useGameStore'
+import StartBattleScene from './StartBattleScene.vue'
+import type { Character } from '../types/game'
 import { doBattleTurn, getLogClass } from '../store/battleUtils'
 import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
 import SkillList from '../components/SkillList.vue'
@@ -42,7 +42,7 @@ const baseInterval = 200
 
 // --- BATTLE LOGIC ---
 /** Called when the battle concludes. The result is based on the player's final HP. */
-function onFinish(winnerCharacter: Character) { // winnerCharacter is passed from the util, but we use our player character
+function onFinish(winnerCharacter: Character) {
   clearInterval(intervalRef.value)
   battleResult.value = character.hp > 0 ? 'win' : 'lose'
 }
@@ -66,35 +66,28 @@ function setSpeed(mult: number) {
 }
 
 // --- LIFECYCLE ---
-
 onUnmounted(() => {
   clearInterval(intervalRef.value)
+  // Dismiss all popups and stop battle to avoid Vue errors on unmount
+  isResultPopupDismissed.value = true;
+  isBattleStarted.value = false;
 })
 </script>
 
 <template>
   <div class="fight-container">
-    <!-- Start Battle Popup -->
-    <Popup v-model="showStartPopup" customClass="start-popup-content" :showClose="false">
-      <h2 class="popup-title">The Battle is Set!</h2>
-      <div class="faceoff-container">
-        <div class="fighter-preview player-preview">
-          <CharacterPictureFrame :character="character" :size="48" />
-          <div>{{ character.name }}</div>
-        </div>
-        <div class="vs-text">VS</div>
-        <div class="fighter-preview enemy-preview">
-          <CharacterPictureFrame :character="enemy" :size="48" />
-          <div>{{ enemy.name }}</div>
-        </div>
-      </div>
-      <button class="start-btn" @click="handleStartBattle">FIGHT!</button>
-    </Popup>
+    <!-- Start Battle Popup (moved to StartBattleScene) -->
+    <StartBattleScene
+      :character="character"
+      :enemy="enemy"
+      :show="showStartPopup"
+      @start="handleStartBattle"
+    />
 
-    <!-- Battle Controls -->
+    <!-- Battle Controls (Consolidated) -->
     <div class="battle-controls">
       <!-- Speed Controls (shown during battle) -->
-      <div v-if="isBattleStarted && !battleResult" class="speed-controls">
+      <div v-if="!battleResult" class="speed-controls">
         <span class="speed-label">SPEED:</span>
         <button :class="['control-btn', { active: speed === 1 }]" @click="setSpeed(1)">1x</button>
         <button :class="['control-btn', { active: speed === 2 }]" @click="setSpeed(2)">2x</button>
@@ -103,11 +96,17 @@ onUnmounted(() => {
       </div>
 
       <!-- Post-battle actions (shown after dismissing popup) -->
-      <div v-if="battleResult && isResultPopupDismissed" class="action-buttons">
-        <button v-if="battleResult === 'win'" class="modal-btn"
-          @click="emit('battle-finished', character)">PROCEED</button>
-        <button v-if="battleResult === 'lose'" class="modal-btn" @click="emit('restart')">RESTART</button>
-      </div>
+      <Transition name="fade">
+        <div v-if="battleResult && isResultPopupDismissed" class="post-battle-actions">
+           <h2 class="post-battle-result" :class="battleResult === 'win' ? 'result-win' : 'result-lose'">
+            {{ battleResult === 'win' ? 'Victory!' : 'Defeat!' }}
+          </h2>
+          <div class="action-buttons">
+             <button v-if="battleResult === 'win'" class="action-btn proceed-btn" @click="emit('battle-finished', character)">PROCEED</button>
+             <button v-if="battleResult === 'lose'" class="action-btn restart-btn" @click="emit('restart')">RESTART</button>
+          </div>
+        </div>
+      </Transition>
     </div>
 
     <!-- Battle Arena -->
@@ -144,9 +143,9 @@ onUnmounted(() => {
     <Popup v-model="showResultPopup" :customClass="resultPopupClass" :showClose="false">
       <h2 class="result-title">{{ battleResult === 'win' ? 'VICTORY' : 'DEFEAT' }}</h2>
       <div class="modal-actions">
-        <button v-if="battleResult === 'win'" class="modal-btn"
+        <button v-if="battleResult === 'win'" class="modal-btn proceed-btn"
           @click="emit('battle-finished', character)">PROCEED</button>
-        <button v-if="battleResult === 'lose'" class="modal-btn" @click="emit('restart')">RESTART</button>
+        <button v-if="battleResult === 'lose'" class="modal-btn restart-btn" @click="emit('restart')">RESTART</button>
         <button class="dismiss-btn" @click="isResultPopupDismissed = true">Inspect Battle</button>
       </div>
     </Popup>
@@ -172,10 +171,10 @@ onUnmounted(() => {
   border: 2px solid #6b552d;
   border-radius: 12px;
   min-height: 64px;
+  transition: all 0.3s ease-in-out;
 }
 
-.speed-controls,
-.action-buttons {
+.speed-controls {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -216,6 +215,7 @@ onUnmounted(() => {
   gap: 1rem;
   justify-content: center;
   align-items: stretch;
+  margin-bottom: 2rem;
 }
 
 .vs-separator {
@@ -281,15 +281,17 @@ onUnmounted(() => {
 }
 
 .log-scroll-area {
-  margin-top: 2rem;
+  margin-top: 1rem;
   max-height: 300px;
   overflow-y: auto;
   background-color: #fdf6e7;
+  background-image: radial-gradient(rgba(138, 112, 61, 0.1) 1px, transparent 1px);
+  background-size: 4px 4px;
   color: #44341b;
   border: 4px solid #8a703d;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
   font-size: 0.95rem;
 }
 
@@ -299,67 +301,26 @@ onUnmounted(() => {
   border-radius: 4px;
 }
 
-.log-player {
-  color: #1b5e20;
-  font-weight: bold;
-}
-
-.log-enemy {
-  color: #b71c1c;
-  font-weight: bold;
-}
-
-.log-evade {
-  opacity: 0.7;
-  font-style: italic;
-}
-
-.log-lose,
-.log-end {
-  text-align: center;
-  font-weight: bold;
+.log-player { color: #1b5e20; font-weight: bold; }
+.log-enemy { color: #b71c1c; font-weight: bold; }
+.log-evade { opacity: 0.7; font-style: italic; }
+.log-lose, .log-end {
+  text-align: center; font-weight: bold;
   background: rgba(138, 112, 61, 0.1);
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem; margin-bottom: 0.5rem;
 }
 
-@media (max-width: 768px) {
-  .battle-arena {
-    gap: 0.5rem;
-  }
-
-  .fighter-content {
-    padding: 0.75rem;
-    gap: 0.75rem;
-  }
-
-  .fighter-name {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .vs-separator {
-    display: none;
-  }
-
-  .battle-controls {
-    flex-direction: column;
-  }
-}
-
+/* --- Result Popups --- */
 .win-popup {
   border-color: #e2c178;
   background: radial-gradient(circle, #4a3c1a 0%, #2a2a2a 70%);
   box-shadow: 0 0 30px #e2c17880;
 }
-
 .lose-popup {
   border-color: #8a1414;
   background: radial-gradient(circle, #4a1a1a 0%, #2a2a2a 70%);
   box-shadow: 0 0 30px #b71c1c80;
 }
-
 .result-title {
   font-family: 'Cinzel', serif;
   font-size: 4rem;
@@ -369,155 +330,215 @@ onUnmounted(() => {
   letter-spacing: 0.1em;
   margin-bottom: 2rem;
 }
-
 .win-popup .result-title {
   color: #f7d88b;
   text-shadow: 0 0 15px #f7d88b, 0 0 5px #fff;
 }
-
 .lose-popup .result-title {
   color: #ef4444;
   text-shadow: 0 0 15px #ef4444;
 }
 
-
-.result-message {
-  display: inline-block;
-  font-family: 'Cinzel', serif;
-  font-weight: 900;
-  font-size: 2.2rem;
-  padding: 0.7rem 2.5rem;
-  border-radius: 12px;
-  margin: 0.5rem 0;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 1.5px 0 #fff2;
-  background: linear-gradient(90deg, #f7d88b 0%, #e2c178 100%);
-  color: #44341b;
-  text-shadow: 0 2px 8px #fff8, 0 1px 0 #fff4;
-  pointer-events: none;
-  border: none;
-  transition: background 0.3s, color 0.3s, box-shadow 0.3s;
-}
-.result-lose {
-  background: linear-gradient(90deg, #ef4444 0%, #b71c1c 100%);
-  color: #fff;
-  text-shadow: 0 2px 8px #b71c1c88, 0 1px 0 #fff4;
-}
-
+/* --- Transitions --- */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
 
-.start-popup-content {
-  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
-  border: 4px solid #6b552d;
-  border-radius: 12px;
-  padding: 2rem 3rem;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  max-width: 95vw;
-  max-height: 90vh;
-  overflow: auto;
-  box-sizing: border-box;
-}
-
-.popup-title {
-  font-family: 'Cinzel', serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #c8ab6b;
-  margin-bottom: 2rem;
-  text-transform: uppercase;
-}
-
-.faceoff-container {
+/* --- IMPROVED FULLSCREEN START POPUP --- */
+.start-popup-fullscreen {
+  position: fixed !important;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  background: linear-gradient(120deg, #1d1d1d 60%, #2b2b2b 100%);
   display: flex;
+  align-items: flex-start; /* Aligns content to the top */
+  justify-content: center;
+  height: 100vh; /* Fallback for older browsers */
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  overflow-y: auto; /* Allows scrolling if content is too tall */
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+  border: none; border-radius: 0; box-shadow: none;
+}
+.start-popup-content-full {
+  width: 100%;
+  max-width: 1200px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
-  margin-bottom: 2.5rem;
+  gap: 2.5rem;
 }
-
-.fighter-preview {
+.popup-title {
   font-family: 'Cinzel', serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  padding: 1rem 1.5rem;
-  border-width: 3px;
-  border-style: solid;
-  border-radius: 8px;
-  min-width: 200px;
-}
-
-.player-preview {
-  color: #f7d88b;
-  border-color: #e2c178;
-}
-
-.enemy-preview {
-  color: #ef9a9a;
-  border-color: #b71c1c;
-}
-
-.vs-text {
-  font-family: 'Cinzel', serif;
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 900;
-  color: #8a703d;
-}
-
-.start-btn {
-  font-family: 'Cinzel', serif;
-  font-weight: 900;
-  font-size: 2rem;
-  padding: 1rem 3rem;
-  border-radius: 12px;
-  border: 4px solid #f7d88b;
-  color: #1a1a1a;
-  cursor: pointer;
+  color: #e2c178;
+  margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transition: all 0.2s;
+  letter-spacing: 0.12em;
+  text-shadow: 0 2px 8px #000a;
+}
+.faceoff-container-full {
+  display: flex;
+  align-items: stretch; /* Makes cards the same height */
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
+}
+.fighter-preview-full {
+  flex: 1;
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px #0006, inset 0 1px 1px rgba(255,255,255,0.05);
+  border: 2px solid #444;
+  padding: 1.5rem;
+  min-width: 260px;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.fighter-preview-full:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px #0008, inset 0 1px 1px rgba(255,255,255,0.05);
+}
+.fighter-preview-full.player-preview { border-color: #e2c178; }
+.fighter-preview-full.enemy-preview { border-color: #b71c1c; }
+.fighter-name-full {
+  font-family: 'Cinzel', serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #e2c178;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 1px 4px #000a;
+}
+.vs-text-full {
+  font-family: 'Cinzel', serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #e2c178;
+  text-shadow: 0 2px 8px #000a;
+  align-self: center;
+  margin: 0 1rem;
+}
+.start-btn-full {
+  font-family: 'Cinzel', serif; font-weight: 900;
+  font-size: 2.2rem; padding: 1.2rem 4rem;
+  border-radius: 16px; border: 4px solid #f7d88b;
+  color: #1a1a1a; cursor: pointer; text-transform: uppercase;
+  letter-spacing: 0.12em; transition: all 0.2s;
   background: linear-gradient(to bottom, #e2c178, #b48d39);
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.4);
   box-shadow: 0 5px 15px rgba(226, 193, 120, 0.2);
 }
-
-.start-btn:hover {
+.start-btn-full:hover {
   transform: scale(1.05);
   box-shadow: 0 8px 25px rgba(226, 193, 120, 0.4);
 }
 
-/* --- NEW/UPDATED STYLES --- */
+/* --- Buttons & Modal Actions --- */
 .modal-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 1rem;
 }
-
+.modal-btn, .action-btn {
+  font-family: 'Cinzel', serif; font-weight: 700;
+  font-size: 1.2rem; padding: 0.8rem 2.5rem;
+  border-radius: 8px; border-width: 3px; border-style: solid;
+  cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.proceed-btn {
+  background: linear-gradient(to bottom, #e2c178, #b48d39);
+  border-color: #f7d88b; color: #3a2e15;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+}
+.proceed-btn:hover {
+  transform: translateY(-2px); box-shadow: 0 6px 15px rgba(226, 193, 120, 0.4);
+}
+.restart-btn {
+  background: linear-gradient(to bottom, #b71c1c, #8a1414);
+  border-color: #ef4444; color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.restart-btn:hover {
+  transform: translateY(-2px); box-shadow: 0 6px 15px rgba(183, 28, 28, 0.4);
+}
 .dismiss-btn {
-  background: none;
-  border: none;
-  color: #c8ab6b;
-  opacity: 0.8;
-  cursor: pointer;
-  text-decoration: underline;
-  font-size: 0.9rem;
-  padding: 0.5rem;
+  background: none; border: none; color: #c8ab6b;
+  opacity: 0.8; cursor: pointer; text-decoration: underline;
+  font-size: 0.9rem; padding: 0.5rem;
+}
+.dismiss-btn:hover { opacity: 1; color: #fff; }
+
+/* --- Post Battle UI --- */
+.post-battle-actions {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  width: 100%; gap: 1rem;
+}
+.post-battle-result {
+  font-family: 'Cinzel', serif; font-size: 2.2rem;
+  font-weight: 900; letter-spacing: 0.1em; margin: 0;
+}
+.post-battle-result.result-win {
+  color: #f7d88b; text-shadow: 0 0 10px #f7d88b, 0 0 3px #fff;
+}
+.post-battle-result.result-lose {
+  color: #ef4444; text-shadow: 0 0 10px #ef4444;
+}
+.action-buttons {
+  display: flex; align-items: center; gap: 1rem;
 }
 
-.dismiss-btn:hover {
-  opacity: 1;
-  color: #fff;
+
+/* --- Responsiveness --- */
+@media (max-width: 820px) {
+  .faceoff-container-full {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .fighter-preview-full {
+    width: 100%;
+    max-width: 400px;
+    min-width: 280px;
+  }
+  .vs-text-full {
+    margin: 0.5rem 0;
+    transform: rotate(90deg);
+  }
 }
 
+@media (max-width: 768px) {
+  .fighter-content { padding: 0.75rem; gap: 0.75rem; }
+  .fighter-name { font-size: 1.1rem; }
+}
 
+@media (max-width: 640px) {
+  .battle-arena {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .vs-separator { display: none; }
+  .battle-controls { flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+  .start-popup-fullscreen { padding: 1rem 0.5rem; }
+  .popup-title { font-size: 1.8rem; }
+  .fighter-preview-full { padding: 1rem; gap: 0.8rem; }
+  .fighter-name-full { font-size: 1.4rem; }
+  .start-btn-full { font-size: 1.5rem; padding: 1rem 2.5rem; }
+}
 </style>

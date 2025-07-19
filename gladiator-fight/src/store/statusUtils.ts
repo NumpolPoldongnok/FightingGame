@@ -1,5 +1,5 @@
-import type { Character } from './useGameStore'
-import type { Status } from '../types/status'
+import type { Character } from '../types/game'
+import type { Status } from '../types/game'
 
 /**
  * Generate a random Status object with the specified stat type being the highest.
