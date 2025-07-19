@@ -9,6 +9,7 @@ import PrepareScene from './scenes/PrepareScene.vue'
 import FightScene from './scenes/FightScene.vue'
 import StartBattleScene from './scenes/StartBattleScene.vue'
 import ResultScene from './scenes/ResultScene.vue'
+import StoreScene from './scenes/StoreScene.vue'
 import HistoryScene from './scenes/HistoryScene.vue'
 
 // Import Layout
@@ -64,8 +65,11 @@ function onBattleFinish(updatedCharacter: Character) {
 
   <CreateCharacterScene v-if="currentScene === scenes.CREATE" @create="game.createCharacter" />
 
+
   <ResultScene v-else-if="currentScene === scenes.RESULT" @restart="startNewGame"
     @back="currentScene = scenes.PREPARE" />
+
+  <StoreScene v-else-if="currentScene === scenes.STORE" @close="currentScene = scenes.PREPARE" />
 
   <StartBattleScene v-else-if="currentScene === scenes.COMPARE && character && enemy" :character="character"
     :enemy="enemy" :show="true" @start="handleStartBattle" @retreat="handleRetreat" />
@@ -75,7 +79,7 @@ function onBattleFinish(updatedCharacter: Character) {
 
   <!-- Default Layout for other scenes -->
   <UserLayout v-else @history="currentScene = scenes.HISTORY" @result="currentScene = scenes.RESULT"
-    @prepare="currentScene = scenes.PREPARE" @fight="handleStartFight" @restart="startNewGame">
+    @prepare="currentScene = scenes.PREPARE" @fight="handleStartFight" @restart="startNewGame" @townhall="currentScene = scenes.STORE">
     <!-- Scene content within the layout -->
     <PrepareScene v-if="currentScene === scenes.PREPARE && character" :character="character"
       @start-fight="handleStartFight" @restart="startNewGame" />

@@ -22,6 +22,7 @@ export const scenes = {
   RESULT: 'result',
   HISTORY: 'history',
   CREATE: 'create',
+  STORE: 'store',
 } as const
 export type Scene = typeof scenes[keyof typeof scenes]
 
