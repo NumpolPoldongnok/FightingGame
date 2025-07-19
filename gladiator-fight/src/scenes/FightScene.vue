@@ -5,8 +5,6 @@ import Popup from '../components/Popup.vue'
 import type { Character } from '../types/game'
 import { doBattleTurn, getLogClass } from '../store/battleUtils'
 import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
-import SkillList from '../components/SkillList.vue'
-import CharacterStatus from '../components/CharacterStatus.vue'
 import HPBar from '../components/HPBar.vue'
 
 const props = defineProps<{ character: Character, enemy: Character }>()
@@ -24,10 +22,6 @@ const battleResult = ref<'win' | 'lose' | null>(null)
 const isResultPopupDismissed = ref(false) // Tracks if the result popup has been dismissed
 
 // --- POPUP STATE ---
-const showStartPopup = computed({
-  get: () => !isBattleStarted.value,
-  set: (val: boolean) => { if (val) isBattleStarted.value = false }
-})
 const showResultPopup = computed({
   get: () => Boolean(battleResult.value && !isResultPopupDismissed.value),
   set: (val: boolean) => { if (!val) isResultPopupDismissed.value = true }
@@ -41,7 +35,7 @@ const baseInterval = 200
 
 // --- BATTLE LOGIC ---
 /** Called when the battle concludes. The result is based on the player's final HP. */
-function onFinish(winnerCharacter: Character) {
+function onFinish(character: Character) {
   clearInterval(intervalRef.value)
   battleResult.value = character.hp > 0 ? 'win' : 'lose'
 }

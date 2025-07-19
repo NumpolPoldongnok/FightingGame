@@ -52,6 +52,11 @@ function handleFightHistory(historyChar: Character) {
   currentScene.value = scenes.FIGHT;
 }
 
+function onBattleFinish(updatedCharacter: Character) {
+  console.log("onBattleFinish called with updatedCharacter:", updatedCharacter);
+  game.onBattleFinished(updatedCharacter);
+  currentScene.value = scenes.RESULT;
+}
 </script>
 
 <template>
@@ -66,7 +71,7 @@ function handleFightHistory(historyChar: Character) {
     :enemy="enemy" :show="true" @start="handleStartBattle" @retreat="handleRetreat" />
 
   <FightScene v-else-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
-    @battle-finished="game.onBattleFinished" @restart="startNewGame" @retreat="handleRetreat" />
+    @battle-finished="onBattleFinish" @restart="startNewGame"/>
 
   <!-- Default Layout for other scenes -->
   <UserLayout v-else @history="currentScene = scenes.HISTORY" @result="currentScene = scenes.RESULT"

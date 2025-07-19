@@ -128,9 +128,10 @@ export const useGameStore = defineStore('game', () => {
     };
   }
 
-  function onBattleFinished() {
+  function onBattleFinished(updatedCharacter: Character) {
     if (!character.value) return;
     if (!enemy.value) return;
+    character.value.hp = updatedCharacter.hp; // Update the character with the latest hp
     if (character.value.hp > 0) { // Player won
       character.value.winStreak++;
       if (enemy.value.winStreak > character.value.winStreak) {
@@ -140,11 +141,6 @@ export const useGameStore = defineStore('game', () => {
       character.value.statusPoint += 5;
       userProfile.value.money += character.value.lastMoneyEarned;
       skillChoices.value = skillUtils.randomSkillChoices(character.value.status.luk);
-    } else { // Player lost
-      character.value.lastMoneyEarned = 0;
-      // Add the fallen gladiator to history. Image is already in IndexedDB.
-      characterHistory.value.push({ ...character.value });
-      character.value = null;
     }
     currentScene.value = scenes.RESULT;
   }

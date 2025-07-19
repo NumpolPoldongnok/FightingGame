@@ -209,7 +209,7 @@ export function resetCooldown(fighter: BattleFighter) {
 // Calculate evasion: agi of defender vs dex of attacker
 export function calcEvasionChance(defender: BattleFighter, attacker: BattleFighter): number {
   let base = 10 + (defender.status.agi - attacker.status.dex) * 0.3 + (defender.status.luk - attacker.status.luk) * 0.7;
-  console.log('calcEvasionChance ', defender.name, attacker.name, base);
+  //console.log('calcEvasionChance ', defender.name, attacker.name, base);
   return Math.max(0, Math.min(99, base));
 }
 
