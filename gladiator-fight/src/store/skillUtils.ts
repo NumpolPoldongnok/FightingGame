@@ -1,5 +1,6 @@
-const MAX_STATUS = 999;
-import type { Character, Status } from './useGameStore'
+import { Status } from 'src/types/status'
+import { MAX_STATUS } from './statusUtils'
+import { Character } from './useGameStore'
 
 export type SkillData = {
   statusType: string

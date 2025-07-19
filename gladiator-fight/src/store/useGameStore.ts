@@ -6,12 +6,9 @@ import * as battleUtils from './battleUtils'
 import * as skillUtils from './skillUtils'
 import { imageStore } from './imageStore' // << NEW: Import the image store
 import type { Skill } from './skillUtils'
+import type { Status } from '../types/status'
+import { randomCharacterStatus } from './statusUtils'
 
-// --- TYPE DEFINITIONS ---
-export type Status = {
-  str: number; agi: number; vit: number;
-  dex: number; int: number; luk: number;
-}
 export type UserProfile = { money: number }
 export type Character = {
   id: string; // Unique ID is now essential
@@ -84,17 +81,46 @@ export const useGameStore = defineStore('game', () => {
     currentScene.value = scenes.CREATE;
   }
 
-  function randomCharacter(): Character {
-    const names = ['Maximus', 'Aurelius', 'Cassius', 'Valeria', 'Octavia', 'Livia', 'Tiberius', 'Lucius'];
-    const name = names[Math.floor(Math.random() * names.length)];
-    const status: Status = {
-      str: Math.floor(Math.random() * 10) + 5,
-      agi: Math.floor(Math.random() * 10) + 5,
-      vit: Math.floor(Math.random() * 10) + 5,
-      dex: Math.floor(Math.random() * 10) + 5,
-      int: Math.floor(Math.random() * 10) + 5,
-      luk: Math.floor(Math.random() * 10) + 5,
+  function randomCharacter(points: number): Character {
+    // Define character types and name pools
+    const typeKeys: (keyof Status)[] = ['str', 'agi', 'vit', 'dex', 'int', 'luk'];
+    // Name pools for each type (no duplicates per session)
+    const namePools: Record<keyof Status, string[]> = {
+      str: ['Maximus', 'Brutus', 'Gaius', 'Titus', 'Drusus'],
+      agi: ['Aurelia', 'Felix', 'Nero', 'Crispus', 'Sabina'],
+      vit: ['Cassia', 'Marcellus', 'Severus', 'Flavia', 'Publius'],
+      dex: ['Lucilla', 'Quintus', 'Vibia', 'Paulus', 'Agrippa'],
+      int: ['Octavia', 'Cornelia', 'Julius', 'Livia', 'Antonia'],
+      luk: ['Valeria', 'Fabia', 'Sextus', 'Claudia', 'Decimus'],
     };
+    // Track used names in a Set (in-memory, resets on reload)
+    if (!(window as any)._usedCharNames) (window as any)._usedCharNames = new Set();
+    const usedNames: Set<string> = (window as any)._usedCharNames;
+    // Randomly pick a type
+    const type: keyof Status = typeKeys[Math.floor(Math.random() * typeKeys.length)];
+    // Pick a name from the pool for that type
+    // Filter out used names for this session
+    const pool = namePools[type].filter(n => !usedNames.has(n + type));
+    let name: string;
+    if (pool.length > 0) {
+      name = pool[Math.floor(Math.random() * pool.length)];
+      usedNames.add(name + type);
+    } else {
+      // If all names used, allow reuse
+      name = namePools[type][Math.floor(Math.random() * namePools[type].length)];
+    }
+    // Append the status type as a title
+    const typeTitle: Record<keyof Status, string> = {
+      str: 'the Strength',
+      agi: 'the Agility',
+      vit: 'the Vitality',
+      dex: 'the Dexterity',
+      int: 'the Intellect',
+      luk: 'the Fortune',
+    };
+    name = `${name} ${typeTitle[type]}`;
+    // Generate status with the chosen type as the highest
+    const status: Status = randomCharacterStatus(points, type);
     const maxHp = 100 + status.vit * 10;
     return {
       id: `char_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -108,6 +134,7 @@ export const useGameStore = defineStore('game', () => {
       statusPoint: 0,
     };
   }
+
   function onBattleFinished() {
     if (!character.value) return;
 

@@ -1,4 +1,38 @@
-import type { Character, Status } from './useGameStore'
+import type { Character } from './useGameStore'
+import type { Status } from '../types/status'
+
+/**
+ * Generate a random Status object with the specified stat type being the highest.
+ * @param points - Total points to distribute (minimum 6)
+ * @param type - The key of the stat that should be the highest
+ * @returns Status object (caller must set maxHp and hp using vit)
+ * Note: If you use this for character creation, set maxHp = 100 + status.vit * HP_PER_VIT
+ */
+export function randomCharacterStatus(points: number, type: keyof Status): Status {
+  // Start with all stats at 1
+  const keys: (keyof Status)[] = ['str', 'agi', 'vit', 'dex', 'int', 'luk'];
+  const stats = { str: 1, agi: 1, vit: 1, dex: 1, int: 1, luk: 1 };
+  let remaining = points - 6;
+  // Distribute points randomly
+  while (remaining > 0) {
+    const key = keys[Math.floor(Math.random() * keys.length)];
+    stats[key]++;
+    remaining--;
+  }
+  // Find the stat with the highest value
+  let maxKey: keyof Status = type;
+  for (const k of keys) {
+    if (stats[k] > stats[maxKey]) maxKey = k;
+  }
+  // If the specified type is not already the highest, swap values
+  if (maxKey !== type) {
+    const temp = stats[type];
+    stats[type] = stats[maxKey];
+    stats[maxKey] = temp;
+  }
+  // The caller must set maxHp = 100 + stats.vit * HP_PER_VIT
+  return stats;
+}
 
 // --- Constants ---
 /** ค่าพลังสถานะสูงสุดที่ตัวละครสามารถมีได้ */

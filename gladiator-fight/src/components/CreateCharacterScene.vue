@@ -37,7 +37,7 @@
           <div class="chart-actions">
             <p class="chart-instructions">(Click point to increase / Right-click to decrease)</p>
             <!-- Show Randomize button only in normal creation mode -->
-            <button v-if="!isRebirthMode" type="button" class="random-btn" @click="randomFillStatus" :disabled="statusLeft <= 0">
+            <button v-if="!isRebirthMode" type="button" class="random-btn" @click="randomFillStatus" :disabled="isRebirthMode || statusLeft <= 0">
               Randomize
             </button>
           </div>
@@ -58,9 +58,9 @@
           <div v-for="key in statusKeys" :key="key" class="status-row">
             <span class="status-key">{{ key.toUpperCase() }}</span>
             <div class="status-controls">
-              <button type="button" @click="decrease(key)" :disabled="status[key] <= baseStat" class="stat-btn minus-btn">-</button>
+              <button type="button" @click="decrease(key)" :disabled="isRebirthMode || status[key] <= baseStat" class="stat-btn minus-btn">-</button>
               <span class="status-value">{{ status[key] }}</span>
-              <button type="button" @click="increase(key)" :disabled="statusLeft <= 0" class="stat-btn plus-btn">+</button>
+              <button type="button" @click="increase(key)" :disabled="isRebirthMode || statusLeft <= 0" class="stat-btn plus-btn">+</button>
             </div>
           </div>
         </div>
@@ -79,9 +79,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue' // << NEW >> Added onMounted
-import type { Status } from '../store/useGameStore'
 import { useGameStore } from '../store/useGameStore'
 import VueApexCharts from 'vue3-apexcharts'
+import type { Status } from '../types/status'
 
 const apexchart = VueApexCharts;
 const emit = defineEmits(['create'])
@@ -93,6 +93,7 @@ const statusTotal = 30;
 const baseStat = 1;
 const isRebirthMode = ref(false); // << NEW >> To track which mode we are in
 const imageData = ref<string | null>(null);
+
 const status = ref<Status>({
   str: baseStat, agi: baseStat, vit: baseStat,
   dex: baseStat, int: baseStat, luk: baseStat,
