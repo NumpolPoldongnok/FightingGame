@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { Character } from '../store/useGameStore'
-import CharacterStatus from './CharacterStatus.vue';
-import HPBar from './HPBar.vue';
-import CharacterPictureFrame from './CharacterPictureFrame.vue';
-import SkillList from './SkillList.vue';
+import CharacterStatus from '../components/CharacterStatus.vue';
+import HPBar from '../components/HPBar.vue';
+import CharacterPictureFrame from '../components/CharacterPictureFrame.vue';
+import SkillList from '../components/SkillList.vue';
 
 const props = defineProps<{
   character: Character

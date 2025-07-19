@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import CooldownBar from './CooldownBar.vue'
-import Popup from './Popup.vue'
-import CharacterPictureFrame from './CharacterPictureFrame.vue'
+import CooldownBar from '../components/CooldownBar.vue'
+import Popup from '../components/Popup.vue'
+import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
 import type { Character } from '../store/useGameStore'
 import { doBattleTurn, getLogClass } from '../store/battleUtils'
 import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
-import SkillList from './SkillList.vue'
-import CharacterStatus from './CharacterStatus.vue'
-import HPBar from './HPBar.vue'
+import SkillList from '../components/SkillList.vue'
+import CharacterStatus from '../components/CharacterStatus.vue'
+import HPBar from '../components/HPBar.vue'
 
 const props = defineProps<{ character: Character, enemy: Character }>()
 

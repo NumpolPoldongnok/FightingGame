@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { Character } from '../store/useGameStore';
 import type { Skill } from '../store/skillUtils'
-import CharacterStatus from './CharacterStatus.vue'
-import HPBar from './HPBar.vue'
+import CharacterStatus from '../components/CharacterStatus.vue'
+import HPBar from '../components/HPBar.vue'
 import { computed, onMounted } from 'vue';
-import SkillChoicePanel from './SkillChoicePanel.vue'
+import SkillChoicePanel from '../components/SkillChoicePanel.vue'
 
 const props = defineProps<{
   character: Character,

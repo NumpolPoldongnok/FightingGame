@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Character } from '../store/useGameStore'
 import { computed } from 'vue'
-import CharacterPictureFrame from './CharacterPictureFrame.vue'
+import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
 
 const props = defineProps<{ characterHistory: Character[] }>()
 const emit = defineEmits(['back', 'fightHistory'])
@@ -48,7 +48,7 @@ const statusSum = (c: Character) => {
             </div>
             <span class="character-stats">Total Stats: {{ statusSum(c) }}</span>
             <span class="character-hp">HP: {{ c.hp }}/{{ c.maxHp }}</span>
-            <button class="fight-history-btn" @click="emit('fightHistory', c)">Fight This Gladiator</button>
+            <button class="fight-history-btn" @click="emit('fightHistory', c)">Challenge This Streak</button>
           </div>
         </div>
       </details>

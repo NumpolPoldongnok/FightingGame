@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Character, useGameStore } from './store/useGameStore'
-import PrepareScene from './components/PrepareScene.vue'
-import FightScene from './components/FightScene.vue'
-import ResultScene from './components/ResultScene.vue'
-import HistoryScene from './components/HistoryScene.vue'
-import TownhallScene from './components/TownhallScene.vue'
+import PrepareScene from './scenes/PrepareScene.vue'
+import FightScene from './scenes/FightScene.vue'
+import ResultScene from './scenes/ResultScene.vue'
+import HistoryScene from './scenes/HistoryScene.vue'
+import TownhallScene from './scenes/TownhallScene.vue'
 import { storeToRefs } from 'pinia'
 import UserLayout from './layouts/UserLayout.vue'
-import CreateCharacterScene from './components/CreateCharacterScene.vue'
+import CreateCharacterScene from './scenes/CreateCharacterScene.vue'
 
 const game = useGameStore()
 const {
