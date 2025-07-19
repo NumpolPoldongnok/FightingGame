@@ -215,7 +215,7 @@ function cancelRetreat() {
 .vs-text-full {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 0%;
   transform: translate(-50%, -50%);
   z-index: 2;
   font-family: 'Cinzel', serif;
@@ -228,7 +228,24 @@ function cancelRetreat() {
 
   pointer-events: none;
 }
-
+.vs-separator.vs-overlay {
+  position: absolute;
+  left: 50%;
+  top: 0%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  font-family: 'Cinzel', serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #e2c178;
+  text-shadow: 0 2px 8px #000a, 0 0 16px #000c;
+  border-radius: 50%;
+  padding: 0.7em 1.2em;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* --- UI IMPROVEMENT: ACTION BUTTONS HIERARCHY --- */
 /* Responsive action buttons */

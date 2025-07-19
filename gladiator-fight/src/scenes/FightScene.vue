@@ -112,16 +112,14 @@ onUnmounted(() => {
         <div class="fighter-content">
           <HPBar :value="character.hp" :max="character.maxHp" type="player" />
           <CooldownBar :value="character.cooldown ?? 0" :max="maxCooldown" />
-          <SkillList :skills="character.skills.filter(s => s.active === true)" />
         </div>
       </div>
-      <div class="vs-separator">VS</div>
+      <div class="vs-separator vs-overlay">VS</div>
       <div class="fighter-card enemy">
         <h3 class="fighter-name">{{ enemy.name }}</h3>
         <div class="fighter-content">
           <HPBar :value="enemy.hp" :max="enemy.maxHp" type="enemy" />
           <CooldownBar :value="enemy.cooldown ?? 0" :max="maxCooldown" />
-          <SkillList :skills="enemy.skills.filter(s => s.active === true)" />
         </div>
       </div>
     </div>
@@ -204,23 +202,35 @@ onUnmounted(() => {
   border-color: #e2c178;
 }
 
+/* Overlay VS in battle arena */
 .battle-arena {
+  position: relative;
   display: flex;
   gap: 1rem;
   justify-content: center;
   align-items: stretch;
   margin-bottom: 2rem;
+  min-height: 220px;
 }
 
-.vs-separator {
+/* VS overlay at center of battle arena */
+.vs-separator.vs-overlay {
+  position: absolute;
+  left: 50%;
+  top: 0%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
   font-family: 'Cinzel', serif;
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   font-weight: 900;
-  color: #c8ab6b;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: #e2c178;
+  text-shadow: 0 2px 8px #000a, 0 0 16px #000c;
+  border-radius: 50%;
+  padding: 0.7em 1.2em;
+  pointer-events: none;
   display: flex;
   align-items: center;
-  padding: 0 0.5rem;
+  justify-content: center;
 }
 
 .fighter-card {
@@ -519,14 +529,7 @@ onUnmounted(() => {
   .fighter-name { font-size: 1.1rem; }
 }
 
-@media (max-width: 640px) {
-  .battle-arena {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  .vs-separator { display: none; }
-  .battle-controls { flex-direction: column; }
-}
+
 
 @media (max-width: 480px) {
   .start-popup-fullscreen { padding: 1rem 0.5rem; }
