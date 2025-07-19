@@ -294,8 +294,10 @@ export function getEnemy(
     }
   }
   if (!newEnemy) {
-    const power = (character.winStreak ?? 1)
-    const total = 20 + (power * power);
+    const power = character.winStreak * character.winStreak
+    const easy = character.winStreak * 10
+    const total = 20 + Math.max(easy, power);
+
     console.log('total power for enemy:', total);
     newEnemy = randomCharacter(total);
   }

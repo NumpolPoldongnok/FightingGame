@@ -90,7 +90,7 @@ export const useGameStore = defineStore('game', () => {
       // If all names used, allow reuse
       name = namePools[type][Math.floor(Math.random() * namePools[type].length)];
     }
-    // Append the status type as a title
+    // Append the status type as a title for >50, and a legendary title for >100
     const typeTitle: Record<keyof Status, string> = {
       str: 'the Strength',
       agi: 'the Agility',
@@ -99,9 +99,21 @@ export const useGameStore = defineStore('game', () => {
       int: 'the Intellect',
       luk: 'the Fortune',
     };
-    name = `${name} ${typeTitle[type]}`;
+    const legendaryTitle: Record<keyof Status, string> = {
+      str: 'the Legendary Strength',
+      agi: 'the Legendary Agility',
+      vit: 'the Legendary Vitality',
+      dex: 'the Legendary Dexterity',
+      int: 'the Legendary Intellect',
+      luk: 'the Legendary Fortune',
+    };
     // Generate status with the chosen type as the highest
     const status: Status = randomCharacterStatus(points, type);
+    if (status[type] > 100) {
+      name = `${name} ${legendaryTitle[type]}`;
+    } else if (status[type] > 50) {
+      name = `${name} ${typeTitle[type]}`;
+    }
     const maxHp = 100 + status.vit * 10;
     return {
       id: `char_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
