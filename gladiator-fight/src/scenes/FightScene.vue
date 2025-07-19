@@ -380,25 +380,29 @@ onUnmounted(() => {
   text-shadow: 0 0 15px #ef4444;
 }
 
-.modal-btn {
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  font-size: 1.2rem;
-  padding: 0.75rem 2.5rem;
-  border-radius: 8px;
-  border-width: 3px;
-  border-style: solid;
-  color: #fff;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all 0.2s;
-  background: #6b552d;
-  border-color: #c8ab6b;
-}
 
-.modal-btn:hover {
-  background: #8a703d;
+.result-message {
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  font-size: 2.2rem;
+  padding: 0.7rem 2.5rem;
+  border-radius: 12px;
+  margin: 0.5rem 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 1.5px 0 #fff2;
+  background: linear-gradient(90deg, #f7d88b 0%, #e2c178 100%);
+  color: #44341b;
+  text-shadow: 0 2px 8px #fff8, 0 1px 0 #fff4;
+  pointer-events: none;
+  border: none;
+  transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+}
+.result-lose {
+  background: linear-gradient(90deg, #ef4444 0%, #b71c1c 100%);
+  color: #fff;
+  text-shadow: 0 2px 8px #b71c1c88, 0 1px 0 #fff4;
 }
 
 .fade-enter-active,
