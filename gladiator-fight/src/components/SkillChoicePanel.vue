@@ -3,7 +3,7 @@
     <!-- Panel Header -->
     <header class="panel-header">
       <h3 class="panel-title">CHOOSE YOUR REWARD</h3>
-      <button @click="$emit('refresh-skill')" class="refresh-btn" title="Refresh Skill Choices">
+      <button v-if="showRefresh" @click="showRefreshConfirm = true" class="refresh-btn" title="Refresh Skill Choices">
         🔄
       </button>
     </header>
@@ -24,7 +24,7 @@
       <button @click="showConfirm = true" class="back-btn">Back to Prepare</button>
     </footer>
 
-    <!-- Confirmation Modal -->
+    <!-- Confirm Back Modal -->
     <transition name="fade">
       <div v-if="showConfirm" class="modal-overlay">
         <div class="modal-content">
@@ -37,25 +37,60 @@
         </div>
       </div>
     </transition>
+
+    <!-- Confirm Refresh Modal -->
+    <transition name="fade">
+      <div v-if="showRefreshConfirm" class="modal-overlay">
+        <div class="modal-content">
+          <h4>Refresh Skill Choices</h4>
+          <p>This will cost <b>{{ refreshCost }}</b> Gold. Proceed?</p>
+          <div class="modal-actions">
+            <button @click="showRefreshConfirm = false" class="modal-btn btn-cancel">Cancel</button>
+            <button @click="confirmRefresh" class="modal-btn btn-confirm">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+
+import { ref, computed } from 'vue'
 import type { Skill } from '../store/skillUtils'
 import SkillChoiceButton from './SkillChoiceButton.vue'
+import { useGameStore } from '../store/useGameStore'
+import { calcHealCost } from '../store/battleUtils'
+
 
 const props = defineProps<{
-  skillChoices: Skill[]
+  skillChoices: Skill[],
+  showRefresh?: boolean
 }>()
 
 const emit = defineEmits(['choose-skill', 'refresh-skill', 'back'])
-
 const showConfirm = ref(false)
+const showRefreshConfirm = ref(false)
+const game = useGameStore()
+const refreshCost = computed(() => {
+  if (!game.character) return 0
+  return calcHealCost(game.character, 30)
+})
 
 function confirmBack() {
   showConfirm.value = false
   emit('back')
+}
+
+function confirmRefresh() {
+  if (game.userProfile.money < refreshCost.value) {
+    alert('Not enough gold!')
+    showRefreshConfirm.value = false
+    return
+  }
+  game.userProfile.money -= refreshCost.value
+  showRefreshConfirm.value = false
+  emit('refresh-skill')
 }
 </script>
 

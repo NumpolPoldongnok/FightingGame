@@ -62,6 +62,12 @@ export const useGameStore = defineStore('game', () => {
     currentScene.value = scenes.CREATE;
   }
 
+  function chooseSkill(idx: number, character: Character, choices: Skill[]) {
+    const skill = choices[idx];
+    character.skills.push(skill);
+    skillChoices.value = [];
+  }
+
   function randomCharacter(points: number): Character {
     // Define character types and name pools
     const typeKeys = ['str', 'agi', 'vit', 'dex', 'int', 'luk'] as (keyof Status)[];
@@ -141,6 +147,7 @@ export const useGameStore = defineStore('game', () => {
       character.value.statusPoint += 5;
       userProfile.value.money += character.value.lastMoneyEarned;
       skillChoices.value = skillUtils.randomSkillChoices(character.value.status.luk);
+      console.log('Battle won! New skill choices:', skillChoices.value);
     }
     currentScene.value = scenes.RESULT;
   }
@@ -206,6 +213,7 @@ export const useGameStore = defineStore('game', () => {
     // ... return all your state and actions
     scenes, userProfile, character, enemy, currentScene,
     skillChoices, characterHistory,
-    createCharacter, updateCharacterImage, startNewGame, onBattleFinished, buyHeal, randomCharacter
+    createCharacter, updateCharacterImage, startNewGame, onBattleFinished, buyHeal, randomCharacter,
+    chooseSkill
   };
 })

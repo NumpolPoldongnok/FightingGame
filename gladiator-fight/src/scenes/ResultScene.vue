@@ -6,31 +6,26 @@ import CharacterStatus from '../components/CharacterStatus.vue'
 import HPBar from '../components/HPBar.vue'
 import { computed, onMounted, ref } from 'vue';
 import SkillChoicePanel from '../components/SkillChoicePanel.vue'
-import { randomSkillChoices, chooseSkill, type Skill } from '../store/skillUtils'
+import { randomSkillChoices, type Skill } from '../store/skillUtils'
 
 
 const game = useGameStore()
-const { character } = storeToRefs(game)
+
+const { character, skillChoices } = storeToRefs(game)
 
 const emit = defineEmits(['restart', 'back'])
 
-// Skill choices state
-const skillChoices = ref<Skill[]>([])
 
 function handleChooseSkill(idx: number) {
   if (!character.value) return
-  chooseSkill(idx, character.value, skillChoices.value)
+  game.chooseSkill(idx, character.value, skillChoices.value)
   emit('back')
 }
 
 function refreshSkillChoices() {
   if (!character.value) return
-  skillChoices.value = randomSkillChoices(character.value.status.luk)
+  game.skillChoices = randomSkillChoices(character.value.status.luk)
 }
-
-onMounted(() => {
-  refreshSkillChoices()
-})
 
 </script>
 
@@ -63,6 +58,7 @@ onMounted(() => {
       @choose-skill="handleChooseSkill"
       @refresh-skill="refreshSkillChoices"
       @back="() => emit('back')"
+      :show-refresh="skillChoices.length > 0"
     />
   </div>
 </template>
