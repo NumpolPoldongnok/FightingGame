@@ -2,7 +2,9 @@
 import type { Status } from '../types/game'
 import type { Character } from '../types/game'
 import { increaseStatus, canIncreaseStatus, canDecreaseStatus, putAllPointsToStatus, resetStatusKeyToOne } from '../store/statusUtils'
+import { calcHealCost } from '../store/battleUtils'
 import { useGameStore } from '../store/useGameStore'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   character: Character
@@ -11,12 +13,50 @@ const props = defineProps<{
   foldOpen?: boolean
 }>()
 
-const statusKeys: (keyof Status)[] = ['str', 'agi', 'vit', 'dex', 'int', 'luk']
 
+const statusKeys: (keyof Status)[] = ['str', 'agi', 'vit', 'dex', 'int', 'luk']
 const store = useGameStore()
 
+const showConfirm = ref(false)
+const confirmAction = ref<'decrease'|'reset'|null>(null)
+const confirmKey = ref<keyof Status|null>(null)
+const confirmCost = ref(0)
+const alwaysConfirm = ref(false)
+
+function getDecreaseCost(character: Character, key: keyof Status) {
+  // Cost is equal to heal 5% for this character
+  return calcHealCost(character, 5)
+}
+function getResetCost(character: Character, key: keyof Status) {
+  // Cost is status[key] * heal 5% for this character
+  return character.status[key] * calcHealCost(character, 5)
+}
+
 function decreaseStatusWithCost(character: Character, key: keyof Status) {
-  const cost = 1
+  const cost = getDecreaseCost(character, key)
+  if (alwaysConfirm.value) {
+    doDecrease(character, key, cost)
+  } else {
+    confirmAction.value = 'decrease'
+    confirmKey.value = key
+    confirmCost.value = cost
+    showConfirm.value = true
+  }
+}
+
+function resetKeyToOneWithCost(key: keyof Status) {
+  const cost = getResetCost(props.character, key)
+  if (alwaysConfirm.value) {
+    doReset(key, cost)
+  } else {
+    confirmAction.value = 'reset'
+    confirmKey.value = key
+    confirmCost.value = cost
+    showConfirm.value = true
+  }
+}
+
+function doDecrease(character: Character, key: keyof Status, cost: number) {
   if (store.userProfile.money >= cost) {
     store.userProfile.money -= cost
     // @ts-ignore
@@ -26,15 +66,41 @@ function decreaseStatusWithCost(character: Character, key: keyof Status) {
   }
 }
 
+function doReset(key: keyof Status, cost: number) {
+  if (store.userProfile.money >= cost) {
+    store.userProfile.money -= cost
+    resetStatusKeyToOne(props.character, key)
+  } else {
+    alert('เงินไม่พอสำหรับรีเซ็ต ต้องใช้ ' + cost + ' Gold')
+  }
+}
+
+function handleConfirm(ok: boolean) {
+  if (ok && confirmAction.value && confirmKey.value !== null) {
+    if (confirmAction.value === 'decrease') {
+      doDecrease(props.character, confirmKey.value, confirmCost.value)
+    } else if (confirmAction.value === 'reset') {
+      doReset(confirmKey.value, confirmCost.value)
+    }
+  }
+  showConfirm.value = false
+  confirmAction.value = null
+  confirmKey.value = null
+  confirmCost.value = 0
+}
+
+function setAlwaysConfirm(val: boolean) {
+  alwaysConfirm.value = val
+}
+
 function putAllPoints(key: keyof Status) {
   putAllPointsToStatus(props.character, key)
 }
 
 function resetKeyToOne(key: keyof Status) {
-  resetStatusKeyToOne(props.character, key)
+  resetKeyToOneWithCost(key)
 }
 
-import { ref, watch } from 'vue'
 // Fold open state controlled by prop, but can be toggled by user
 const foldOpenState = ref(props.foldOpen !== false)
 watch(() => props.foldOpen, (val) => {
@@ -46,6 +112,7 @@ function toggleFold(e: Event) {
   // Prevent default summary toggle to keep it in sync
   e.preventDefault()
 }
+
 </script>
 
 <template>
@@ -72,21 +139,34 @@ function toggleFold(e: Event) {
         </li>
       </ul>
     </div>
+
+    <div v-if="showConfirm" class="modal-mask">
+      <div class="modal-wrapper">
+        <div class="modal-container">
+          <h3 class="modal-title">ยืนยันการใช้ Gold</h3>
+          <div class="modal-body">
+            <p v-if="confirmAction === 'decrease'">
+              ลดค่าสถานะ <b>{{ confirmKey && confirmKey.toUpperCase() }}</b> ต้องใช้ <b>{{ confirmCost }}</b> Gold<br>
+              (คิดตามค่า Heal 5% ของตัวละครนี้)
+            </p>
+            <p v-else-if="confirmAction === 'reset'">
+              รีเซ็ตค่าสถานะ <b>{{ confirmKey && confirmKey.toUpperCase() }}</b> กลับเป็น 1 ต้องใช้ <b>{{ confirmCost }}</b> Gold<br>
+              (คิดตามค่า Heal 5% x ค่าสถานะ)
+            </p>
+            <label class="modal-checkbox">
+              <input type="checkbox" v-model="alwaysConfirm" @change="setAlwaysConfirm(alwaysConfirm)">
+              ไม่ต้องถามอีกในเซสชันนี้ (Always confirm this session)
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button class="modal-btn confirm" @click="handleConfirm(true)">ยืนยัน</button>
+            <button class="modal-btn cancel" @click="handleConfirm(false)">ยกเลิก</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </details>
 </template>
-import { ref, watch } from 'vue'
-
-// Fold open state controlled by prop, but can be toggled by user
-const foldOpenState = ref(props.foldOpen !== false)
-watch(() => props.foldOpen, (val) => {
-  foldOpenState.value = val !== false
-})
-function toggleFold(e: Event) {
-  // Only toggle if user clicks summary (not programmatically)
-  foldOpenState.value = !foldOpenState.value
-  // Prevent default summary toggle to keep it in sync
-  e.preventDefault()
-}
 
 <style scoped>
 /* === Gladiator Themed Status Component === */
@@ -134,10 +214,13 @@ function toggleFold(e: Event) {
   border-radius: 0 0 8px 8px;
   border: 2px solid #8a703d;
   border-top: none;
+
+
   padding: 1rem;
   box-sizing: border-box;
   box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
 }
+
 
 .status-point-row {
   display: flex;
@@ -231,4 +314,5 @@ function toggleFold(e: Event) {
 .stat-btn-all, .stat-btn-reset {
   font-size: 0.8rem;
 }
+/* ...existing styles... */
 </style>
