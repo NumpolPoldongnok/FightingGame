@@ -6,6 +6,7 @@ import type { Character } from '../types/game'
 import { doBattleTurn, battleAction, getLogClass, BATTLE_MAX_COOLDOWN, AttackType, randomEnemyAttackType, randomEnemyDefenseType } from '../store/battleUtils'
 import { toBattleFighter } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
+import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
 
 const props = defineProps<{ character: Character, enemy: Character }>()
 
@@ -30,11 +31,17 @@ const resultPopupClass = computed(() =>
 )
 const intervalRef = { value: undefined as any }
 const speed = ref(1)
-const baseInterval = 2000
+const baseInterval = 200
 
 // --- ATTACK/DEFENSE POPUP STATE ---
 const showAttackTypePopup = ref(false)
 const showDefenseTypePopup = ref(false)
+const alwaysAttackType = ref<'phy' | 'magic' | 'mix' | null>(null)
+const alwaysDefendType = ref<'phy' | 'magic' | 'mix' | null>(null)
+const alwaysAttackChecked = ref(false)
+const alwaysDefendChecked = ref(false)
+const attackTypePopupDismissed = ref(false)
+const defenseTypePopupDismissed = ref(false)
 
 // --- BATTLE LOGIC ---
 // Store selectAttack/selectDefense callbacks in refs
@@ -52,25 +59,36 @@ function doBattleTurnWrapper() {
     enemy,
     // onPlayerAction
     ({ character, enemy }) => {
+      if (alwaysAttackChecked.value && alwaysAttackType.value) {
+        handleAttackTypeSelect(alwaysAttackType.value, true)
+        return
+      }
       if (intervalRef.value) {
         clearInterval(intervalRef.value)
         intervalRef.value = undefined
       }
       showAttackTypePopup.value = true
+      attackTypePopupDismissed.value = false
     },
     // onEnemyAction
     ({ character, enemy }) => {
+      if (alwaysDefendChecked.value && alwaysDefendType.value) {
+        handleDefenseTypeSelect(alwaysDefendType.value, true)
+        return
+      }
       if (intervalRef.value) {
         clearInterval(intervalRef.value)
         intervalRef.value = undefined
       }
       showDefenseTypePopup.value = true
+      defenseTypePopupDismissed.value = false
     }
   )
 }
 
-function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix') {
+function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix', auto = false) {
   showAttackTypePopup.value = false
+  if (alwaysAttackChecked.value) alwaysAttackType.value = type
   // After player selects, resolve the action
   battleAction(
     character,
@@ -86,8 +104,9 @@ function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix') {
     intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
   }
 }
-function handleDefenseTypeSelect(type: 'phy' | 'magic' | 'mix') {
+function handleDefenseTypeSelect(type: 'phy' | 'magic' | 'mix', auto = false) {
   showDefenseTypePopup.value = false
+  if (alwaysDefendChecked.value) alwaysDefendType.value = type
   // After player selects, resolve the action (enemy attacks)
   battleAction(
     enemy,
@@ -116,6 +135,23 @@ function setSpeed(mult: number) {
     clearInterval(intervalRef.value)
     intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
   }
+}
+
+function dismissAttackTypePopup() {
+  showAttackTypePopup.value = false
+  attackTypePopupDismissed.value = true
+}
+function continueAttackTypePopup() {
+  showAttackTypePopup.value = true
+  attackTypePopupDismissed.value = false
+}
+function dismissDefenseTypePopup() {
+  showDefenseTypePopup.value = false
+  defenseTypePopupDismissed.value = true
+}
+function continueDefenseTypePopup() {
+  showDefenseTypePopup.value = true
+  defenseTypePopupDismissed.value = false
 }
 // --- LIFECYCLE ---
 onMounted(() => {
@@ -197,23 +233,59 @@ onUnmounted(() => {
 
     <!-- Attack Type Selection Popup -->
     <Popup v-model="showAttackTypePopup" customClass="attack-type-popup" :showClose="false">
-      <h2 class="popup-title">Select Attack Type</h2>
-      <div class="attack-type-options">
-        <button class="attack-type-btn" @click="handleAttackTypeSelect('phy')">Physical</button>
-        <button class="attack-type-btn" @click="handleAttackTypeSelect('magic')">Magic</button>
-        <button class="attack-type-btn" @click="handleAttackTypeSelect('mix')">Mixed</button>
+      <div class="popup-attack-content">
+        <h2 class="popup-title">Select Attack Type</h2>
+        <div class="popup-explanation">
+          <span>Choose how you want to attack the enemy.</span>
+        </div>
+        <div class="popup-character-frame">
+          <CharacterPictureFrame :character="character" size="lg" />
+          <div class="popup-character-name">{{ character.name }}</div>
+        </div>
+        <div class="attack-type-options">
+          <button class="attack-type-btn" @click="handleAttackTypeSelect('phy')">Physical</button>
+          <button class="attack-type-btn" @click="handleAttackTypeSelect('magic')">Magic</button>
+          <button class="attack-type-btn" @click="handleAttackTypeSelect('mix')">Mixed</button>
+        </div>
+        <label class="popup-checkbox">
+          <input type="checkbox" v-model="alwaysAttackChecked" /> Always use this attack type
+        </label>
+        <button class="dismiss-btn" @click="dismissAttackTypePopup">Inspect</button>
       </div>
     </Popup>
+    <template v-if="attackTypePopupDismissed">
+      <div class="popup-inspect-continue">
+        <button class="continue-btn" @click="continueAttackTypePopup">Continue</button>
+      </div>
+    </template>
 
     <!-- Defense Type Selection Popup -->
     <Popup v-model="showDefenseTypePopup" customClass="defense-type-popup" :showClose="false">
-      <h2 class="popup-title">Select Defense Type</h2>
-      <div class="defense-type-options">
-        <button class="defense-type-btn" @click="handleDefenseTypeSelect('phy')">Physical</button>
-        <button class="defense-type-btn" @click="handleDefenseTypeSelect('magic')">Magic</button>
-        <button class="defense-type-btn" @click="handleDefenseTypeSelect('mix')">Mixed</button>
+      <div class="popup-attack-content">
+        <h2 class="popup-title">Select Defense Type</h2>
+        <div class="popup-explanation">
+          <span>Choose how you want to defend against the enemy's attack.</span>
+        </div>
+        <div class="popup-character-frame">
+          <CharacterPictureFrame :character="enemy" size="lg" />
+          <div class="popup-character-name">{{ enemy.name }}</div>
+        </div>
+        <div class="defense-type-options">
+          <button class="defense-type-btn" @click="handleDefenseTypeSelect('phy')">Physical</button>
+          <button class="defense-type-btn" @click="handleDefenseTypeSelect('magic')">Magic</button>
+          <button class="defense-type-btn" @click="handleDefenseTypeSelect('mix')">Mixed</button>
+        </div>
+        <label class="popup-checkbox">
+          <input type="checkbox" v-model="alwaysDefendChecked" /> Always use this defense type
+        </label>
+        <button class="dismiss-btn" @click="dismissDefenseTypePopup">Inspect</button>
       </div>
     </Popup>
+    <template v-if="defenseTypePopupDismissed">
+      <div class="popup-inspect-continue">
+        <button class="continue-btn" @click="continueDefenseTypePopup">Continue</button>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -610,5 +682,107 @@ onUnmounted(() => {
   .fighter-preview-full { padding: 1rem; gap: 0.8rem; }
   .fighter-name-full { font-size: 1.4rem; }
   .start-btn-full { font-size: 1.5rem; padding: 1rem 2.5rem; }
+}
+
+.popup-attack-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem 0.5rem 0.5rem 0.5rem;
+}
+.popup-explanation {
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  color: #e2c178;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  max-width: 400px;
+}
+.popup-explanation ul {
+  margin: 0.5rem 0 0 1.2rem;
+  padding: 0;
+  color: #fdecc4;
+  font-size: 0.98rem;
+}
+.popup-character-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.5rem 0 1rem 0;
+}
+.popup-character-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #e2c178;
+  margin-top: 0.3rem;
+  text-shadow: 0 1px 4px #000a;
+}
+.attack-type-options, .defense-type-options {
+  display: flex;
+  gap: 1.2rem;
+  margin-top: 0.5rem;
+}
+.attack-type-btn, .defense-type-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.7rem 2.2rem;
+  border-radius: 10px;
+  border: 3px solid #e2c178;
+  background: linear-gradient(to bottom, #3a2e15, #6b552d);
+  color: #fdecc4;
+  box-shadow: 0 2px 8px #0006;
+  transition: all 0.18s;
+  cursor: pointer;
+}
+.attack-type-btn:hover, .defense-type-btn:hover {
+  background: linear-gradient(to bottom, #e2c178, #b48d39);
+  color: #3a2e15;
+  border-color: #fff;
+  box-shadow: 0 0 10px #e2c178;
+}
+
+.popup-checkbox {
+  margin-top: 0.7rem;
+  color: #e2c178;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.popup-checkbox input[type="checkbox"] {
+  accent-color: #e2c178;
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.popup-inspect-continue {
+  display: flex;
+  justify-content: center;
+  margin: 1.2rem 0 1.5rem 0;
+}
+.continue-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.7rem 2.2rem;
+  border-radius: 10px;
+  border: 3px solid #e2c178;
+  background: linear-gradient(to bottom, #e2c178, #b48d39);
+  color: #3a2e15;
+  box-shadow: 0 2px 8px #0006;
+  transition: all 0.18s;
+  cursor: pointer;
+}
+.continue-btn:hover {
+  background: linear-gradient(to bottom, #b48d39, #e2c178);
+  color: #44341b;
+  border-color: #fff;
+  box-shadow: 0 0 10px #e2c178;
 }
 </style>
