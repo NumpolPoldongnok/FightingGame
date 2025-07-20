@@ -1,4 +1,4 @@
-import { MAX_STATUS } from './statusUtils'
+import { HP_PER_VIT, MAX_STATUS } from './statusUtils'
 import { Character, Status } from '../types/game'
 
 export type SkillData = {
@@ -71,26 +71,32 @@ export function randomSkillChoices(luk: number = 0): Skill[] {
   return choices.slice(0, numChoices);
 }
 
-export function applySkill(idx: number, character: Character, skillChoices: Skill[]) {
+export function chooseSkill(idx: number, character: Character, skillChoices: Skill[]) {
   const skill = skillChoices[idx];
-  if (!character.skills) character.skills = [];
   character.skills.push(skill);
-  character.status.str = skillStatus(character, 'str', skill);
-  character.status.agi = skillStatus(character, 'agi', skill);
-  const oldVit = character.status.vit;
-  character.status.vit = skillStatus(character, 'vit', skill);
-  // 1 vit = +10 hp, maxHp
-  const vitDiff = character.status.vit - oldVit;
-  if (vitDiff !== 0) {
-    character.maxHp += vitDiff * 10;
-    character.hp += vitDiff * 10;
-    if (character.hp > character.maxHp) character.hp = character.maxHp;
-    if (character.maxHp < 1) character.maxHp = 1;
-    if (character.hp < 0) character.hp = 0;
+}
+
+export function applySkills(character: Character) {
+
+  for (const skill of character.skills) {
+    character.status.str = skillStatus(character, 'str', skill);
+    character.status.agi = skillStatus(character, 'agi', skill);
+    const oldVit = character.status.vit;
+    character.status.vit = skillStatus(character, 'vit', skill);
+    // 1 vit = +HP_PER_VIT hp, maxHp
+    const vitDiff = character.status.vit - oldVit;
+    if (vitDiff !== 0) {
+      character.maxHp += vitDiff * HP_PER_VIT;
+      character.hp += vitDiff * HP_PER_VIT;
+      if (character.hp > character.maxHp) character.hp = character.maxHp;
+      if (character.maxHp < 1) character.maxHp = 1;
+      if (character.hp < 0) character.hp = 0;
+    }
+    character.status.dex = skillStatus(character, 'dex', skill);
+    character.status.int = skillStatus(character, 'int', skill);
+    character.status.luk = skillStatus(character, 'luk', skill);
   }
-  character.status.dex = skillStatus(character, 'dex', skill);
-  character.status.int = skillStatus(character, 'int', skill);
-  character.status.luk = skillStatus(character, 'luk', skill);
+
 }
 
 function applyBuff(val: number, buff: SkillData, type: keyof Character['status']): number {
@@ -99,7 +105,7 @@ function applyBuff(val: number, buff: SkillData, type: keyof Character['status']
       val += parseInt(buff.value)
     }
     if (buff.multiply && buff.multiply !== '0%' && buff.multiply !== '0.00%') {
-      val = Math.floor(val * (1 + parseFloat(buff.multiply.replace('%',''))/100))
+      val = Math.floor(val * (1 + parseFloat(buff.multiply.replace('%', '')) / 100))
     }
   }
   return val
@@ -111,7 +117,7 @@ function applyDebuff(val: number, debuff: SkillData, type: keyof Character['stat
       val -= parseInt(debuff.value)
     }
     if (debuff.multiply && debuff.multiply !== '0%' && debuff.multiply !== '0.00%') {
-      val = Math.floor(val * (1 - parseFloat(debuff.multiply.replace('%',''))/100))
+      val = Math.floor(val * (1 - parseFloat(debuff.multiply.replace('%', '')) / 100))
     }
     if (val < 0) val = 0
   }

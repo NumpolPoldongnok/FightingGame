@@ -1,22 +1,24 @@
 <script setup lang="ts">
 const emit = defineEmits(['close'])
+
 import { useGameStore } from '../store/useGameStore'
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
+import * as battleUtils from '../store/battleUtils'
 
 const game = useGameStore()
 const { character, userProfile } = storeToRefs(game)
 
-const heal20Cost = 20
-const heal100Cost = 80
+const heal20Cost = computed(() => character.value ? battleUtils.calcHealCost(character.value, 20) : 20)
+const heal100Cost = computed(() => character.value ? battleUtils.calcHealCost(character.value, 100) : 80)
 const healError = ref('')
 
-const canHeal20 = computed(() => character.value && character.value.hp < character.value.maxHp && (userProfile.value.money >= heal20Cost))
-const canHeal100 = computed(() => character.value && character.value.hp < character.value.maxHp && (userProfile.value.money >= heal100Cost))
+const canHeal20 = computed(() => character.value && character.value.hp < character.value.maxHp && (userProfile.value.money >= heal20Cost.value))
+const canHeal100 = computed(() => character.value && character.value.hp < character.value.maxHp && (userProfile.value.money >= heal100Cost.value))
 
 function buyHeal(percent: number) {
   if (!character.value) return
-  let cost = percent === 100 ? heal100Cost : heal20Cost
+  const cost = percent === 100 ? heal100Cost.value : heal20Cost.value
   if (userProfile.value.money < cost) {
     healError.value = 'Not enough gold.'
     return
@@ -39,11 +41,11 @@ function buyHeal(percent: number) {
     <div v-if="character" class="heal-options">
       <div class="heal-option">
         <span>Heal 20% HP</span>
-        <button :disabled="!canHeal20" @click="buyHeal(20)">Buy (20 Gold)</button>
+        <button :disabled="!canHeal20" @click="buyHeal(20)">Buy ({{ heal20Cost }})</button>
       </div>
       <div class="heal-option">
         <span>Heal 100% HP</span>
-        <button :disabled="!canHeal100" @click="buyHeal(100)">Buy (80 Gold)</button>
+        <button :disabled="!canHeal100" @click="buyHeal(100)">Buy ({{ heal100Cost }})</button>
       </div>
       <div class="current-hp">Current HP: {{ character.hp }} / {{ character.maxHp }}</div>
       <div class="current-gold">Gold: {{ userProfile.money }}</div>

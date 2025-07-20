@@ -1,4 +1,12 @@
 import type { Character } from '../types/game'
+import { MAX_STATUS } from './statusUtils';
+
+// --- Cooldown-based Battle Logic ---
+export type BattleFighter = Character & { cooldown: number };
+
+// Initialize a fighter with cooldown
+// This will be set by setBattleMaxCooldown before battle starts
+let BATTLE_MAX_COOLDOWN = 100;
 
 export function doBattleTurn(
   character: Character,
@@ -156,30 +164,18 @@ export function calcDamage(attacker: Character, defender: Character): { type: 'p
   const magic = calcMagicDamage(attacker, defender);
   const intA = attacker.status.int;
   const intD = defender.status.int;
-  if (intA > intD) {
-    if (intA >= intD * 1.5 && intA >= 50) {
-      // int มากกว่า 50% ขึ้นไป รวม damage ทั้งสอง
+  if (magic >= phy) {
+    if (intA >= intD * 1.2 && intA >= 50) {
+      // int มากกว่า 20% ขึ้นไป และมากกว่า 50 รวม damage ทั้งสอง
       return { type: 'mix', value: phy.value + magic.value, crit: phy.crit || magic.crit };
     } else {
-      // int มากกว่า enemy ใช้ damage ที่มากกว่า
-      if (magic.value >= phy.value) {
-        return { type: 'magic', value: magic.value, crit: magic.crit };
-      } else {
-        return { type: 'phy', value: phy.value, crit: phy.crit };
-      }
+      return { type: 'magic', value: magic.value, crit: magic.crit };
     }
   } else {
-    // int ไม่มากกว่า enemy ใช้ physical
+    // phy มากกว่า magic
     return { type: 'phy', value: phy.value, crit: phy.crit };
   }
 }
-
-// --- Cooldown-based Battle Logic ---
-export type BattleFighter = Character & { cooldown: number };
-
-// Initialize a fighter with cooldown
-// This will be set by setBattleMaxCooldown before battle starts
-let BATTLE_MAX_COOLDOWN = 100;
 
 export function setBattleMaxCooldown(charAgi: number, enemyAgi: number): number {
   BATTLE_MAX_COOLDOWN = Math.max(1, (charAgi + enemyAgi) * 2);
@@ -208,7 +204,7 @@ export function resetCooldown(fighter: BattleFighter) {
 
 // Calculate evasion: agi of defender vs dex of attacker
 export function calcEvasionChance(defender: BattleFighter, attacker: BattleFighter): number {
-  let base = 10 + (defender.status.agi - attacker.status.dex) * 0.3 + (defender.status.luk - attacker.status.luk) * 0.7;
+  let base = 1 + (defender.status.agi - attacker.status.dex) * 0.3 + (defender.status.luk - attacker.status.luk) * 0.7;
   //console.log('calcEvasionChance ', defender.name, attacker.name, base);
   return Math.max(0, Math.min(99, base));
 }
@@ -268,10 +264,14 @@ export function calcReward(character: Character): number {
   return reward
 }
 
-export function calcHealCost(character: Character): number {
+export function calcHealCost(character: Character, percent: number): number {
   // luk ใกล้ MAX_STATUS ยิ่งลดราคาใกล้ 99%
-  const base = 100;
-  const result = base - Math.floor((character.status.luk / 99) * base)
+  let base = 500;
+  if (percent === 100) {
+    base = Math.floor(base * 0.8); // 20% discount for full heal
+  }
+  base = base * percent / 100; // Adjust base cost by percent
+  const result = base - Math.floor((character.status.luk / MAX_STATUS) * base);
   return Math.max(1, result);
 }
 

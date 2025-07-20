@@ -18,6 +18,7 @@ import UserLayout from './layouts/UserLayout.vue'
 // Import Types and Utils
 import type { Character } from './types/game'
 import { getEnemy } from './store/battleUtils'
+import { applySkills } from './store/skillUtils'
 
 const game = useGameStore()
 const {
@@ -25,25 +26,22 @@ const {
   enemy,
   currentScene,
   characterHistory,
-  userProfile,
 } = storeToRefs(game)
 
 const { scenes, startNewGame } = game
 
-// --- Start Battle Popup State ---
-function handleStartBattle() {
-  currentScene.value = scenes.FIGHT
-}
-
-// --- BATTLE & NAVIGATION LOGIC ---
-function handleStartFight() {
-    if (!character.value) return;
+function handleStartCompare() {
+  if (!character.value) return;
   enemy.value = getEnemy(character.value, game.characterHistory, game.randomCharacter);
   currentScene.value = scenes.COMPARE
 }
 
 function handleRetreat() {
   currentScene.value = scenes.PREPARE;
+}
+
+function handleStartFight() {
+  currentScene.value = scenes.FIGHT
 }
 
 function handleFightHistory(historyChar: Character) {
@@ -72,17 +70,17 @@ function onBattleFinish(updatedCharacter: Character) {
   <StoreScene v-else-if="currentScene === scenes.STORE" @close="currentScene = scenes.PREPARE" />
 
   <StartBattleScene v-else-if="currentScene === scenes.COMPARE && character && enemy" :character="character"
-    :enemy="enemy" :show="true" @start="handleStartBattle" @retreat="handleRetreat" />
+    :enemy="enemy" :show="true" @start="handleStartFight" @retreat="handleRetreat" />
 
   <FightScene v-else-if="currentScene === scenes.FIGHT && character && enemy" :character="character" :enemy="enemy"
     @battle-finished="onBattleFinish" @restart="startNewGame"/>
 
   <!-- Default Layout for other scenes -->
   <UserLayout v-else @history="currentScene = scenes.HISTORY" @result="currentScene = scenes.RESULT"
-    @prepare="currentScene = scenes.PREPARE" @fight="handleStartFight" @restart="startNewGame" @townhall="currentScene = scenes.STORE">
+    @prepare="currentScene = scenes.PREPARE" @fight="handleStartCompare" @restart="startNewGame" @townhall="currentScene = scenes.STORE">
     <!-- Scene content within the layout -->
     <PrepareScene v-if="currentScene === scenes.PREPARE && character" :character="character"
-      @start-fight="handleStartFight" @restart="startNewGame" />
+      @start-fight="handleStartCompare" @restart="startNewGame" />
 
     <HistoryScene v-else-if="currentScene === scenes.HISTORY" :character-history="characterHistory"
       @back="currentScene = scenes.PREPARE" @fightHistory="handleFightHistory" />

@@ -5,7 +5,8 @@ import type { Character } from '../types/game'
 import { useGameStore } from '../store/useGameStore'
 import { storeToRefs } from 'pinia'
 import { calcReward } from '../store/battleUtils'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { applySkills } from '../store/skillUtils'
 
 const props = defineProps<{
   character: Character,
@@ -35,6 +36,7 @@ function confirmRetreat() {
 function cancelRetreat() {
   showRetreatConfirm.value = false
 }
+
 </script>
 
 <template>

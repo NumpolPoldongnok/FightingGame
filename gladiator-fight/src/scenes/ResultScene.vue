@@ -6,7 +6,7 @@ import CharacterStatus from '../components/CharacterStatus.vue'
 import HPBar from '../components/HPBar.vue'
 import { computed, onMounted, ref } from 'vue';
 import SkillChoicePanel from '../components/SkillChoicePanel.vue'
-import { randomSkillChoices, applySkill, type Skill } from '../store/skillUtils'
+import { randomSkillChoices, chooseSkill, type Skill } from '../store/skillUtils'
 
 
 const game = useGameStore()
@@ -19,7 +19,7 @@ const skillChoices = ref<Skill[]>([])
 
 function handleChooseSkill(idx: number) {
   if (!character.value) return
-  applySkill(idx, character.value, skillChoices.value)
+  chooseSkill(idx, character.value, skillChoices.value)
   emit('back')
 }
 

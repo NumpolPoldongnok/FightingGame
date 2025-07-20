@@ -6,6 +6,7 @@ import type { Character } from '../types/game'
 import { doBattleTurn, getLogClass } from '../store/battleUtils'
 import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
+import { applySkills } from '../store/skillUtils'
 
 const props = defineProps<{ character: Character, enemy: Character }>()
 
@@ -47,6 +48,7 @@ function doBattleTurnWrapper() {
 function handleStartBattle() {
   if (isBattleStarted.value) return
   isBattleStarted.value = true
+  // applySkills(character) // TODO - apply skills before starting the battle 
   intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
 }
 
@@ -57,7 +59,6 @@ function setSpeed(mult: number) {
     intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
   }
 }
-
 // --- LIFECYCLE ---
 onMounted(() => {
   handleStartBattle()
