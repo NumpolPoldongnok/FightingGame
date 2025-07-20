@@ -5,6 +5,7 @@ import { increaseStatus, canIncreaseStatus, canDecreaseStatus, putAllPointsToSta
 import { calcHealCost } from '../store/battleUtils'
 import { useGameStore } from '../store/useGameStore'
 import { onMounted, ref, watch } from 'vue'
+import Popup from './Popup.vue'
 
 const props = defineProps<{
   character: Character
@@ -140,37 +141,159 @@ function toggleFold(e: Event) {
       </ul>
     </div>
 
-    <div v-if="showConfirm" class="modal-mask">
-      <div class="modal-wrapper">
-        <div class="modal-container">
-          <h3 class="modal-title">ยืนยันการใช้ Gold</h3>
-          <div class="modal-body">
-            <p v-if="confirmAction === 'decrease'">
-              ลดค่าสถานะ <b>{{ confirmKey && confirmKey.toUpperCase() }}</b> ต้องใช้ <b>{{ confirmCost }}</b> Gold<br>
-              (คิดตามค่า Heal 5% ของตัวละครนี้)
-            </p>
-            <p v-else-if="confirmAction === 'reset'">
-              รีเซ็ตค่าสถานะ <b>{{ confirmKey && confirmKey.toUpperCase() }}</b> กลับเป็น 1 ต้องใช้ <b>{{ confirmCost }}</b> Gold<br>
-              (คิดตามค่า Heal 5% x ค่าสถานะ)
-            </p>
-            <label class="modal-checkbox">
-              <input type="checkbox" v-model="alwaysConfirm" @change="setAlwaysConfirm(alwaysConfirm)">
-              ไม่ต้องถามอีกในเซสชันนี้ (Always confirm this session)
-            </label>
-          </div>
-          <div class="modal-footer">
-            <button class="modal-btn confirm" @click="handleConfirm(true)">ยืนยัน</button>
-            <button class="modal-btn cancel" @click="handleConfirm(false)">ยกเลิก</button>
-          </div>
+    <Popup v-model="showConfirm" customClass="status-confirm-popup">
+      <div class="popup-content-wrapper">
+        <h3 class="popup-confirm-title">ยืนยันการใช้ Gold</h3>
+        <div class="popup-confirm-body">
+          <p class="confirm-message" v-if="confirmAction === 'decrease'">
+            คุณต้องการลดค่าสถานะ **{{ confirmKey && confirmKey.toUpperCase() }}** หรือไม่?
+            <br>
+            การดำเนินการนี้จะใช้ **{{ confirmCost }}** Gold
+          </p>
+          <p class="confirm-message" v-else-if="confirmAction === 'reset'">
+            คุณต้องการรีเซ็ตค่าสถานะ **{{ confirmKey && confirmKey.toUpperCase() }}** กลับเป็น 1 หรือไม่?
+            <br>
+            การดำเนินการนี้จะใช้ **{{ confirmCost }}** Gold
+          </p>
+          <label class="popup-confirm-checkbox">
+            <input type="checkbox" v-model="alwaysConfirm">
+            <span>ไม่ต้องถามอีกในเซสชันนี้</span>
+          </label>
+        </div>
+        <div class="popup-confirm-footer">
+          <button class="popup-btn confirm-btn" @click="handleConfirm(true)">ยืนยัน</button>
+          <button class="popup-btn cancel-btn" @click="handleConfirm(false)">ยกเลิก</button>
         </div>
       </div>
-    </div>
+    </Popup>
   </details>
 </template>
 
 <style scoped>
+
 /* === Gladiator Themed Status Component === */
 
+/* Overall Popup Styling */
+.status-confirm-popup :deep(.modal-content) {
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%); /* Darker, metallic background */
+  border: 4px solid #b48d39; /* Gold border */
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6), inset 0 2px 5px rgba(255, 255, 255, 0.1);
+  padding: 1.5rem 2rem; /* Increased padding */
+  max-width: 450px; /* Max width for better readability */
+  color: #fdecc4; /* Light text for contrast */
+}
+
+.popup-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem; /* Spacing between sections */
+}
+
+/* Title */
+.popup-confirm-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.8rem; /* Larger title */
+  font-weight: 800;
+  color: #e2c178; /* Gold color for title */
+  text-shadow: 0 0 8px rgba(226, 193, 120, 0.5); /* Subtle glow */
+  margin: 0; /* Remove default margin */
+  text-align: center;
+}
+
+/* Body */
+.popup-confirm-body {
+  text-align: center;
+  font-size: 1rem;
+  color: #fdecc4; /* Light text color */
+  margin-bottom: 0.5rem; /* Space before checkbox */
+}
+
+.confirm-message {
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.confirm-message b {
+  color: #e2c178; /* Highlight important details */
+  font-weight: 700;
+}
+
+.cost-detail {
+  display: block; /* New line for cost detail */
+  font-size: 0.85em;
+  color: #c8ab6b; /* Slightly muted color */
+  margin-top: 0.4rem;
+}
+
+/* Checkbox */
+.popup-confirm-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the checkbox and text */
+  gap: 0.6rem;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #c8ab6b; /* Muted gold for checkbox text */
+  cursor: pointer;
+}
+
+.popup-confirm-checkbox input[type="checkbox"] {
+  accent-color: #e2c178; /* Gold accent for checkbox */
+  width: 1.1em;
+  height: 1.1em;
+  cursor: pointer;
+}
+
+/* Footer and Buttons */
+.popup-confirm-footer {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem; /* Space between buttons */
+  width: 100%; /* Ensure footer takes full width */
+  margin-top: 1.5rem; /* Space above buttons */
+}
+
+.popup-btn {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.7rem 2rem; /* Larger padding for buttons */
+  border-radius: 8px; /* Slightly more rounded */
+  border-width: 3px; /* Thicker border */
+  border-style: solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+  text-transform: uppercase; /* Uppercase button text */
+  letter-spacing: 0.05em; /* Slight letter spacing */
+}
+
+.confirm-btn {
+  background: linear-gradient(to bottom, #4CAF50, #2E7D32); /* Green gradient */
+  border-color: #81C784; /* Lighter green border */
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+}
+.confirm-btn:hover {
+  background: linear-gradient(to bottom, #66BB6A, #4CAF50);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.cancel-btn {
+  background: linear-gradient(to bottom, #EF5350, #D32F2F); /* Red gradient */
+  border-color: #FF8A80; /* Lighter red border */
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+}
+.cancel-btn:hover {
+  background: linear-gradient(to bottom, #E57373, #EF5350);
+  box-shadow: 0 4px 12px rgba(239, 83, 80, 0.4);
+}
+
+
+/* === Original Status Component Styles (mostly unchanged) === */
 .status-fold {
   width: 100%;
 }
@@ -207,15 +330,12 @@ function toggleFold(e: Event) {
 }
 
 .status-card {
-  /* << CHANGED >> width: 100% makes it responsive */
   width: 100%;
   background-color: #fdf6e7; /* Parchment background */
   color: #44341b; /* Dark text for readability */
   border-radius: 0 0 8px 8px;
   border: 2px solid #8a703d;
   border-top: none;
-
-
   padding: 1rem;
   box-sizing: border-box;
   box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
@@ -314,5 +434,4 @@ function toggleFold(e: Event) {
 .stat-btn-all, .stat-btn-reset {
   font-size: 0.8rem;
 }
-/* ...existing styles... */
 </style>

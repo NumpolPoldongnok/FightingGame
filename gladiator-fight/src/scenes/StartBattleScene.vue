@@ -52,16 +52,17 @@ function cancelRetreat() {
             <div class="fighter-preview-full player-preview">
               <CharacterPictureFrame :character="character" :size="96" />
               <div class="fighter-name-full">{{ character.name }}</div>
-              <CharacterStatus :character="character" :show-buttons="false" />
+              <CharacterStatus :character="character" :foldOpen="true" :show-buttons="false" />
             </div>
             <div class="vs-text-full">VS</div>
             <div class="fighter-preview-full enemy-preview">
               <CharacterPictureFrame :character="enemy" :size="96" />
               <div class="fighter-name-full">{{ enemy.name }}</div>
-              <CharacterStatus :character="enemy" :show-buttons="false" />
+              <CharacterStatus :character="enemy" :foldOpen="true" :show-buttons="false"/>
             </div>
           </div>
-
+          <!-- Spacer to reserve height equal to action buttons container -->
+          <div style="height: 92px; width: 100%;"></div>
           <div class="action-buttons-container">
             <button class="start-btn-full" @click="$emit('start')">FIGHT!</button>
             <button v-if="canRetreat" class="retreat-btn" @click="tryRetreat">RETREAT</button>
@@ -254,11 +255,31 @@ function cancelRetreat() {
 /* --- UI IMPROVEMENT: ACTION BUTTONS HIERARCHY --- */
 /* Responsive action buttons */
 .action-buttons-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10010;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: center;
   align-items: center;
-  gap: 0.7rem;
-  margin-top: 1.2rem;
+  gap: 1.2rem;
+  padding: 1.1rem 0.5rem 1.3rem 0.5rem;
+  background: linear-gradient(180deg, #2a2a2a 80%, #1a1a1a 100%);
+  box-shadow: 0 -4px 24px #000a;
+  border-top: 2px solid #6b552d;
+  width: 100vw;
+  max-width: 100vw;
+  pointer-events: auto;
+}
+
+@media (max-width: 700px) {
+  .action-buttons-container {
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.7rem 0.1rem 1.1rem 0.1rem;
+  }
 }
 
 /* Primary Action Button */
