@@ -46,7 +46,7 @@ const handleCheckboxChange = (event: Event) => {
         <div class="frame-row">
           <CharacterPictureFrame
             :character="character"
-            size="sm"
+            :size="32"
             class="header-icon attacker-frame"
           />
           <span class="frame-action-label" :class="isAttack ? 'attack-label' : 'defense-label'">
@@ -75,7 +75,7 @@ const handleCheckboxChange = (event: Event) => {
           </span>
           <CharacterPictureFrame
             :character="character2"
-            size="sm"
+            :size="32"
             class="header-icon defender-frame"
           />
         </div>

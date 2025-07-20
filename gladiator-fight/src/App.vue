@@ -58,10 +58,8 @@ function onBattleFinish(updatedCharacter: Character) {
 
 <template>
   <!-- Main Scene Router: Only one of these can ever be active -->
-
   <CreateCharacterScene v-if="currentScene === scenes.CREATE" @create="game.createCharacter" />
-
-
+  
   <ResultScene v-else-if="currentScene === scenes.RESULT" @restart="startNewGame"
     @back="currentScene = scenes.PREPARE" />
 

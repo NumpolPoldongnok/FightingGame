@@ -75,7 +75,7 @@ export function battleAction(
     } 
     defender.hp -= finalDmg;
     battleLog.unshift(
-      createBattleLog({
+      {
         attacker: attacker,
         defender: defender,
         value: finalDmg,
@@ -84,7 +84,7 @@ export function battleAction(
         isEvade: false,
         attackerType,
         defenderType
-      })
+      }
     );
 
     if (defender.hp <= 0) {
@@ -93,7 +93,7 @@ export function battleAction(
     }
   } else {
     battleLog.unshift(
-      createBattleLog({
+      {
         attacker: attacker,
         defender: defender,
         isPlayer: isPlayer,
@@ -102,7 +102,7 @@ export function battleAction(
         defenderType,
         value: 0,
         crit: false
-      })
+      }
     );
   }
 
@@ -281,7 +281,3 @@ export function randomEnemyDefenseType(): AttackType {
   const types: AttackType[] = ['phy', 'magic', 'mix']
   return types[Math.floor(Math.random() * types.length)]
 }
-function createBattleLog(arg0: { attacker: BattleFighter; defender: BattleFighter; value: number; crit: boolean; isPlayer: boolean; isEvade: boolean; attackerType: AttackType; defenderType: AttackType; }): BattleLogParams {
-  throw new Error('Function not implemented.');
-}
-
