@@ -5,7 +5,7 @@ import type { Character } from '../types/game'
 import { useGameStore } from '../store/useGameStore'
 import { storeToRefs } from 'pinia'
 import { calcReward, toBattleFighter } from '../store/battleUtils'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   character: Character,

@@ -6,8 +6,8 @@ import type { Character } from '../types/game'
 import { doBattleTurn, battleAction, getLogClass, BATTLE_MAX_COOLDOWN, AttackType, randomEnemyAttackType, randomEnemyDefenseType } from '../store/battleUtils'
 import { toBattleFighter } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
-import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
 import CharacterStatus from '../components/CharacterStatus.vue'
+import BattleActionPopup from '../components/BattleActionPopup.vue'
 
 const props = defineProps<{ character: Character, enemy: Character }>()
 
@@ -46,6 +46,11 @@ const defenseTypePopupDismissed = ref(false)
 
 function onFinish(winner: Character) {
   battleResult.value = (winner === character) ? 'win' : 'lose'
+  if (intervalRef.value) {
+    clearInterval(intervalRef.value)
+    intervalRef.value = undefined
+  }
+  isBattleStarted.value = false
 }
 
 function doBattleTurnWrapper() {
@@ -63,7 +68,7 @@ function doBattleTurnWrapper() {
         intervalRef.value = undefined
       }
       showAttackTypePopup.value = true
-      attackTypePopupDismissed.value = false
+      attackTypePopupDismissed.value = false // Reset dismissal state
     },
     // onEnemyAction
     ({ character, enemy }) => {
@@ -76,7 +81,7 @@ function doBattleTurnWrapper() {
         intervalRef.value = undefined
       }
       showDefenseTypePopup.value = true
-      defenseTypePopupDismissed.value = false
+      defenseTypePopupDismissed.value = false // Reset dismissal state
     }
   )
 }
@@ -132,6 +137,7 @@ function setSpeed(mult: number) {
   }
 }
 
+// These functions now control the BattleActionPopup component's v-model and dismissal
 function dismissAttackTypePopup() {
   showAttackTypePopup.value = false
   attackTypePopupDismissed.value = true
@@ -148,6 +154,7 @@ function continueDefenseTypePopup() {
   showDefenseTypePopup.value = true
   defenseTypePopupDismissed.value = false
 }
+
 // --- LIFECYCLE ---
 onMounted(() => {
   handleStartBattle()
@@ -162,11 +169,7 @@ onUnmounted(() => {
 
 <template>
   <div class="fight-container">
-    <!-- Start Battle Popup moved to App.vue -->
-
-    <!-- Battle Controls (Consolidated) -->
     <div class="battle-controls">
-      <!-- Speed Controls (shown during battle) -->
       <div v-if="!battleResult" class="speed-controls">
         <span class="speed-label">SPEED:</span>
         <button :class="['control-btn', { active: speed === 1 }]" @click="setSpeed(1)">1x</button>
@@ -175,7 +178,6 @@ onUnmounted(() => {
         <button :class="['control-btn', { active: speed === 8 }]" @click="setSpeed(8)">8x</button>
       </div>
 
-      <!-- Post-battle actions (shown after dismissing popup) -->
       <Transition name="fade">
         <div v-if="battleResult && isResultPopupDismissed" class="post-battle-actions">
            <h2 class="post-battle-result" :class="battleResult === 'win' ? 'result-win' : 'result-lose'">
@@ -189,7 +191,6 @@ onUnmounted(() => {
       </Transition>
     </div>
 
-    <!-- Battle Arena -->
     <div v-if="character && enemy" class="battle-arena">
       <div class="fighter-card player">
         <h3 class="fighter-name">{{ character.name }}</h3>
@@ -209,15 +210,41 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-
-    <!-- Battle Log -->
+    <!-- Inline BattleActionPopup below the speed bar -->
+    <div v-if="showAttackTypePopup || showDefenseTypePopup" class="inline-battle-action-popup">
+      <BattleActionPopup
+        v-if="showAttackTypePopup"
+        :modelValue="showAttackTypePopup"
+        @update:modelValue="val => showAttackTypePopup = val"
+        :character="character"
+        :character2="enemy"
+        :isAttack="true"
+        :alwaysChecked="alwaysAttackChecked"
+        :actionType="alwaysAttackType"
+        @select-type="handleAttackTypeSelect"
+        @update:alwaysChecked="(val: boolean) => alwaysAttackChecked = val"
+        @dismiss="dismissAttackTypePopup"
+      />
+      <BattleActionPopup
+        v-if="showDefenseTypePopup"
+        :modelValue="showDefenseTypePopup"
+        @update:modelValue="val => showDefenseTypePopup = val"
+        :character="enemy"
+        :character2="character"
+        :isAttack="false"
+        :alwaysChecked="alwaysDefendChecked"
+        :actionType="alwaysDefendType"
+        @select-type="handleDefenseTypeSelect"
+        @update:alwaysChecked="(val: boolean) => alwaysDefendChecked = val"
+        @dismiss="dismissDefenseTypePopup"
+      />
+    </div>
     <div class="log-scroll-area">
       <div v-for="(log, idx) in battleLog" :key="idx" :class="['log-entry', getLogClass(log)]">
         {{ log }}
       </div>
     </div>
 
-    <!-- Battle Result Popup -->
     <Popup v-model="showResultPopup" :customClass="resultPopupClass" :showClose="false">
       <h2 class="result-title">{{ battleResult === 'win' ? 'VICTORY' : 'DEFEAT' }}</h2>
       <div class="modal-actions">
@@ -228,56 +255,12 @@ onUnmounted(() => {
       </div>
     </Popup>
 
-    <!-- Attack Type Selection Popup -->
-    <Popup v-model="showAttackTypePopup" customClass="attack-type-popup" :showClose="false">
-      <div class="popup-attack-content">
-        <h2 class="popup-title">Select Attack Type</h2>
-        <div class="popup-explanation">
-          <span>Choose how you want to attack the enemy.</span>
-        </div>
-        <div class="popup-character-frame">
-          <CharacterPictureFrame :character="character" size="lg" />
-          <div class="popup-character-name">{{ character.name }}</div>
-        </div>
-        <div class="attack-type-options">
-          <button class="attack-type-btn" @click="handleAttackTypeSelect('phy')">Physical</button>
-          <button class="attack-type-btn" @click="handleAttackTypeSelect('magic')">Magic</button>
-          <button class="attack-type-btn" @click="handleAttackTypeSelect('mix')">Mixed</button>
-        </div>
-        <label class="popup-checkbox">
-          <input type="checkbox" v-model="alwaysAttackChecked" /> Always use this attack type
-        </label>
-        <button class="dismiss-btn" @click="dismissAttackTypePopup">Inspect</button>
-      </div>
-    </Popup>
+
     <template v-if="attackTypePopupDismissed">
       <div class="popup-inspect-continue">
         <button class="continue-btn" @click="continueAttackTypePopup">Continue</button>
       </div>
     </template>
-
-    <!-- Defense Type Selection Popup -->
-    <Popup v-model="showDefenseTypePopup" customClass="defense-type-popup" :showClose="false">
-      <div class="popup-attack-content">
-        <h2 class="popup-title">Select Defense Type</h2>
-        <div class="popup-explanation">
-          <span>Choose how you want to defend against the enemy's attack.</span>
-        </div>
-        <div class="popup-character-frame">
-          <CharacterPictureFrame :character="enemy" size="lg" />
-          <div class="popup-character-name">{{ enemy.name }}</div>
-        </div>
-        <div class="defense-type-options">
-          <button class="defense-type-btn" @click="handleDefenseTypeSelect('phy')">Physical</button>
-          <button class="defense-type-btn" @click="handleDefenseTypeSelect('magic')">Magic</button>
-          <button class="defense-type-btn" @click="handleDefenseTypeSelect('mix')">Mixed</button>
-        </div>
-        <label class="popup-checkbox">
-          <input type="checkbox" v-model="alwaysDefendChecked" /> Always use this defense type
-        </label>
-        <button class="dismiss-btn" @click="dismissDefenseTypePopup">Inspect</button>
-      </div>
-    </Popup>
     <template v-if="defenseTypePopupDismissed">
       <div class="popup-inspect-continue">
         <button class="continue-btn" @click="continueDefenseTypePopup">Continue</button>
@@ -287,7 +270,23 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* (Most existing styles remain the same) */
+/* (Most existing styles remain the same from your original component) */
+/*
+  Remove the following styles from FightArena.vue as they are now
+  managed by BattleActionPopup.vue:
+
+  .popup-attack-content
+  .popup-title (for action popups)
+  .popup-explanation (for action popups)
+  .popup-character-frame (for action popups)
+  .popup-character-name (for action popups)
+  .attack-type-options
+  .defense-type-options
+  .attack-type-btn
+  .defense-type-btn
+  .popup-checkbox (for action popups)
+*/
+
 .fight-container {
   color: #fdecc4;
   padding: 1rem 0;
@@ -467,6 +466,7 @@ onUnmounted(() => {
   background: radial-gradient(circle, #4a1a1a 0%, #2a2a2a 70%);
   box-shadow: 0 0 30px #b71c1c80;
 }
+/* Re-applying general popup-title for the result popup, as it's not in the new component */
 .result-title {
   font-family: 'Cinzel', serif;
   font-size: 4rem;
@@ -511,16 +511,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   border: none; border-radius: 0; box-shadow: none;
 }
-.start-popup-content-full {
-  width: 100%;
-  max-width: 1200px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2.5rem;
-}
+/* Keep .popup-title for the start popup as it's distinct */
 .popup-title {
   font-family: 'Cinzel', serif;
   font-size: 2.5rem;
@@ -671,8 +662,6 @@ onUnmounted(() => {
   .fighter-name { font-size: 1.1rem; }
 }
 
-
-
 @media (max-width: 480px) {
   .start-popup-fullscreen { padding: 1rem 0.5rem; }
   .popup-title { font-size: 1.8rem; }
@@ -681,93 +670,32 @@ onUnmounted(() => {
   .start-btn-full { font-size: 1.5rem; padding: 1rem 2.5rem; }
 }
 
-.popup-attack-content {
+/*
+  Keep these general modal content styles as they apply to other popups
+  or ensure they are globally defined if Popup.vue handles them.
+*/
+.modal-content {
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.2rem;
-  padding: 1.2rem 0.5rem 0.5rem 0.5rem;
-}
-.popup-explanation {
-  background: rgba(255,255,255,0.08);
-  border-radius: 8px;
-  padding: 0.7rem 1.2rem;
-  color: #e2c178;
-  font-size: 1.05rem;
-  margin-bottom: 0.5rem;
-  text-align: left;
-  max-width: 400px;
-}
-.popup-explanation ul {
-  margin: 0.5rem 0 0 1.2rem;
-  padding: 0;
-  color: #fdecc4;
-  font-size: 0.98rem;
-}
-.popup-character-frame {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0.5rem 0 1rem 0;
-}
-.popup-character-name {
-  font-family: 'Cinzel', serif;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #e2c178;
-  margin-top: 0.3rem;
-  text-shadow: 0 1px 4px #000a;
-}
-.attack-type-options, .defense-type-options {
-  display: flex;
-  gap: 1.2rem;
-  margin-top: 0.5rem;
-}
-.attack-type-btn, .defense-type-btn {
-  font-family: 'Cinzel', serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  padding: 0.7rem 2.2rem;
-  border-radius: 10px;
-  border: 3px solid #e2c178;
-  background: linear-gradient(to bottom, #3a2e15, #6b552d);
-  color: #fdecc4;
-  box-shadow: 0 2px 8px #0006;
-  transition: all 0.18s;
-  cursor: pointer;
-}
-.attack-type-btn:hover, .defense-type-btn:hover {
-  background: linear-gradient(to bottom, #e2c178, #b48d39);
-  color: #3a2e15;
-  border-color: #fff;
-  box-shadow: 0 0 10px #e2c178;
-}
-
-.popup-checkbox {
-  margin-top: 0.7rem;
-  color: #e2c178;
-  font-size: 1.05rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-.popup-checkbox input[type="checkbox"] {
-  accent-color: #e2c178;
-  width: 1.1em;
-  height: 1.1em;
+  justify-content: center;
 }
 
 .popup-inspect-continue {
   display: flex;
   justify-content: center;
-  margin: 1.2rem 0 1.5rem 0;
+  margin: 1rem 0;
 }
 .continue-btn {
   font-family: 'Cinzel', serif;
-  font-size: 1.1rem;
+  font-size: clamp(1rem, 3vw, 1.1rem);
   font-weight: 700;
-  padding: 0.7rem 2.2rem;
+  padding: 0.6rem 2rem;
   border-radius: 10px;
   border: 3px solid #e2c178;
   background: linear-gradient(to bottom, #e2c178, #b48d39);
