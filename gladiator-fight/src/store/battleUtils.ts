@@ -319,3 +319,13 @@ export function getEnemy(
   }
   return newEnemy
 }
+
+export function randomEnemyAttackType(): AttackType {
+  const types: AttackType[] = ['phy', 'magic', 'mix']
+  return types[Math.floor(Math.random() * types.length)]
+}
+
+export function randomEnemyDefenseType(): AttackType {
+  const types: AttackType[] = ['phy', 'magic', 'mix']
+  return types[Math.floor(Math.random() * types.length)]
+}

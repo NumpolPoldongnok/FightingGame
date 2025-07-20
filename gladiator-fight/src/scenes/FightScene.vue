@@ -3,7 +3,7 @@ import { ref, onUnmounted, computed, onMounted, nextTick } from 'vue'
 import CooldownBar from '../components/CooldownBar.vue'
 import Popup from '../components/Popup.vue'
 import type { Character } from '../types/game'
-import { doBattleTurn, battleAction, getLogClass, BATTLE_MAX_COOLDOWN } from '../store/battleUtils'
+import { doBattleTurn, battleAction, getLogClass, BATTLE_MAX_COOLDOWN, AttackType, randomEnemyAttackType, randomEnemyDefenseType } from '../store/battleUtils'
 import { toBattleFighter } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
 
@@ -30,13 +30,11 @@ const resultPopupClass = computed(() =>
 )
 const intervalRef = { value: undefined as any }
 const speed = ref(1)
-const baseInterval = 200
+const baseInterval = 2000
 
 // --- ATTACK/DEFENSE POPUP STATE ---
 const showAttackTypePopup = ref(false)
 const showDefenseTypePopup = ref(false)
-const pendingAttackType = ref<'phy' | 'magic' | 'mix' | null>(null)
-const pendingDefenseType = ref<'phy' | 'magic' | 'mix' | null>(null)
 
 // --- BATTLE LOGIC ---
 // Store selectAttack/selectDefense callbacks in refs
@@ -59,7 +57,6 @@ function doBattleTurnWrapper() {
         intervalRef.value = undefined
       }
       showAttackTypePopup.value = true
-      pendingAttackType.value = null
     },
     // onEnemyAction
     ({ character, enemy }) => {
@@ -68,13 +65,11 @@ function doBattleTurnWrapper() {
         intervalRef.value = undefined
       }
       showDefenseTypePopup.value = true
-      pendingDefenseType.value = null
     }
   )
 }
 
 function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix') {
-  pendingAttackType.value = type
   showAttackTypePopup.value = false
   // After player selects, resolve the action
   battleAction(
@@ -83,7 +78,7 @@ function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix') {
     battleLog.value,
     onFinish,
     type,
-    pendingDefenseType.value || 'phy',
+    randomEnemyDefenseType(),
     true
   )
   // Resume interval if battle not finished
@@ -92,7 +87,6 @@ function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix') {
   }
 }
 function handleDefenseTypeSelect(type: 'phy' | 'magic' | 'mix') {
-  pendingDefenseType.value = type
   showDefenseTypePopup.value = false
   // After player selects, resolve the action (enemy attacks)
   battleAction(
@@ -100,8 +94,8 @@ function handleDefenseTypeSelect(type: 'phy' | 'magic' | 'mix') {
     character,
     battleLog.value,
     onFinish,
+    randomEnemyAttackType(),
     type,
-    pendingAttackType.value || 'phy',
     false
   )
   // Resume interval if battle not finished
