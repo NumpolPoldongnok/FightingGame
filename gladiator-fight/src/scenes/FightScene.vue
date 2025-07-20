@@ -199,7 +199,7 @@ onUnmounted(() => {
         <div class="fighter-content">
           <HPBar :value="character.hp" :max="character.maxHp" type="player" />
           <CooldownBar :value="character.cooldown ?? 0" :max="BATTLE_MAX_COOLDOWN" />
-          <CharacterStatus :character="character" title="Your Status" :show-buttons="false" />
+          <CharacterStatus :character="character" title="Your Status" :show-buttons="false" :foldOpen="!showAttackTypePopup && !showDefenseTypePopup" />
         </div>
       </div>
       <div class="vs-separator vs-overlay">VS</div>
@@ -208,7 +208,7 @@ onUnmounted(() => {
         <div class="fighter-content">
           <HPBar :value="enemy.hp" :max="enemy.maxHp" type="enemy" />
           <CooldownBar :value="enemy.cooldown ?? 0" :max="BATTLE_MAX_COOLDOWN" />
-          <CharacterStatus :character="enemy" title="Enemy Status" :show-buttons="false" />
+          <CharacterStatus :character="enemy" title="Enemy Status" :show-buttons="false" :foldOpen="!showAttackTypePopup && !showDefenseTypePopup" />
         </div>
       </div>
     </div>
@@ -246,7 +246,7 @@ onUnmounted(() => {
         <BattleLogBubble
           v-for="(log, idx) in battleLog"
           :key="idx"
-          :type="log.attacker === character? 'player' : log.attacker === enemy ? 'enemy' : 'neutral'"
+          :type="(log.attacker.id === character.id) ? 'player' : (log.attacker.id === enemy.id) ? 'enemy' : 'neutral'"
         >
           {{ createBattleLogText(log) }}
         </BattleLogBubble>

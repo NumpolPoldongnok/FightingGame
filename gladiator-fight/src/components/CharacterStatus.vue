@@ -8,6 +8,7 @@ const props = defineProps<{
   character: Character
   title?: string,
   showButtons?: boolean,
+  foldOpen?: boolean
 }>()
 
 const statusKeys: (keyof Status)[] = ['str', 'agi', 'vit', 'dex', 'int', 'luk']
@@ -32,11 +33,24 @@ function putAllPoints(key: keyof Status) {
 function resetKeyToOne(key: keyof Status) {
   resetStatusKeyToOne(props.character, key)
 }
+
+import { ref, watch } from 'vue'
+// Fold open state controlled by prop, but can be toggled by user
+const foldOpenState = ref(props.foldOpen !== false)
+watch(() => props.foldOpen, (val) => {
+  foldOpenState.value = val !== false
+})
+function toggleFold(e: Event) {
+  // Only toggle if user clicks summary (not programmatically)
+  foldOpenState.value = !foldOpenState.value
+  // Prevent default summary toggle to keep it in sync
+  e.preventDefault()
+}
 </script>
 
 <template>
-  <details class="status-fold" open>
-    <summary class="status-summary">
+  <details class="status-fold" :open="foldOpenState">
+    <summary class="status-summary" @click="toggleFold">
       <span v-if="title">{{ title }}</span>
       <span v-else>สถานะตัวละคร</span>
     </summary>
@@ -60,6 +74,19 @@ function resetKeyToOne(key: keyof Status) {
     </div>
   </details>
 </template>
+import { ref, watch } from 'vue'
+
+// Fold open state controlled by prop, but can be toggled by user
+const foldOpenState = ref(props.foldOpen !== false)
+watch(() => props.foldOpen, (val) => {
+  foldOpenState.value = val !== false
+})
+function toggleFold(e: Event) {
+  // Only toggle if user clicks summary (not programmatically)
+  foldOpenState.value = !foldOpenState.value
+  // Prevent default summary toggle to keep it in sync
+  e.preventDefault()
+}
 
 <style scoped>
 /* === Gladiator Themed Status Component === */

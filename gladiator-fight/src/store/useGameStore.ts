@@ -8,7 +8,7 @@ import { imageStore } from './imageStore' // << NEW: Import the image store
 
 import { Character, Scene, scenes, Status, UserProfile } from '../types/game'
 import type { Skill } from './skillUtils'
-import { randomCharacterStatus } from './statusUtils'
+import { HP_PER_VIT, randomCharacterStatus } from './statusUtils'
 
 
 const STORAGE_KEY = 'gladiator-save-v4'; // Bump version for new structure
@@ -27,7 +27,7 @@ export const useGameStore = defineStore('game', () => {
   // === ACTIONS ===
 
   function _createNewCharacter(name: string, status: Status): Character {
-    const maxHp = 100 + (status.vit * 10);
+    const maxHp = 100 + (status.vit * HP_PER_VIT);
     return {
       id: `char_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`, // More robust ID
       name, hp: maxHp, maxHp, status, skills: [],
@@ -114,7 +114,7 @@ export const useGameStore = defineStore('game', () => {
     } else if (status[type] > 50) {
       name = `${name} ${typeTitle[type]}`;
     }
-    const maxHp = 100 + status.vit * 10;
+    const maxHp = 100 + status.vit * HP_PER_VIT;
     return {
       id: `char_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       name,

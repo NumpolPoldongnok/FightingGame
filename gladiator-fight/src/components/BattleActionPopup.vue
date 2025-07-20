@@ -16,7 +16,7 @@ const emit = defineEmits(['update:modelValue', 'select-type', 'update:alwaysChec
 
 const popupTitle = computed(() =>
   props.isAttack
-    ? `You attacking ${props.character.name}`
+    ? `You attacking ${props.character2.name}`
     : `${props.character.name} attacking you`
 )
 
