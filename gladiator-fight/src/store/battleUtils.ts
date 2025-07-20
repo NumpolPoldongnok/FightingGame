@@ -179,7 +179,7 @@ export function calcDamage(attacker: Character, defender: Character): { type: 'p
 }
 
 export function setBattleMaxCooldown(charAgi: number, enemyAgi: number): number {
-  BATTLE_MAX_COOLDOWN = Math.max(1, (charAgi + enemyAgi) * 2);
+  BATTLE_MAX_COOLDOWN = Math.max(1, (charAgi + enemyAgi) * 10);
   return BATTLE_MAX_COOLDOWN;
 }
 

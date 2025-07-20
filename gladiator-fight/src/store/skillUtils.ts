@@ -77,26 +77,28 @@ export function chooseSkill(idx: number, character: Character, skillChoices: Ski
 }
 
 export function applySkills(character: Character): Character {
+  // Deep clone the character to avoid mutating the input
+  const clone: Character = JSON.parse(JSON.stringify(character));
 
-  for (const skill of character.skills) {
-    character.status.str = skillStatus(character, 'str', skill);
-    character.status.agi = skillStatus(character, 'agi', skill);
-    const oldVit = character.status.vit;
-    character.status.vit = skillStatus(character, 'vit', skill);
+  for (const skill of clone.skills) {
+    clone.status.str = skillStatus(clone, 'str', skill);
+    clone.status.agi = skillStatus(clone, 'agi', skill);
+    const oldVit = clone.status.vit;
+    clone.status.vit = skillStatus(clone, 'vit', skill);
     // 1 vit = +HP_PER_VIT hp, maxHp
-    const vitDiff = character.status.vit - oldVit;
+    const vitDiff = clone.status.vit - oldVit;
     if (vitDiff !== 0) {
-      character.maxHp += vitDiff * HP_PER_VIT;
-      character.hp += vitDiff * HP_PER_VIT;
-      if (character.hp > character.maxHp) character.hp = character.maxHp;
-      if (character.maxHp < 1) character.maxHp = 1;
-      if (character.hp < 0) character.hp = 0;
+      clone.maxHp += vitDiff * HP_PER_VIT;
+      clone.hp += vitDiff * HP_PER_VIT;
+      if (clone.hp > clone.maxHp) clone.hp = clone.maxHp;
+      if (clone.maxHp < 1) clone.maxHp = 1;
+      if (clone.hp < 0) clone.hp = 0;
     }
-    character.status.dex = skillStatus(character, 'dex', skill);
-    character.status.int = skillStatus(character, 'int', skill);
-    character.status.luk = skillStatus(character, 'luk', skill);
+    clone.status.dex = skillStatus(clone, 'dex', skill);
+    clone.status.int = skillStatus(clone, 'int', skill);
+    clone.status.luk = skillStatus(clone, 'luk', skill);
   }
-  return character;
+  return clone;
 }
 
 function applyBuff(val: number, buff: SkillData, type: keyof Character['status']): number {

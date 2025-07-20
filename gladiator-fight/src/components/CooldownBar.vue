@@ -18,7 +18,11 @@ const props = defineProps<{ value: number, max: number }>()
 
 // Cooldown logic: bar fills up as value approaches max
 const fillWidth = computed(() => {
-  const percent = ((props.value ?? 0) / (props.max ?? 100)) * 100;
+  if (isAttacking.value) {
+    // If attacking, show full bar
+    return 100;
+  }
+  const percent = (1 - ((props.value ?? 0) / (props.max ?? 100))) * 100;
   return Math.max(0, Math.min(100, percent));
 })
 
