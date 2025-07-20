@@ -4,15 +4,17 @@ import CharacterStatus from '../components/CharacterStatus.vue'
 import type { Character } from '../types/game'
 import { useGameStore } from '../store/useGameStore'
 import { storeToRefs } from 'pinia'
-import { calcReward } from '../store/battleUtils'
+import { calcReward, toBattleFighter } from '../store/battleUtils'
 import { ref, computed, onMounted } from 'vue'
-import { applySkills } from '../store/skillUtils'
 
 const props = defineProps<{
   character: Character,
   enemy: Character,
   show: boolean,
 }>()
+
+const character = toBattleFighter(props.character)
+const enemy = toBattleFighter(props.enemy)
 
 const game = useGameStore()
 const { userProfile } = storeToRefs(game)

@@ -1,4 +1,5 @@
 import type { Character } from '../types/game'
+import { applySkills } from './skillUtils';
 import { MAX_STATUS } from './statusUtils';
 
 // --- Cooldown-based Battle Logic ---
@@ -183,7 +184,8 @@ export function setBattleMaxCooldown(charAgi: number, enemyAgi: number): number 
 }
 
 export function toBattleFighter(character: Character): BattleFighter {
-  return { ...character, cooldown: BATTLE_MAX_COOLDOWN };
+  const buffedCharacter = applySkills(character); // Ensure skills are applied before converting
+  return { ...buffedCharacter, cooldown: BATTLE_MAX_COOLDOWN };
 }
 
 // Reduce cooldown by agi per turn, with luk chance to instantly reset cooldown to 0

@@ -76,7 +76,7 @@ export function chooseSkill(idx: number, character: Character, skillChoices: Ski
   character.skills.push(skill);
 }
 
-export function applySkills(character: Character) {
+export function applySkills(character: Character): Character {
 
   for (const skill of character.skills) {
     character.status.str = skillStatus(character, 'str', skill);
@@ -96,7 +96,7 @@ export function applySkills(character: Character) {
     character.status.int = skillStatus(character, 'int', skill);
     character.status.luk = skillStatus(character, 'luk', skill);
   }
-
+  return character;
 }
 
 function applyBuff(val: number, buff: SkillData, type: keyof Character['status']): number {
