@@ -59,88 +59,95 @@ export function battleAction(
   defenderType: AttackType,
   isPlayer: boolean
 ): boolean {
+  resetCooldown(attacker);
 
-  // Player's turn: if cooldown is max, require user to select attack type
-  if (canAttack(attacker)) {
-    // Use selected attack type (default: 'phy')
-    if (!tryEvade(defender, attacker)) {
-      let dmgResult = calcDamageWithType(attacker, defender, attackerType);
-      // Type advantage logic:
-      // phy > magic, magic > mix, mix > phy
-      // If attackerType loses to defenderType, reduce damage by 50%
-      const losesTo = (atk: AttackType, def: AttackType): boolean => {
-        return (
-          (atk === 'phy' && def === 'mix') ||
-          (atk === 'magic' && def === 'phy') ||
-          (atk === 'mix' && def === 'magic')
-        );
-      };
-      let finalDmg = dmgResult.value;
-      if (losesTo(attackerType, defenderType)) {
-        finalDmg = Math.floor(finalDmg * 0.5);
+  // Use selected attack type (default: 'phy')
+  if (!tryEvade(defender, attacker)) {
+    let dmgResult = calcDamageWithType(attacker, defender, attackerType);
+    let finalDmg = dmgResult.value;
+    // ลดดาเมจ 50% ถ้า defence type ตรงกับ attack type
+    if (defenderType === attackerType) {
+      finalDmg = Math.floor(finalDmg * 0.5);
+      if (defenderType === 'mix') {
+        finalDmg = Math.floor(finalDmg * 0.5); // mix vs mix is 25% damage
       }
-      defender.hp -= finalDmg;
-      battleLog.unshift(
-        createBattleLog({
-          attacker: attacker,
-          defender: defender,
-          value: finalDmg,
-          type: dmgResult.type,
-          crit: dmgResult.crit,
-          isPlayer: isPlayer,
-          isEvade: false
-        })
-      );
+    } 
+    defender.hp -= finalDmg;
+    battleLog.unshift(
+      createBattleLog({
+        attacker: attacker,
+        defender: defender,
+        value: finalDmg,
+        crit: dmgResult.crit,
+        isPlayer: isPlayer,
+        isEvade: false,
+        attackerType,
+        defenderType
+      })
+    );
 
-      if (defender.hp <= 0) {
-        battleLog.unshift(`${defender.name} แพ้!`);
-        battleLog.unshift('--- จบการต่อสู้ ---');
-        onFinish(attacker);
-        return true; // Battle finished
-      }
-    } else {
-      battleLog.unshift(
-        createBattleLog({
-          attacker: attacker,
-          defender: defender,
-          isPlayer: isPlayer,
-          isEvade: true
-        })
-      );
+    if (defender.hp <= 0) {
+      battleLog.unshift(`${defender.name} แพ้!`);
+      battleLog.unshift('--- จบการต่อสู้ ---');
+      onFinish(attacker);
+      return true; // Battle finished
     }
-    resetCooldown(attacker);
-    return false; // Continue battle
+  } else {
+    battleLog.unshift(
+      createBattleLog({
+        attacker: attacker,
+        defender: defender,
+        isPlayer: isPlayer,
+        isEvade: true,
+        attackerType,
+        defenderType
+      })
+    );
   }
+
 
   // สร้างข้อความ log การต่อสู้ ใช้ร่วมกันทั้ง player และ enemy
   interface BattleLogParams {
     attacker: Character;
     defender: Character;
     value?: number;
-    type?: string;
     crit?: boolean;
     isPlayer: boolean;
     isEvade: boolean;
+    attackerType: AttackType;
+    defenderType: AttackType;
   }
 
   function createBattleLog(params: BattleLogParams): string {
-    const { attacker, defender, value, type, crit, isPlayer, isEvade } = params;
+    const { attacker, defender, value, crit, isPlayer, isEvade, attackerType, defenderType } = params;
+    // แปลงประเภทการโจมตี/ป้องกันเป็นข้อความ
+    const typeText = (t?: AttackType) => {
+      if (t === 'phy') return 'กายภาพ';
+      if (t === 'magic') return 'เวทย์';
+      if (t === 'mix') return 'ผสาน';
+      return '';
+    };
+    const critText = crit ? ' (Critical!)' : '';
     if (isEvade) {
       if (isPlayer) {
-        return `คุณโจมตี ${defender.name} แต่ ${defender.name} หลบได้!`;
+        return `คุณโจมตี (${typeText(attackerType)}) แต่ ${defender.name} หลบได้!`;
       } else {
-        return `${attacker.name} โจมตีคุณ แต่คุณหลบได้!`;
+        return `${attacker.name} โจมตี (${typeText(attackerType)}) คุณหลบได้ ๕๕๕`;
       }
     } else {
-      let dmgTypeText = '';
-      if (type === 'phy') dmgTypeText = 'กายภาพ';
-      else if (type === 'magic') dmgTypeText = 'เวทย์มนต์';
-      else if (type === 'mix') dmgTypeText = 'เวทย์ผสาน';
-      const critText = crit ? ' (คริติคอล!)' : '';
+      // value = net damage, type = attack type
+      // 1. คุณโจมตี(attack type) x dmg (enemy) รับด้วย (defend type) สุทธิ z dmg
+      // 2. (enemy)โจมตี(attack type) x dmg คุณรับด้วย (defend type) สุทธิ z dmg
+      // 3. หากเกิด critical แสดงผลด้วย
       if (isPlayer) {
-        return `คุณโจมตี ${defender.name} ${dmgTypeText} ${value} dmg${critText} (HP เหลือ ${defender.hp < 0 ? 0 : defender.hp})`;
+        if (attackerType === defenderType)
+          return `You attack (${typeText(attackerType)}) ${defender.name} defends perfectly, only ${value} dmg${critText}`;
+        else
+          return `You attack (${typeText(attackerType)}) ${defender.name} defends with (${typeText(defenderType)}), deals ${value} dmg${critText}`;
       } else {
-        return `${attacker.name} โจมตีคุณ ${dmgTypeText} ${value} dmg${critText} (HP เหลือ ${defender.hp < 0 ? 0 : defender.hp})`;
+        if (attackerType === defenderType)
+          return `${attacker.name} attacks (${typeText(attackerType)}) you defend perfectly, only ${value} dmg${critText}`;
+        return `${attacker.name} attacks (${typeText(attackerType)}) you defend with (${typeText(defenderType)}), deals ${value} dmg${critText}`;
       }
     }
   }

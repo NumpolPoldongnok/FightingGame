@@ -39,7 +39,7 @@ export function randomCharacterStatus(points: number, type: keyof Status): Statu
 export const MAX_STATUS = 999;
 
 /** จำนวน HP สูงสุดที่ได้รับต่อค่า VIT 1 หน่วย */
-export const HP_PER_VIT = 10;
+export const HP_PER_VIT = 20;
 
 
 // --- Helper Functions ---

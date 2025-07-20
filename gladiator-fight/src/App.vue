@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useGameStore } from './store/useGameStore'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue' // ref is no longer needed here for scene management
 
 // Import Scenes
 import CreateCharacterScene from './scenes/CreateCharacterScene.vue'
@@ -18,7 +17,6 @@ import UserLayout from './layouts/UserLayout.vue'
 // Import Types and Utils
 import type { Character } from './types/game'
 import { getEnemy } from './store/battleUtils'
-import { applySkills } from './store/skillUtils'
 
 const game = useGameStore()
 const {

@@ -8,7 +8,7 @@ import { toBattleFighter } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
 import CharacterStatus from '../components/CharacterStatus.vue'
 import BattleActionPopup from '../components/BattleActionPopup.vue'
-
+import BattleLogBubble from '../components/BattleLogBubble.vue'
 const props = defineProps<{ character: Character, enemy: Character }>()
 
 const character = toBattleFighter(props.character)
@@ -240,8 +240,14 @@ onUnmounted(() => {
       />
     </div>
     <div class="log-scroll-area">
-      <div v-for="(log, idx) in battleLog" :key="idx" :class="['log-entry', getLogClass(log)]">
-        {{ log }}
+      <div class="log-bubble-list">
+        <BattleLogBubble
+          v-for="(log, idx) in battleLog"
+          :key="idx"
+          :type="getLogClass(log) === 'log-player' ? 'player' : getLogClass(log) === 'log-enemy' ? 'enemy' : 'neutral'"
+        >
+          {{ log }}
+        </BattleLogBubble>
       </div>
     </div>
 
@@ -270,22 +276,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* (Most existing styles remain the same from your original component) */
-/*
-  Remove the following styles from FightArena.vue as they are now
-  managed by BattleActionPopup.vue:
-
-  .popup-attack-content
-  .popup-title (for action popups)
-  .popup-explanation (for action popups)
-  .popup-character-frame (for action popups)
-  .popup-character-name (for action popups)
-  .attack-type-options
-  .defense-type-options
-  .attack-type-btn
-  .defense-type-btn
-  .popup-checkbox (for action popups)
-*/
 
 .fight-container {
   color: #fdecc4;
@@ -453,6 +443,11 @@ onUnmounted(() => {
   text-align: center; font-weight: bold;
   background: rgba(138, 112, 61, 0.1);
   margin-top: 0.5rem; margin-bottom: 0.5rem;
+}
+.log-bubble-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 /* --- Result Popups --- */
