@@ -5,103 +5,114 @@ import { MAX_STATUS } from './statusUtils';
 // --- Cooldown-based Battle Logic ---
 export type BattleFighter = Character & { cooldown: number };
 
-// Initialize a fighter with cooldown
 // This will be set by setBattleMaxCooldown before battle starts
 export let BATTLE_MAX_COOLDOWN = 100;
+
+export type AttackType = 'phy' | 'magic' | 'mix';
 
 export function doBattleTurn(
   character: BattleFighter,
   enemy: BattleFighter,
-  battleLog: string[],
-  onFinish: (character: BattleFighter) => void,
-  intervalRef: { value: any }
+  onPlayerAction: (opts: {
+    character: BattleFighter,
+    enemy: BattleFighter
+  }) => void,
+  onEnemyAction: (opts: {
+    character: BattleFighter,
+    enemy: BattleFighter
+  }) => void
 ) {
-  // Convert to BattleFighter with cooldown if not already
-  // @ts-ignore
-  if (character.cooldown === undefined) Object.assign(character, toBattleFighter(character));
-  // @ts-ignore
-  if (enemy.cooldown === undefined) Object.assign(enemy, toBattleFighter(enemy));
-
-  if (character.hp <= 0) {
-    onFinish(character);
-    return;
-  }
-  if (enemy.hp <= 0) {
-    onFinish(character);
-    return;
-  }
 
   // Reduce cooldowns
   reduceCooldown(character, enemy);
   reduceCooldown(enemy, character);
 
-  // Player's turn
+  // Player's turn: if cooldown is max, require user to select attack type
   if (canAttack(character)) {
-    if (!tryEvade(enemy, character)) {
-      const dmgResult = calcDamage(character, enemy);
-      enemy.hp -= dmgResult.value;
-      battleLog.unshift(
-        createBattleLog({
-          attacker: character,
-          defender: enemy,
-          value: dmgResult.value,
-          type: dmgResult.type,
-          crit: dmgResult.crit,
-          isPlayer: true,
-          isEvade: false
-        })
-      );
-    } else {
-      battleLog.unshift(
-        createBattleLog({
-          attacker: character,
-          defender: enemy,
-          isPlayer: true,
-          isEvade: true
-        })
-      );
+    if (onPlayerAction) {
+      onPlayerAction({
+        character,
+        enemy
+      });
+      return; // Wait for user input
     }
-    resetCooldown(character);
   }
 
-  if (enemy.hp <= 0) {
-    battleLog.unshift(`${enemy.name} แพ้!`);
-    clearInterval(intervalRef.value);
-    setTimeout(() => {
-      battleLog.unshift('--- จบการต่อสู้ ---');
-      onFinish(character);
-    }, 200);
-    return;
-  }
-
-  // Enemy's turn
+  // Enemy's turn: if cooldown is max, require defense type selection
   if (canAttack(enemy)) {
-    if (!tryEvade(character, enemy)) {
-      const dmgResult = calcDamage(enemy, character);
-      character.hp -= dmgResult.value;
+    if (onEnemyAction) {
+      onEnemyAction({
+        character,
+        enemy
+      });
+      return; // Wait for defense input
+    }
+  }
+}
+
+export function battleAction(
+  attacker: BattleFighter,
+  defender: BattleFighter,
+  battleLog: string[],
+  onFinish: (winner: BattleFighter) => void,
+  attackerType: AttackType,
+  defenderType: AttackType,
+  isPlayer: boolean
+) {
+
+  // Player's turn: if cooldown is max, require user to select attack type
+  if (canAttack(attacker)) {
+    // Use selected attack type (default: 'phy')
+    if (!tryEvade(defender, attacker)) {
+      let dmgResult = calcDamageWithType(attacker, defender, attackerType);
+      // Type advantage logic:
+      // phy > magic, magic > mix, mix > phy
+      // If attackerType loses to defenderType, reduce damage by 50%
+      const losesTo = (atk: AttackType, def: AttackType): boolean => {
+        return (
+          (atk === 'phy' && def === 'mix') ||
+          (atk === 'magic' && def === 'phy') ||
+          (atk === 'mix' && def === 'magic')
+        );
+      };
+      let finalDmg = dmgResult.value;
+      if (losesTo(attackerType, defenderType)) {
+        finalDmg = Math.floor(finalDmg * 0.5);
+      }
+      defender.hp -= finalDmg;
       battleLog.unshift(
         createBattleLog({
-          attacker: enemy,
-          defender: character,
-          value: dmgResult.value,
+          attacker: attacker,
+          defender: defender,
+          value: finalDmg,
           type: dmgResult.type,
           crit: dmgResult.crit,
-          isPlayer: false,
+          isPlayer: isPlayer,
           isEvade: false
         })
       );
+
+      if (defender.hp <= 0) {
+        battleLog.unshift(`${defender.name} แพ้!`);
+        setTimeout(() => {
+          battleLog.unshift('--- จบการต่อสู้ ---');
+          onFinish(attacker);
+        }, 200);
+        return;
+      }
     } else {
       battleLog.unshift(
         createBattleLog({
-          attacker: enemy,
-          defender: character,
-          isPlayer: false,
+          attacker: attacker,
+          defender: defender,
+          isPlayer: isPlayer,
           isEvade: true
         })
       );
     }
-    resetCooldown(enemy);
+    resetCooldown(attacker);
   }
+
   // สร้างข้อความ log การต่อสู้ ใช้ร่วมกันทั้ง player และ enemy
   interface BattleLogParams {
     attacker: Character;
@@ -133,15 +144,6 @@ export function doBattleTurn(
         return `${attacker.name} โจมตีคุณ ${dmgTypeText} ${value} dmg${critText} (HP เหลือ ${defender.hp < 0 ? 0 : defender.hp})`;
       }
     }
-  }
-
-  if (character.hp <= 0) {
-    battleLog.unshift(`คุณแพ้!`);
-    clearInterval(intervalRef.value);
-    setTimeout(() => {
-      battleLog.unshift('--- จบการต่อสู้ ---');
-      onFinish(character);
-    }, 200);
   }
 }
 
@@ -176,6 +178,16 @@ export function calcDamage(attacker: Character, defender: Character): { type: 'p
     // phy มากกว่า magic
     return { type: 'phy', value: phy.value, crit: phy.crit };
   }
+}
+
+// Helper to calculate damage with forced type
+export function calcDamageWithType(attacker: Character, defender: Character, type: 'phy' | 'magic' | 'mix') {
+  if (type === 'phy') return { ...calcPhysicalDamage(attacker, defender), type: 'phy' };
+  if (type === 'magic') return { ...calcMagicDamage(attacker, defender), type: 'magic' };
+  // mix
+  const phy = calcPhysicalDamage(attacker, defender);
+  const magic = calcMagicDamage(attacker, defender);
+  return { type: 'mix', value: phy.value + magic.value, crit: phy.crit || magic.crit };
 }
 
 export function toBattleFighter(character: Character): BattleFighter {

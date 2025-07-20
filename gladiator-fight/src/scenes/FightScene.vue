@@ -3,7 +3,7 @@ import { ref, onUnmounted, computed, onMounted, nextTick } from 'vue'
 import CooldownBar from '../components/CooldownBar.vue'
 import Popup from '../components/Popup.vue'
 import type { Character } from '../types/game'
-import { doBattleTurn, getLogClass, BATTLE_MAX_COOLDOWN } from '../store/battleUtils'
+import { doBattleTurn, battleAction, getLogClass, BATTLE_MAX_COOLDOWN } from '../store/battleUtils'
 import { toBattleFighter } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
 
@@ -32,7 +32,16 @@ const intervalRef = { value: undefined as any }
 const speed = ref(1)
 const baseInterval = 200
 
+// --- ATTACK/DEFENSE POPUP STATE ---
+const showAttackTypePopup = ref(false)
+const showDefenseTypePopup = ref(false)
+const pendingAttackType = ref<'phy' | 'magic' | 'mix' | null>(null)
+const pendingDefenseType = ref<'phy' | 'magic' | 'mix' | null>(null)
+
 // --- BATTLE LOGIC ---
+// Store selectAttack/selectDefense callbacks in refs
+const selectAttackCallback = ref<((type: 'phy' | 'magic' | 'mix') => void) | null>(null)
+const selectDefenseCallback = ref<((type: 'phy' | 'magic' | 'mix') => void) | null>(null)
 /** Called when the battle concludes. The result is based on the player's final HP. */
 function onFinish(character: Character) {
   clearInterval(intervalRef.value)
@@ -40,7 +49,65 @@ function onFinish(character: Character) {
 }
 
 function doBattleTurnWrapper() {
-  doBattleTurn(character, enemy, battleLog.value, onFinish, intervalRef)
+  doBattleTurn(
+    character,
+    enemy,
+    // onPlayerAction
+    ({ character, enemy }) => {
+      if (intervalRef.value) {
+        clearInterval(intervalRef.value)
+        intervalRef.value = undefined
+      }
+      showAttackTypePopup.value = true
+      pendingAttackType.value = null
+    },
+    // onEnemyAction
+    ({ character, enemy }) => {
+      if (intervalRef.value) {
+        clearInterval(intervalRef.value)
+        intervalRef.value = undefined
+      }
+      showDefenseTypePopup.value = true
+      pendingDefenseType.value = null
+    }
+  )
+}
+
+function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix') {
+  pendingAttackType.value = type
+  showAttackTypePopup.value = false
+  // After player selects, resolve the action
+  battleAction(
+    character,
+    enemy,
+    battleLog.value,
+    onFinish,
+    type,
+    pendingDefenseType.value || 'phy',
+    true
+  )
+  // Resume interval if battle not finished
+  if (!intervalRef.value && isBattleStarted.value && !battleResult.value) {
+    intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
+  }
+}
+function handleDefenseTypeSelect(type: 'phy' | 'magic' | 'mix') {
+  pendingDefenseType.value = type
+  showDefenseTypePopup.value = false
+  // After player selects, resolve the action (enemy attacks)
+  battleAction(
+    enemy,
+    character,
+    battleLog.value,
+    onFinish,
+    type,
+    pendingAttackType.value || 'phy',
+    false
+  )
+  // Resume interval if battle not finished
+  if (!intervalRef.value && isBattleStarted.value && !battleResult.value) {
+    intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
+  }
 }
 
 function handleStartBattle() {
@@ -131,6 +198,26 @@ onUnmounted(() => {
           @click="emit('battle-finished', character)">PROCEED</button>
         <button v-if="battleResult === 'lose'" class="modal-btn restart-btn" @click="emit('restart')">RESTART</button>
         <button class="dismiss-btn" @click="isResultPopupDismissed = true">Inspect Battle</button>
+      </div>
+    </Popup>
+
+    <!-- Attack Type Selection Popup -->
+    <Popup v-model="showAttackTypePopup" customClass="attack-type-popup" :showClose="false">
+      <h2 class="popup-title">Select Attack Type</h2>
+      <div class="attack-type-options">
+        <button class="attack-type-btn" @click="handleAttackTypeSelect('phy')">Physical</button>
+        <button class="attack-type-btn" @click="handleAttackTypeSelect('magic')">Magic</button>
+        <button class="attack-type-btn" @click="handleAttackTypeSelect('mix')">Mixed</button>
+      </div>
+    </Popup>
+
+    <!-- Defense Type Selection Popup -->
+    <Popup v-model="showDefenseTypePopup" customClass="defense-type-popup" :showClose="false">
+      <h2 class="popup-title">Select Defense Type</h2>
+      <div class="defense-type-options">
+        <button class="defense-type-btn" @click="handleDefenseTypeSelect('phy')">Physical</button>
+        <button class="defense-type-btn" @click="handleDefenseTypeSelect('magic')">Magic</button>
+        <button class="defense-type-btn" @click="handleDefenseTypeSelect('mix')">Mixed</button>
       </div>
     </Popup>
   </div>
