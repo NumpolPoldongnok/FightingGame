@@ -3,12 +3,14 @@ import { ref, onUnmounted, computed, onMounted } from 'vue'
 import CooldownBar from '../components/CooldownBar.vue'
 import Popup from '../components/Popup.vue'
 import type { Character } from '../types/game'
-import { doBattleTurn, battleAction, getLogClass, BATTLE_MAX_COOLDOWN, AttackType, randomEnemyAttackType, randomEnemyDefenseType } from '../store/battleUtils'
+import { doBattleTurn, battleAction, BATTLE_MAX_COOLDOWN, randomEnemyAttackType, randomEnemyDefenseType } from '../store/battleUtils'
 import { toBattleFighter } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
 import CharacterStatus from '../components/CharacterStatus.vue'
 import BattleActionPopup from '../components/BattleActionPopup.vue'
 import BattleLogBubble from '../components/BattleLogBubble.vue'
+import { BattleLogParams } from 'src/store/battleLogUtils'
+import { createBattleLogText } from '../store/battleLogUtils'
 const props = defineProps<{ character: Character, enemy: Character }>()
 
 const character = toBattleFighter(props.character)
@@ -17,7 +19,7 @@ const enemy = toBattleFighter(props.enemy)
 const emit = defineEmits(['battle-finished', 'restart'])
 
 // --- STATE ---
-const battleLog = ref<string[]>([])
+const battleLog = ref<BattleLogParams[]>([])
 const isBattleStarted = ref(false)
 const battleResult = ref<'win' | 'lose' | null>(null)
 const isResultPopupDismissed = ref(false) // Tracks if the result popup has been dismissed
@@ -244,9 +246,9 @@ onUnmounted(() => {
         <BattleLogBubble
           v-for="(log, idx) in battleLog"
           :key="idx"
-          :type="getLogClass(log) === 'log-player' ? 'player' : getLogClass(log) === 'log-enemy' ? 'enemy' : 'neutral'"
+          :type="log.attacker === character? 'player' : log.attacker === enemy ? 'enemy' : 'neutral'"
         >
-          {{ log }}
+          {{ createBattleLogText(log) }}
         </BattleLogBubble>
       </div>
     </div>
