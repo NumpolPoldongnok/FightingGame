@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onUnmounted, computed, onMounted, nextTick } from 'vue'
+import { ref, onUnmounted, computed, onMounted } from 'vue'
 import CooldownBar from '../components/CooldownBar.vue'
 import Popup from '../components/Popup.vue'
 import type { Character } from '../types/game'
@@ -7,6 +7,7 @@ import { doBattleTurn, battleAction, getLogClass, BATTLE_MAX_COOLDOWN, AttackTyp
 import { toBattleFighter } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
 import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
+import CharacterStatus from '../components/CharacterStatus.vue'
 
 const props = defineProps<{ character: Character, enemy: Character }>()
 
@@ -43,14 +44,8 @@ const alwaysDefendChecked = ref(false)
 const attackTypePopupDismissed = ref(false)
 const defenseTypePopupDismissed = ref(false)
 
-// --- BATTLE LOGIC ---
-// Store selectAttack/selectDefense callbacks in refs
-const selectAttackCallback = ref<((type: 'phy' | 'magic' | 'mix') => void) | null>(null)
-const selectDefenseCallback = ref<((type: 'phy' | 'magic' | 'mix') => void) | null>(null)
-/** Called when the battle concludes. The result is based on the player's final HP. */
-function onFinish(character: Character) {
-  clearInterval(intervalRef.value)
-  battleResult.value = character.hp > 0 ? 'win' : 'lose'
+function onFinish(winner: Character) {
+  battleResult.value = (winner === character) ? 'win' : 'lose'
 }
 
 function doBattleTurnWrapper() {
@@ -60,7 +55,7 @@ function doBattleTurnWrapper() {
     // onPlayerAction
     ({ character, enemy }) => {
       if (alwaysAttackChecked.value && alwaysAttackType.value) {
-        handleAttackTypeSelect(alwaysAttackType.value, true)
+        handleAttackTypeSelect(alwaysAttackType.value)
         return
       }
       if (intervalRef.value) {
@@ -73,7 +68,7 @@ function doBattleTurnWrapper() {
     // onEnemyAction
     ({ character, enemy }) => {
       if (alwaysDefendChecked.value && alwaysDefendType.value) {
-        handleDefenseTypeSelect(alwaysDefendType.value, true)
+        handleDefenseTypeSelect(alwaysDefendType.value)
         return
       }
       if (intervalRef.value) {
@@ -86,11 +81,11 @@ function doBattleTurnWrapper() {
   )
 }
 
-function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix', auto = false) {
+function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix') {
   showAttackTypePopup.value = false
   if (alwaysAttackChecked.value) alwaysAttackType.value = type
   // After player selects, resolve the action
-  battleAction(
+  const result = battleAction(
     character,
     enemy,
     battleLog.value,
@@ -100,15 +95,15 @@ function handleAttackTypeSelect(type: 'phy' | 'magic' | 'mix', auto = false) {
     true
   )
   // Resume interval if battle not finished
-  if (!intervalRef.value && isBattleStarted.value && !battleResult.value) {
+  if (!result && !intervalRef.value && isBattleStarted.value && !battleResult.value) {
     intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
   }
 }
-function handleDefenseTypeSelect(type: 'phy' | 'magic' | 'mix', auto = false) {
+function handleDefenseTypeSelect(type: 'phy' | 'magic' | 'mix') {
   showDefenseTypePopup.value = false
   if (alwaysDefendChecked.value) alwaysDefendType.value = type
   // After player selects, resolve the action (enemy attacks)
-  battleAction(
+  const result = battleAction(
     enemy,
     character,
     battleLog.value,
@@ -118,7 +113,7 @@ function handleDefenseTypeSelect(type: 'phy' | 'magic' | 'mix', auto = false) {
     false
   )
   // Resume interval if battle not finished
-  if (!intervalRef.value && isBattleStarted.value && !battleResult.value) {
+  if (!result && !intervalRef.value && isBattleStarted.value && !battleResult.value) {
     intervalRef.value = setInterval(doBattleTurnWrapper, baseInterval / speed.value)
   }
 }
@@ -201,6 +196,7 @@ onUnmounted(() => {
         <div class="fighter-content">
           <HPBar :value="character.hp" :max="character.maxHp" type="player" />
           <CooldownBar :value="character.cooldown ?? 0" :max="BATTLE_MAX_COOLDOWN" />
+          <CharacterStatus :character="character" title="Your Status" :show-buttons="false" />
         </div>
       </div>
       <div class="vs-separator vs-overlay">VS</div>
@@ -209,6 +205,7 @@ onUnmounted(() => {
         <div class="fighter-content">
           <HPBar :value="enemy.hp" :max="enemy.maxHp" type="enemy" />
           <CooldownBar :value="enemy.cooldown ?? 0" :max="BATTLE_MAX_COOLDOWN" />
+          <CharacterStatus :character="enemy" title="Enemy Status" :show-buttons="false" />
         </div>
       </div>
     </div>

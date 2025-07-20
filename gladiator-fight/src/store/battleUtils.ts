@@ -58,7 +58,7 @@ export function battleAction(
   attackerType: AttackType,
   defenderType: AttackType,
   isPlayer: boolean
-) {
+): boolean {
 
   // Player's turn: if cooldown is max, require user to select attack type
   if (canAttack(attacker)) {
@@ -94,11 +94,9 @@ export function battleAction(
 
       if (defender.hp <= 0) {
         battleLog.unshift(`${defender.name} แพ้!`);
-        setTimeout(() => {
-          battleLog.unshift('--- จบการต่อสู้ ---');
-          onFinish(attacker);
-        }, 200);
-        return;
+        battleLog.unshift('--- จบการต่อสู้ ---');
+        onFinish(attacker);
+        return true; // Battle finished
       }
     } else {
       battleLog.unshift(
@@ -111,6 +109,7 @@ export function battleAction(
       );
     }
     resetCooldown(attacker);
+    return false; // Continue battle
   }
 
   // สร้างข้อความ log การต่อสู้ ใช้ร่วมกันทั้ง player และ enemy
@@ -145,6 +144,9 @@ export function battleAction(
       }
     }
   }
+
+  // Ensure a boolean is always returned
+  return false;
 }
 
 // Helper to classify log type for styling (must be defined as const for template usage)
