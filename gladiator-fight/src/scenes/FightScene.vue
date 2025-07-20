@@ -1,15 +1,14 @@
 <script lang="ts" setup>
-import { ref, onUnmounted, computed, onMounted } from 'vue'
+import { ref, onUnmounted, computed, onMounted, nextTick } from 'vue'
 import CooldownBar from '../components/CooldownBar.vue'
 import Popup from '../components/Popup.vue'
 import type { Character } from '../types/game'
-import { doBattleTurn, getLogClass } from '../store/battleUtils'
-import { toBattleFighter, setBattleMaxCooldown } from '../store/battleUtils'
+import { doBattleTurn, getLogClass, BATTLE_MAX_COOLDOWN } from '../store/battleUtils'
+import { toBattleFighter } from '../store/battleUtils'
 import HPBar from '../components/HPBar.vue'
 
 const props = defineProps<{ character: Character, enemy: Character }>()
 
-const maxCooldown = setBattleMaxCooldown(props.character.status.agi, props.enemy.status.agi)
 const character = toBattleFighter(props.character)
 const enemy = toBattleFighter(props.enemy)
 
@@ -104,7 +103,7 @@ onUnmounted(() => {
         <h3 class="fighter-name">{{ character.name }}</h3>
         <div class="fighter-content">
           <HPBar :value="character.hp" :max="character.maxHp" type="player" />
-          <CooldownBar :value="character.cooldown ?? 0" :max="maxCooldown" />
+          <CooldownBar :value="character.cooldown ?? 0" :max="BATTLE_MAX_COOLDOWN" />
         </div>
       </div>
       <div class="vs-separator vs-overlay">VS</div>
@@ -112,7 +111,7 @@ onUnmounted(() => {
         <h3 class="fighter-name">{{ enemy.name }}</h3>
         <div class="fighter-content">
           <HPBar :value="enemy.hp" :max="enemy.maxHp" type="enemy" />
-          <CooldownBar :value="enemy.cooldown ?? 0" :max="maxCooldown" />
+          <CooldownBar :value="enemy.cooldown ?? 0" :max="BATTLE_MAX_COOLDOWN" />
         </div>
       </div>
     </div>

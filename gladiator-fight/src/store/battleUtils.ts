@@ -7,13 +7,13 @@ export type BattleFighter = Character & { cooldown: number };
 
 // Initialize a fighter with cooldown
 // This will be set by setBattleMaxCooldown before battle starts
-let BATTLE_MAX_COOLDOWN = 100;
+export let BATTLE_MAX_COOLDOWN = 100;
 
 export function doBattleTurn(
-  character: Character,
-  enemy: Character,
+  character: BattleFighter,
+  enemy: BattleFighter,
   battleLog: string[],
-  onFinish: (character: Character) => void,
+  onFinish: (character: BattleFighter) => void,
   intervalRef: { value: any }
 ) {
   // Convert to BattleFighter with cooldown if not already
@@ -32,12 +32,12 @@ export function doBattleTurn(
   }
 
   // Reduce cooldowns
-  reduceCooldown(character as BattleFighter);
-  reduceCooldown(enemy as BattleFighter);
+  reduceCooldown(character, enemy);
+  reduceCooldown(enemy, character);
 
   // Player's turn
-  if (canAttack(character as BattleFighter)) {
-    if (!tryEvade(enemy as BattleFighter, character as BattleFighter)) {
+  if (canAttack(character)) {
+    if (!tryEvade(enemy, character)) {
       const dmgResult = calcDamage(character, enemy);
       enemy.hp -= dmgResult.value;
       battleLog.unshift(
@@ -61,7 +61,7 @@ export function doBattleTurn(
         })
       );
     }
-    resetCooldown(character as BattleFighter);
+    resetCooldown(character);
   }
 
   if (enemy.hp <= 0) {
@@ -75,8 +75,8 @@ export function doBattleTurn(
   }
 
   // Enemy's turn
-  if (canAttack(enemy as BattleFighter)) {
-    if (!tryEvade(character as BattleFighter, enemy as BattleFighter)) {
+  if (canAttack(enemy)) {
+    if (!tryEvade(character, enemy)) {
       const dmgResult = calcDamage(enemy, character);
       character.hp -= dmgResult.value;
       battleLog.unshift(
@@ -100,7 +100,7 @@ export function doBattleTurn(
         })
       );
     }
-    resetCooldown(enemy as BattleFighter);
+    resetCooldown(enemy);
   }
   // สร้างข้อความ log การต่อสู้ ใช้ร่วมกันทั้ง player และ enemy
   interface BattleLogParams {
@@ -178,30 +178,32 @@ export function calcDamage(attacker: Character, defender: Character): { type: 'p
   }
 }
 
-export function setBattleMaxCooldown(charAgi: number, enemyAgi: number): number {
-  BATTLE_MAX_COOLDOWN = Math.max(1, (charAgi + enemyAgi) * 10);
-  return BATTLE_MAX_COOLDOWN;
-}
-
 export function toBattleFighter(character: Character): BattleFighter {
   const buffedCharacter = applySkills(character); // Ensure skills are applied before converting
-  return { ...buffedCharacter, cooldown: BATTLE_MAX_COOLDOWN };
+  return { ...buffedCharacter, cooldown: 0 };
 }
 
-// Reduce cooldown by agi per turn, with luk chance to instantly reset cooldown to 0
-export function reduceCooldown(fighter: BattleFighter) {
-  fighter.cooldown -= fighter.status.agi;
+// Reduce cooldown by agi ratio: (agi / (agi + opponentAgi)) * 20, min 1, max 20
+export function reduceCooldown(fighter: BattleFighter, opponent: BattleFighter) {
+  const agi = Math.max(0, fighter.status.agi);
+  const oppAgi = Math.max(0, opponent.status.agi);
+  let ratio = agi + oppAgi > 0 ? agi / (agi + oppAgi) : 0.5;
+  let reduce = Math.round(ratio * 20);
+  reduce = Math.max(1, Math.min(20, reduce));
+  fighter.cooldown += reduce;
   if (fighter.cooldown < 0) fighter.cooldown = 0;
+  if (fighter.cooldown > BATTLE_MAX_COOLDOWN) fighter.cooldown = BATTLE_MAX_COOLDOWN;
+  console.log(`reduceCooldown: ${fighter.name} cooldown increased by ${reduce}, now ${fighter.cooldown}`);
 }
 
 // Check if fighter can attack
 export function canAttack(fighter: BattleFighter): boolean {
-  return fighter.cooldown <= 0;
+  return fighter.cooldown >= BATTLE_MAX_COOLDOWN;
 }
 
 // Reset cooldown after attack
 export function resetCooldown(fighter: BattleFighter) {
-  fighter.cooldown = BATTLE_MAX_COOLDOWN;
+  fighter.cooldown = 0;
 }
 
 // Calculate evasion: agi of defender vs dex of attacker
