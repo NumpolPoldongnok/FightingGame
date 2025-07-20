@@ -9,6 +9,7 @@ import HPBar from '../components/HPBar.vue'
 import CharacterStatus from '../components/CharacterStatus.vue'
 import BattleActionPopup from '../components/BattleActionPopup.vue'
 import BattleLogBubble from '../components/BattleLogBubble.vue'
+import CharacterPictureFrame from '../components/CharacterPictureFrame.vue'
 import { BattleLogParams } from 'src/store/battleLogUtils'
 import { createBattleLogText } from '../store/battleLogUtils'
 const props = defineProps<{ character: Character, enemy: Character }>()
@@ -248,7 +249,24 @@ onUnmounted(() => {
           :key="idx"
           :type="(log.attacker.id === character.id) ? 'player' : (log.attacker.id === enemy.id) ? 'enemy' : 'neutral'"
         >
-          {{ createBattleLogText(log) }}
+          <template #default>
+            <div
+              class="log-bubble-content"
+              :class="{
+                'log-bubble-enemy': log.attacker.id === enemy.id,
+                'log-bubble-player': log.attacker.id === character.id,
+                'log-bubble-neutral': log.attacker.id !== character.id && log.attacker.id !== enemy.id
+              }"
+            >
+              <CharacterPictureFrame
+                v-if="log.attacker"
+                :character="log.attacker"
+                :size="36"
+                class="log-bubble-avatar"
+              />
+              <span class="log-bubble-text">{{ createBattleLogText(log) }}</span>
+            </div>
+          </template>
         </BattleLogBubble>
       </div>
     </div>
@@ -706,5 +724,32 @@ onUnmounted(() => {
   color: #44341b;
   border-color: #fff;
   box-shadow: 0 0 10px #e2c178;
+}
+
+/* Avatar in log bubble */
+.log-bubble-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.log-bubble-enemy {
+  flex-direction: row-reverse;
+}
+.log-bubble-player, .log-bubble-neutral {
+  flex-direction: row;
+}
+.log-bubble-avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px #0004;
+  border: 2px solid #c8ab6b;
+  background: #fff;
+  align-self: flex-start;
+}
+.log-bubble-text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  align-self: flex-start;
 }
 </style>
